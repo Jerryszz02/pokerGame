@@ -27,7 +27,7 @@
 | `README.md` | 项目是本地 Godot 4 + GDScript 单人 Texas Hold'em 原型；支持 1-5 个 AI、三档难度、标准下注流程、边池、分池和程序化 UI。 |
 | `AGENTS.md` | 不引入 C#、外部 API、LLM、遥测或第三方插件；所有行动通过 `PokerRound.apply_action()`。 |
 | `docs/architecture.md` | 主流程为菜单选择、开局、发牌、下注、AI 决策、推进街道、摊牌或无人争夺结算、结果面板。 |
-| `scripts/ui/main.gd` | 菜单包含 AI 数量和难度；牌桌显示底池、当前下注、公共牌、座位、行动按钮、加注滑杆和结果面板。 |
+| `scripts/ui/main.gd` | 菜单包含 AI 数量和难度；牌桌显示底池、当前下注、公共牌、座位、行动按钮、加注滑杆与步进按钮和结果面板。 |
 | `scripts/game/poker_round.gd` | 规则引擎拥有行动合法性、盲注、街道推进、边池、分池和摊牌。 |
 | `scripts/ai/ai_decision.gd` | AI 根据合法行动、权益估计、底池赔率和个性参数返回 fold/check/call/raise/all_in。 |
 | `tests/test_runner.gd` | 自动测试覆盖牌组唯一性、牌型、行动校验、边池、分池、AI 个性和 Monte Carlo 边界。 |

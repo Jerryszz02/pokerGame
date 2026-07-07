@@ -54,7 +54,7 @@ The UI displays:
 - Main menu difficulty and AI-count controls.
 - Hand number, street, pot, current bet, and status message.
 - Opponent seats, player seat, hole cards, community cards, stacks, bets, status, and AI personality label.
-- Legal action buttons and a raise slider when raising is legal.
+- Legal action buttons plus a raise slider and step buttons when raising is legal.
 - Result panel with payout rows and next-hand/restart controls.
 
 ## Tests

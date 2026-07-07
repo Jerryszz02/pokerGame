@@ -6,7 +6,7 @@ static func decide(game: PokerRound, player_index: int) -> Dictionary:
 	var legal := game.get_legal_actions(player_index)
 	var actions: Array = legal.actions
 	if actions.is_empty():
-		return {"action_type": TableState.ACTION_CHECK, "amount": 0}
+		return _decision(TableState.ACTION_CHECK, 0, "无可用行动")
 	var profile := _profile_for(player)
 	var equity := _estimate_equity(game, player_index, profile)
 	var to_call := game.get_to_call(player_index)
@@ -17,22 +17,27 @@ static func decide(game: PokerRound, player_index: int) -> Dictionary:
 
 	if to_call > 0 and equity + profile.call_tolerance < pot_odds:
 		if randf() < profile.bluff_rate and can_raise:
-			return _raise_action(game, player_index, legal, profile, 0.65)
-		return {"action_type": TableState.ACTION_FOLD, "amount": 0}
+			return _raise_action(game, player_index, legal, profile, 0.65, "诈唬加注")
+		return _decision(TableState.ACTION_FOLD, 0, "谨慎弃牌")
 
 	if can_raise and _should_raise(equity, profile, to_call):
 		var pot_fraction := 0.5
+		var label := "价值加注"
 		if equity > 0.72:
 			pot_fraction = 0.8
 		elif randf() < profile.bluff_rate:
 			pot_fraction = 0.65
-		return _raise_action(game, player_index, legal, profile, pot_fraction)
+			label = "诈唬加注"
+		return _raise_action(game, player_index, legal, profile, pot_fraction, label)
 
 	if to_call > 0 and actions.has(TableState.ACTION_CALL):
-		return {"action_type": TableState.ACTION_CALL, "amount": 0}
+		return _decision(TableState.ACTION_CALL, 0, "赔率跟注")
 	if can_check:
-		return {"action_type": TableState.ACTION_CHECK, "amount": 0}
-	return {"action_type": TableState.ACTION_ALL_IN, "amount": 0}
+		return _decision(TableState.ACTION_CHECK, 0, "控池让牌")
+	return _decision(TableState.ACTION_ALL_IN, 0, "短筹码全下")
+
+static func profile_for_difficulty(difficulty: String) -> Dictionary:
+	return _profile_for({"difficulty": difficulty, "personality": {}})
 
 static func _profile_for(player: Dictionary) -> Dictionary:
 	if player.personality is Dictionary and not player.personality.is_empty():
@@ -93,10 +98,13 @@ static func _should_raise(equity: float, profile: Dictionary, to_call: int) -> b
 		return true
 	return false
 
-static func _raise_action(game: PokerRound, player_index: int, legal: Dictionary, profile: Dictionary, pot_fraction: float) -> Dictionary:
+static func _raise_action(game: PokerRound, player_index: int, legal: Dictionary, profile: Dictionary, pot_fraction: float, label: String) -> Dictionary:
 	var player: Dictionary = game.players[player_index]
 	var desired: int = game.current_bet + int(max(game.big_blind, game.total_pot() * pot_fraction))
 	var target: int = clampi(desired, legal.min_raise_to, legal.max_raise_to)
 	if target >= player.current_bet + player.stack:
-		return {"action_type": TableState.ACTION_ALL_IN, "amount": 0}
-	return {"action_type": TableState.ACTION_RAISE, "amount": target}
+		return _decision(TableState.ACTION_ALL_IN, 0, "强牌压迫")
+	return _decision(TableState.ACTION_RAISE, target, label)
+
+static func _decision(action_type: String, amount: int, label: String) -> Dictionary:
+	return {"action_type": action_type, "amount": amount, "decision_label": label}

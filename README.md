@@ -10,7 +10,8 @@ This project is intentionally local-only: no external APIs, no LLM opponents, no
 - Simple, medium, and hard AI difficulties.
 - Hard AI uses a preflop starting-hand score, postflop Monte Carlo equity, pot odds, and random personality profiles.
 - Standard Texas Hold'em flow: blinds, preflop, flop, turn, river, showdown, fold/check/call/raise/all-in, side pots, split pots.
-- Programmatic Godot `Control` UI for the menu, table, player seats, action controls, and result panel.
+- Hand event log, explicit match-over results, local settings/stat tracking, and Chinese action/result text.
+- Programmatic Godot `Control` UI for the menu, table, player seats, action controls, event log, and result panel.
 
 ## Requirements
 
@@ -49,6 +50,14 @@ Run:
 ```
 
 Expected output includes `All poker tests passed.` The test runner covers deck uniqueness, hand ranking, kicker comparison, action validation, side pots, split pots, hard-AI personality assignment, and Monte Carlo equity bounds.
+
+UI layout probe:
+
+```sh
+/Applications/Godot_mono.app/Contents/MacOS/Godot --headless --path . -s tests/ui_layout_probe.gd
+```
+
+Expected output includes `All UI layout probes passed.` The layout probe checks the main table at common desktop viewport sizes.
 
 ## Documentation
 

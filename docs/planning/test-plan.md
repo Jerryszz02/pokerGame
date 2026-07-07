@@ -25,7 +25,7 @@
 | `README.md` | 测试命令为 `/Applications/Godot_mono.app/Contents/MacOS/Godot --headless --path . -s tests/test_runner.gd`，期望输出 `All poker tests passed.` |
 | `docs/runbook.md` | 本机 Godot Mono 依赖 `.NET 8`；主场景可用 `--quit-after 2` 做启动检查。 |
 | `tests/test_runner.gd` | 当前测试覆盖牌组唯一性、牌型、kicker、非法 check、call、边池、分池、Hard AI 个性、AI 合法行动和 Monte Carlo 权益范围。 |
-| `scripts/ui/main.gd` | 人工烟测需要覆盖菜单、三档难度、AI 数量、行动按钮、加注滑杆和结果面板。 |
+| `scripts/ui/main.gd` | 人工烟测需要覆盖菜单、三档难度、AI 数量、行动按钮、加注滑杆与步进按钮和结果面板。 |
 
 ## 自动化检查
 

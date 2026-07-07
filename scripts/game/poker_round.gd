@@ -16,13 +16,22 @@ var current_player_index := -1
 var hand_number := 0
 var winners: Array = []
 var side_pots: Array = []
-var last_message := "Choose settings to start."
+var last_message := "请选择设置后开始。"
 var difficulty := "simple"
+var event_log: Array = []
+var match_over := false
+var match_result := ""
+var match_summary := {}
+var hands_completed := 0
+var max_single_hand_win := 0
+var last_hand_human_delta := 0
+var last_hand_human_won := false
+var _human_stack_at_hand_start := TableState.INITIAL_STACK
 
 func start_new_match(ai_count: int, selected_difficulty: String) -> void:
 	difficulty = selected_difficulty
 	players = []
-	players.append(_make_player(0, "You", true, "human", {}))
+	players.append(_make_player(0, "你", true, "human", {}))
 	for i in range(ai_count):
 		var personality := {}
 		if selected_difficulty == "hard":
@@ -30,14 +39,26 @@ func start_new_match(ai_count: int, selected_difficulty: String) -> void:
 		players.append(_make_player(i + 1, "AI %d" % [i + 1], false, selected_difficulty, personality))
 	button_index = 0
 	hand_number = 0
+	hands_completed = 0
+	max_single_hand_win = 0
+	last_hand_human_delta = 0
+	last_hand_human_won = false
+	match_over = false
+	match_result = ""
+	match_summary = {}
+	event_log = []
 	start_next_hand()
 
 func start_next_hand() -> void:
-	if players.is_empty():
+	if players.is_empty() or match_over:
 		return
 	if _players_with_chips().size() < 2:
-		_reset_stacks()
+		_finish_match()
+		return
 	hand_number += 1
+	last_hand_human_delta = 0
+	last_hand_human_won = false
+	_human_stack_at_hand_start = players[0].stack
 	button_index = _next_index_with_chips(button_index if hand_number == 1 else button_index + 1)
 	small_blind_player_index = -1
 	big_blind_player_index = -1
@@ -62,9 +83,10 @@ func start_next_hand() -> void:
 			var idx := (button_index + 1 + offset) % players.size()
 			if players[idx].status != TableState.STATUS_OUT:
 				players[idx].hole_cards.append_array(deck.draw(1))
+	last_message = "第 %d 手牌开始。" % hand_number
+	_record_event("hand", "%s 庄位在 %s。" % [last_message, players[button_index].name])
 	_post_blinds()
 	current_player_index = _first_preflop_actor()
-	last_message = "Hand %d started." % hand_number
 	if active_player_count() == 1:
 		_award_uncontested()
 	elif _all_remaining_all_in():
@@ -73,9 +95,10 @@ func start_next_hand() -> void:
 	elif current_player_index == -1:
 		_showdown()
 
-func apply_action(action_type: String, amount: int = 0) -> bool:
+func apply_action(action_type: String, amount: int = 0, action_note: String = "") -> bool:
 	if current_player_index < 0 or stage == TableState.STAGE_HAND_OVER:
 		return false
+	var actor_index := current_player_index
 	var player: Dictionary = players[current_player_index]
 	if player.status != TableState.STATUS_ACTIVE:
 		return false
@@ -87,26 +110,32 @@ func apply_action(action_type: String, amount: int = 0) -> bool:
 			player.status = TableState.STATUS_FOLDED
 			player.has_acted = true
 			player.last_action = "Fold"
+			player.last_action_note = action_note
 		TableState.ACTION_CHECK:
 			if get_to_call(current_player_index) != 0:
 				return false
 			player.has_acted = true
 			player.last_action = "Check"
+			player.last_action_note = action_note
 		TableState.ACTION_CALL:
 			_pay_to_current_bet(current_player_index)
 			player.has_acted = true
 			player.last_action = "Call"
+			player.last_action_note = action_note
 		TableState.ACTION_RAISE:
 			var target := int(amount)
 			if target < legal.min_raise_to or target > legal.max_raise_to:
 				return false
 			_raise_to(current_player_index, target)
 			player.last_action = "Raise %d" % target
+			player.last_action_note = action_note
 		TableState.ACTION_ALL_IN:
 			_all_in(current_player_index)
 			player.last_action = "All-in"
+			player.last_action_note = action_note
 		_:
 			return false
+	_record_action_event(actor_index, action_type, amount, action_note)
 	_after_state_change()
 	return true
 
@@ -153,21 +182,25 @@ func is_ai_turn() -> bool:
 func describe_stage() -> String:
 	match stage:
 		TableState.STAGE_PREFLOP:
-			return "Preflop"
+			return "翻前"
 		TableState.STAGE_FLOP:
-			return "Flop"
+			return "翻牌"
 		TableState.STAGE_TURN:
-			return "Turn"
+			return "转牌"
 		TableState.STAGE_RIVER:
-			return "River"
+			return "河牌"
 		TableState.STAGE_SHOWDOWN:
-			return "Showdown"
+			return "摊牌"
 		TableState.STAGE_HAND_OVER:
-			return "Hand Over"
+			return "结算"
 	return stage
 
 func best_hand_for(player_index: int) -> Dictionary:
 	return HandEvaluator.evaluate(players[player_index].hole_cards + community_cards)
+
+func recent_events(limit: int = 8) -> Array:
+	var start: int = maxi(0, event_log.size() - limit)
+	return event_log.slice(start, event_log.size())
 
 func _make_player(id: int, name: String, is_human: bool, player_difficulty: String, personality: Dictionary) -> Dictionary:
 	return {
@@ -183,6 +216,7 @@ func _make_player(id: int, name: String, is_human: bool, player_difficulty: Stri
 		"difficulty": player_difficulty,
 		"personality": personality,
 		"last_action": "",
+		"last_action_note": "",
 		"hand_result": {}
 	}
 
@@ -220,6 +254,8 @@ func _post_blind(player_index: int, amount: int) -> void:
 	if player.stack == 0:
 		player.status = TableState.STATUS_ALL_IN
 	player.last_action = "Blind %d" % paid
+	player.last_action_note = ""
+	_record_event("blind", "%s 支付盲注 %d。" % [player.name, paid])
 
 func _small_blind_index() -> int:
 	if _players_with_chips().size() == 2:
@@ -333,7 +369,8 @@ func _advance_stage() -> void:
 			return
 	_reset_street_bets()
 	current_player_index = _first_postflop_actor()
-	last_message = "%s dealt." % describe_stage()
+	last_message = "已发%s。" % describe_stage()
+	_record_event("street", "%s 公共牌现在有 %d 张。" % [last_message, community_cards.size()])
 	if current_player_index == -1:
 		_showdown()
 
@@ -350,6 +387,7 @@ func _deal_to_river() -> void:
 			community_cards.append_array(deck.draw(3))
 		else:
 			community_cards.append_array(deck.draw(1))
+		_record_event("street", "全下后自动发牌，公共牌现在有 %d 张。" % community_cards.size())
 
 func _award_uncontested() -> void:
 	var winner_index := -1
@@ -359,10 +397,12 @@ func _award_uncontested() -> void:
 	if winner_index >= 0:
 		var pot := total_pot()
 		players[winner_index].stack += pot
-		winners = [{"player_index": winner_index, "amount": pot, "rank_name": "Uncontested"}]
-		last_message = "%s wins %d uncontested." % [players[winner_index].name, pot]
+		winners = [{"player_index": winner_index, "amount": pot, "rank_name": "无人跟注"}]
+		last_message = "%s 无人跟注，赢得 %d。" % [players[winner_index].name, pot]
+		_record_event("settlement", last_message)
 	stage = TableState.STAGE_HAND_OVER
 	current_player_index = -1
+	_finish_hand()
 
 func _showdown() -> void:
 	stage = TableState.STAGE_SHOWDOWN
@@ -372,6 +412,7 @@ func _showdown() -> void:
 	_resolve_side_pots()
 	stage = TableState.STAGE_HAND_OVER
 	current_player_index = -1
+	_finish_hand()
 
 func _resolve_side_pots() -> void:
 	side_pots = _build_side_pots()
@@ -396,9 +437,13 @@ func _resolve_side_pots() -> void:
 			players[idx].stack += payout
 			winners.append({"player_index": idx, "amount": payout, "rank_name": best_result.rank_name})
 	if winners.size() == 1:
-		last_message = "%s wins %d with %s." % [players[winners[0].player_index].name, winners[0].amount, winners[0].rank_name]
+		last_message = "%s 用%s赢得 %d。" % [players[winners[0].player_index].name, winners[0].rank_name, winners[0].amount]
 	else:
-		last_message = "Showdown complete."
+		last_message = "摊牌结算完成。"
+	_record_event("showdown", last_message)
+	for i in range(players.size()):
+		if players[i].hand_result is Dictionary and not players[i].hand_result.is_empty():
+			_record_event("showdown", "%s 摊牌：%s。" % [players[i].name, players[i].hand_result.rank_name])
 
 func _build_side_pots() -> Array:
 	var levels := []
@@ -421,3 +466,63 @@ func _build_side_pots() -> Array:
 			pots.append({"amount": amount, "eligible": eligible})
 		previous = level
 	return pots
+
+func _record_action_event(player_index: int, action_type: String, amount: int, action_note: String) -> void:
+	var player: Dictionary = players[player_index]
+	var text := "%s %s" % [player.name, _action_label(action_type, amount, player)]
+	if not action_note.is_empty():
+		text += "（%s）" % action_note
+	text += "。"
+	_record_event("action", text)
+
+func _action_label(action_type: String, amount: int, player: Dictionary) -> String:
+	match action_type:
+		TableState.ACTION_FOLD:
+			return "弃牌"
+		TableState.ACTION_CHECK:
+			return "让牌"
+		TableState.ACTION_CALL:
+			return "跟注到 %d" % player.current_bet
+		TableState.ACTION_RAISE:
+			return "加注到 %d" % amount
+		TableState.ACTION_ALL_IN:
+			return "全下到 %d" % player.current_bet
+	return action_type
+
+func _record_event(event_type: String, text: String) -> void:
+	if event_log.size() > 0 and event_log[event_log.size() - 1].text == text:
+		return
+	event_log.append({"type": event_type, "text": text, "hand": hand_number})
+	if event_log.size() > 40:
+		event_log.pop_front()
+
+func _finish_hand() -> void:
+	hands_completed += 1
+	last_hand_human_delta = players[0].stack - _human_stack_at_hand_start
+	last_hand_human_won = last_hand_human_delta > 0
+	if last_hand_human_delta > max_single_hand_win:
+		max_single_hand_win = last_hand_human_delta
+	if _players_with_chips().size() < 2:
+		_finish_match()
+
+func _finish_match() -> void:
+	match_over = true
+	stage = TableState.STAGE_HAND_OVER
+	current_player_index = -1
+	var chip_players := _players_with_chips()
+	if players.size() > 0 and players[0].stack <= 0:
+		match_result = "你已出局"
+	elif chip_players.size() == 1 and chip_players[0] == 0:
+		match_result = "你赢得牌局"
+	elif chip_players.size() == 1:
+		match_result = "%s 赢得牌局" % players[chip_players[0]].name
+	else:
+		match_result = "牌局结束"
+	match_summary = {
+		"hands": hands_completed,
+		"final_stack": players[0].stack if players.size() > 0 else 0,
+		"net_profit": (players[0].stack - TableState.INITIAL_STACK) if players.size() > 0 else 0,
+		"max_single_hand_win": max_single_hand_win
+	}
+	last_message = "%s。总手数 %d，最终筹码 %d。" % [match_result, match_summary.hands, match_summary.final_stack]
+	_record_event("match", last_message)

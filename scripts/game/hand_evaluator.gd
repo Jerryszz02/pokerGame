@@ -12,15 +12,15 @@ const FOUR_KIND = 7
 const STRAIGHT_FLUSH = 8
 
 const RANK_NAMES = {
-	HIGH_CARD: "High Card",
-	ONE_PAIR: "One Pair",
-	TWO_PAIR: "Two Pair",
-	THREE_KIND: "Three of a Kind",
-	STRAIGHT: "Straight",
-	FLUSH: "Flush",
-	FULL_HOUSE: "Full House",
-	FOUR_KIND: "Four of a Kind",
-	STRAIGHT_FLUSH: "Straight Flush"
+	HIGH_CARD: "高牌",
+	ONE_PAIR: "一对",
+	TWO_PAIR: "两对",
+	THREE_KIND: "三条",
+	STRAIGHT: "顺子",
+	FLUSH: "同花",
+	FULL_HOUSE: "葫芦",
+	FOUR_KIND: "四条",
+	STRAIGHT_FLUSH: "同花顺"
 }
 
 static func evaluate(cards: Array) -> Dictionary:
@@ -55,7 +55,7 @@ static func compare_results(a: Dictionary, b: Dictionary) -> int:
 static func _empty_result() -> Dictionary:
 	return {
 		"rank_value": -1,
-		"rank_name": "Invalid",
+		"rank_name": "无效",
 		"tiebreakers": [],
 		"best_cards": []
 	}

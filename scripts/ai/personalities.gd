@@ -4,7 +4,7 @@ extends RefCounted
 const PROFILES = {
 	"TightAggressive": {
 		"name": "TightAggressive",
-		"label": "Tight Aggressive",
+		"label": "紧凶",
 		"aggression": 0.75,
 		"looseness": 0.25,
 		"bluff_rate": 0.08,
@@ -13,7 +13,7 @@ const PROFILES = {
 	},
 	"LooseAggressive": {
 		"name": "LooseAggressive",
-		"label": "Loose Aggressive",
+		"label": "松凶",
 		"aggression": 0.9,
 		"looseness": 0.55,
 		"bluff_rate": 0.16,
@@ -22,7 +22,7 @@ const PROFILES = {
 	},
 	"CallingStation": {
 		"name": "CallingStation",
-		"label": "Calling Station",
+		"label": "跟注站",
 		"aggression": 0.25,
 		"looseness": 0.65,
 		"bluff_rate": 0.03,
@@ -31,7 +31,7 @@ const PROFILES = {
 	},
 	"Rock": {
 		"name": "Rock",
-		"label": "Rock",
+		"label": "岩石",
 		"aggression": 0.45,
 		"looseness": 0.12,
 		"bluff_rate": 0.02,
@@ -40,7 +40,7 @@ const PROFILES = {
 	},
 	"Balanced": {
 		"name": "Balanced",
-		"label": "Balanced",
+		"label": "均衡",
 		"aggression": 0.6,
 		"looseness": 0.38,
 		"bluff_rate": 0.1,

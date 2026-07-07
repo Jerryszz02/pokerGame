@@ -6,6 +6,7 @@ func _init() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	await _probe_menu_settings_popup(Vector2i(1280, 720))
 	for viewport_size in [Vector2i(1280, 720), Vector2i(1440, 900), Vector2i(1920, 1080)]:
 		await _probe_table_layout(viewport_size)
 	if failures == 0:
@@ -29,12 +30,65 @@ func _probe_table_layout(viewport_size: Vector2i) -> void:
 	await process_frame
 
 	var frame := Rect2(Vector2.ZERO, Vector2(viewport_size))
-	var table_root: Control = scene.get_child(1)
+	var table_root := _find_table_root(scene)
+	_assert(table_root != null, "%s should have a table root container" % viewport_size)
+	if table_root == null:
+		scene.queue_free()
+		await process_frame
+		return
 	var root_ratio := table_root.size.x / float(viewport_size.x)
 	_assert(root_ratio >= 0.70 and root_ratio <= 0.94, "%s root width ratio %.3f should be within 70%%-94%%" % [viewport_size, root_ratio])
 	_assert(_controls_fit(scene, frame), "%s visible controls should stay inside viewport" % viewport_size)
+	if scene.sound_player:
+		scene.sound_player.stop()
 	scene.queue_free()
 	await process_frame
+	await process_frame
+
+func _probe_menu_settings_popup(viewport_size: Vector2i) -> void:
+	DisplayServer.window_set_size(viewport_size)
+	root.size = viewport_size
+	await process_frame
+	var scene: Node = load("res://scenes/main.tscn").instantiate()
+	root.add_child(scene)
+	var main_control: Control = scene
+	main_control.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	main_control.size = Vector2(viewport_size)
+	await process_frame
+	scene._show_settings_popup()
+	await process_frame
+	await process_frame
+
+	var frame := Rect2(Vector2.ZERO, Vector2(viewport_size))
+	var popup := _find_settings_popup(scene)
+	_assert(popup != null, "%s settings popup should open from menu" % viewport_size)
+	if popup != null:
+		_assert(_controls_fit(popup, frame), "%s settings popup should stay inside viewport" % viewport_size)
+	if scene.sound_player:
+		scene.sound_player.stop()
+	scene.queue_free()
+	await process_frame
+	await process_frame
+
+func _find_settings_popup(node: Node) -> PopupPanel:
+	for child in node.get_children():
+		if child is PopupPanel:
+			return child
+		var nested := _find_settings_popup(child)
+		if nested != null:
+			return nested
+	return null
+
+func _find_table_root(node: Node) -> Control:
+	for child in node.get_children():
+		if child is VBoxContainer and child is Control:
+			var rect: Rect2 = child.get_global_rect()
+			if rect.size.x > 1000.0 and rect.size.y > 400.0:
+				return child
+		var nested := _find_table_root(child)
+		if nested != null:
+			return nested
+	return null
 
 func _controls_fit(node: Node, frame: Rect2) -> bool:
 	if node is Control and node.visible:
