@@ -26,6 +26,13 @@
 /Applications/Godot_mono.app/Contents/MacOS/Godot --headless --path . -s tests/test_runner.gd
 ```
 
+- UI probes (see `docs/planning/ui-acceptance.md` for the acceptance metrics they enforce):
+
+```sh
+/Applications/Godot_mono.app/Contents/MacOS/Godot --headless --path . -s tests/ui_layout_probe.gd
+/Applications/Godot_mono.app/Contents/MacOS/Godot --path . -s tests/ui_playthrough_probe.gd
+```
+
 - Current local Godot binary is `/Applications/Godot_mono.app/Contents/MacOS/Godot`; .NET 8 is installed at `~/.dotnet` and wired through `~/.zshrc`.
 
 ## Documentation Map

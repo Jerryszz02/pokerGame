@@ -22,21 +22,20 @@ func _probe_table_layout(viewport_size: Vector2i) -> void:
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
 	root.add_child(scene)
 	var main_control: Control = scene
-	main_control.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	main_control.size = Vector2(viewport_size)
+	main_control.set_anchors_preset(Control.PRESET_FULL_RECT)
 	scene.game.start_new_match(5, "hard")
 	scene._render_table()
 	await process_frame
 	await process_frame
 
-	var frame := Rect2(Vector2.ZERO, Vector2(viewport_size))
+	var frame := Rect2(Vector2.ZERO, main_control.size)
 	var table_root := _find_table_root(scene)
 	_assert(table_root != null, "%s should have a table root container" % viewport_size)
 	if table_root == null:
 		scene.queue_free()
 		await process_frame
 		return
-	var root_ratio := table_root.size.x / float(viewport_size.x)
+	var root_ratio := table_root.size.x / float(main_control.size.x)
 	_assert(root_ratio >= 0.70 and root_ratio <= 0.94, "%s root width ratio %.3f should be within 70%%-94%%" % [viewport_size, root_ratio])
 	var pot_instrument := scene.find_child("PotInstrument", true, false) as PanelContainer
 	_assert(pot_instrument != null, "%s should show the pot and community-card instrument" % viewport_size)
@@ -56,14 +55,23 @@ func _probe_menu_settings_popup(viewport_size: Vector2i) -> void:
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
 	root.add_child(scene)
 	var main_control: Control = scene
-	main_control.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	main_control.size = Vector2(viewport_size)
+	main_control.set_anchors_preset(Control.PRESET_FULL_RECT)
 	await process_frame
+	var expected_seat_orders := {
+		2: [0, 2],
+		3: [0, 3, 1],
+		4: [0, 5, 2, 4],
+		5: [0, 5, 3, 1, 4],
+		6: [0, 5, 3, 2, 1, 4]
+	}
+	for player_count in expected_seat_orders:
+		var actual_order: Array = scene._seat_order_for_player_count(player_count)
+		_assert(actual_order == expected_seat_orders[player_count], "%d-player seats should follow the counterclockwise table order" % player_count)
 	scene._show_settings_popup()
 	await process_frame
 	await process_frame
 
-	var frame := Rect2(Vector2.ZERO, Vector2(viewport_size))
+	var frame := Rect2(Vector2.ZERO, main_control.size)
 	var popup := _find_settings_popup(scene)
 	_assert(popup != null, "%s settings popup should open from menu" % viewport_size)
 	if popup != null:

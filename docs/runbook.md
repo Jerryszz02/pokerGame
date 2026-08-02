@@ -59,6 +59,18 @@ Expected output:
 All UI layout probes passed.
 ```
 
+Render visual table snapshots (preflop with 1/3/5 AI, rigged flop and showdown) to `/tmp/poker_table_*.png` for manual layout review; this opens a window briefly and is not part of the headless gate:
+
+```sh
+/Applications/Godot_mono.app/Contents/MacOS/Godot --path . -s tests/ui_table_snapshot.gd
+```
+
+Run the scripted player playthrough (menu, settings, two hands with raise/all-in, result, restart) which screenshots every state to `/tmp/poker_audit/` and asserts the UI acceptance metrics in `docs/planning/ui-acceptance.md`; this opens a window and needs OS focus for the settings popup:
+
+```sh
+/Applications/Godot_mono.app/Contents/MacOS/Godot --path . -s tests/ui_playthrough_probe.gd
+```
+
 The current probe can also print `WARNING: 1 ObjectDB instance was leaked at exit` after the success line. With exit code 0 and the expected success line, this is a known cleanup warning rather than a failed layout assertion. Reinvestigate if the count grows, the success line disappears, or the command exits non-zero.
 
 Check that the main scene and all referenced resources load:
@@ -79,7 +91,7 @@ If a fresh shell fails with `dotnet: command not found`, verify `DOTNET_ROOT` an
 - Confirm the player can fold, check, call, raise, and all-in only when legal.
 - Play until an uncontested result or showdown and confirm Chinese winner, payout, and hand-rank text.
 - Confirm the next hand/restart flow works and completed-hand statistics update only once.
-- On hard difficulty, confirm seats show personality labels and AI actions are staggered rather than applied in one burst.
+- On hard difficulty, confirm AI actions are staggered rather than applied in one burst.
 
 ## Local Data
 

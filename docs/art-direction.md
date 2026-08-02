@@ -60,7 +60,7 @@
 
 - 视觉规范图：`assets/art/generated/style/style-guide.png`。
 - 字体方向参考：`assets/art/generated/style/font-specimen.png`。
-- 完整生成要求：`garden-gpt-image-2/prompt/poker-game-art-assets-20260710-144336.md`。
+- 完整生成要求：`garden-gpt-image-2/prompt/poker-game-art-assets-20260710-144336.md`、`garden-gpt-image-2/prompt/poker-button-atlas-crisp-20260716-142035.md`、`garden-gpt-image-2/prompt/poker-table-hud-assets-20260724-215144.md`。
 - 当前资产清单和文件约定：`assets/art/generated/README.md`。
 - 运行时接入点：`scripts/ui/main.gd`。
 
