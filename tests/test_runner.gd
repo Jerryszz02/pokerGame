@@ -13,7 +13,13 @@ func _run() -> void:
 	_test_hand_rankings()
 	_test_kickers()
 	_test_action_validation()
+	_test_all_in_requires_response()
+	_test_short_all_in_does_not_reopen_raise()
+	_test_short_opening_all_in_can_be_raised()
+	_test_cumulative_short_all_ins_reopen_raise()
 	_test_side_pot()
+	_test_nested_side_pots_with_folded_chips()
+	_test_uncalled_bet_refund()
 	_test_split_pot()
 	_test_chinese_result_text()
 	_test_event_log()
@@ -95,6 +101,78 @@ func _test_action_validation() -> void:
 	_assert(multiway.apply_action(TableState.ACTION_CALL, 0), "first multiway actor can call")
 	_assert(multiway.big_blind_player_index == 2, "big blind marker should persist after actions")
 
+func _test_all_in_requires_response() -> void:
+	var game := PokerRound.new()
+	game.start_new_match(2, "simple")
+	_assert(game.current_player_index == 0, "human should act first in the three-player opening state")
+	_assert(game.apply_action(TableState.ACTION_ALL_IN), "human all-in should succeed")
+	_assert(game.stage == TableState.STAGE_PREFLOP, "all-in should not skip opponents who still owe a response")
+	_assert(game.current_player_index == 1, "small blind should respond after the human all-in")
+	_assert(game.apply_action(TableState.ACTION_FOLD), "small blind should be able to fold")
+	_assert(game.stage == TableState.STAGE_PREFLOP, "fold should not skip the remaining caller")
+	_assert(game.current_player_index == 2, "big blind should receive the call-or-fold decision")
+	_assert(game.get_to_call(2) == 980, "big blind should owe the unmatched part of the all-in")
+	game.community_cards = [c(2, "C"), c(7, "D"), c(9, "S"), c(11, "H"), c(3, "C")]
+	game.players[0].hole_cards = [c(14, "H"), c(14, "S")]
+	game.players[2].hole_cards = [c(7, "H"), c(9, "H")]
+	_assert(game.apply_action(TableState.ACTION_CALL), "big blind should be able to call the all-in")
+	_assert(game.stage == TableState.STAGE_HAND_OVER, "matched all-ins should proceed to showdown")
+	_assert(game.players[2].stack == 2010, "two-pair caller should win both matched pots")
+	_assert(game.players[0].stack == 0, "losing all-in player should not receive unmatched chips after a full call")
+	_assert(game.players[1].stack == 990, "folded small blind should lose only its blind")
+	_assert(game.players[0].stack + game.players[1].stack + game.players[2].stack == 3000, "settlement should conserve all chips")
+
+func _test_short_all_in_does_not_reopen_raise() -> void:
+	var game := PokerRound.new()
+	game.start_new_match(3, "simple")
+	_assert(game.current_player_index == 3, "four-player action should start after the big blind")
+	_assert(game.apply_action(TableState.ACTION_RAISE, 100), "opening player can raise to 100")
+	_assert(game.apply_action(TableState.ACTION_CALL), "button can call the full raise")
+	game.players[1].stack = 140
+	_assert(game.apply_action(TableState.ACTION_ALL_IN), "small blind can make a short all-in raise to 150")
+	_assert(game.current_bet == 150, "short all-in should increase the amount to call")
+	_assert(game.apply_action(TableState.ACTION_CALL), "big blind can call the short all-in")
+	_assert(game.current_player_index == 3, "action should return to the original raiser")
+	var legal := game.get_legal_actions(3)
+	_assert(legal.actions.has(TableState.ACTION_CALL), "original raiser can call the short increase")
+	_assert(not legal.actions.has(TableState.ACTION_RAISE), "short all-in must not reopen raising for a player who already acted")
+
+func _test_short_opening_all_in_can_be_raised() -> void:
+	var game := PokerRound.new()
+	game.start_new_match(2, "simple")
+	game.stage = TableState.STAGE_FLOP
+	game.current_bet = 0
+	game.min_raise = game.big_blind
+	game.current_player_index = 0
+	for player in game.players:
+		player.current_bet = 0
+		player.total_bet = 0
+		player.has_acted = false
+		player.last_action_bet = 0
+		player.last_action = ""
+		player.status = TableState.STATUS_ACTIVE
+	_assert(game.apply_action(TableState.ACTION_CHECK), "first player can check before an opening bet")
+	game.players[1].stack = 10
+	_assert(game.apply_action(TableState.ACTION_ALL_IN), "next player can make a short opening all-in")
+	_assert(game.apply_action(TableState.ACTION_FOLD), "third player can fold to the short opening all-in")
+	_assert(game.current_player_index == 0, "action should return to the player who checked")
+	_assert(game.get_legal_actions(0).actions.has(TableState.ACTION_RAISE), "a prior checker can raise a new opening wager")
+
+func _test_cumulative_short_all_ins_reopen_raise() -> void:
+	var game := PokerRound.new()
+	game.start_new_match(4, "simple")
+	_assert(game.current_player_index == 3, "five-player action should start after the big blind")
+	_assert(game.apply_action(TableState.ACTION_RAISE, 100), "opening player can raise to 100")
+	_assert(game.apply_action(TableState.ACTION_CALL), "next player can call 100")
+	game.players[0].stack = 150
+	_assert(game.apply_action(TableState.ACTION_ALL_IN), "button can make the first short all-in to 150")
+	game.players[1].stack = 170
+	_assert(game.apply_action(TableState.ACTION_ALL_IN), "small blind can make the second short all-in to 180")
+	_assert(game.current_bet == 180, "cumulative short all-ins should reach a full 80-chip increase")
+	_assert(game.apply_action(TableState.ACTION_CALL), "big blind can call 180")
+	_assert(game.current_player_index == 3, "action should return to the original raiser")
+	_assert(game.get_legal_actions(3).actions.has(TableState.ACTION_RAISE), "cumulative short all-ins totaling a full raise should reopen raising")
+
 func _test_side_pot() -> void:
 	var game := PokerRound.new()
 	game.start_new_match(2, "hard")
@@ -112,6 +190,54 @@ func _test_side_pot() -> void:
 	_assert(game.players[0].stack == 300, "short all-in winner should win main pot")
 	_assert(game.players[1].stack == 200, "second best hand should win side pot")
 	_assert(game.players[2].stack == 0, "third hand should not win pot")
+
+func _test_nested_side_pots_with_folded_chips() -> void:
+	var game := PokerRound.new()
+	game.start_new_match(3, "hard")
+	game.community_cards = [c(2, "C"), c(3, "D"), c(4, "H"), c(9, "S"), c(11, "D")]
+	game.players[0].hole_cards = [c(14, "H"), c(14, "S")]
+	game.players[1].hole_cards = [c(13, "H"), c(13, "S")]
+	game.players[2].hole_cards = [c(12, "H"), c(12, "S")]
+	game.players[3].hole_cards = [c(11, "H"), c(10, "S")]
+	var contributions := [50, 100, 200, 200]
+	for i in range(4):
+		game.players[i].stack = 0
+		game.players[i].status = TableState.STATUS_ALL_IN
+		game.players[i].total_bet = contributions[i]
+	game.players[3].status = TableState.STATUS_FOLDED
+	game._showdown()
+	_assert(game.side_pots.size() == 3, "four contribution levels should create three nested pots")
+	_assert(game.side_pots[0].amount == 200, "main pot should contain 50 from all four players")
+	_assert(game.side_pots[1].amount == 150, "first side pot should contain the next 50 from three players")
+	_assert(game.side_pots[2].amount == 200, "second side pot should contain the final 100 from two players")
+	_assert(game.players[0].stack == 200, "best short stack should win only the main pot")
+	_assert(game.players[1].stack == 150, "second-best hand should win the first side pot")
+	_assert(game.players[2].stack == 200, "remaining eligible hand should win the final side pot including folded chips")
+	_assert(game.players[3].stack == 0, "folded player must never receive a side-pot payout")
+	_assert(game.players[0].stack + game.players[1].stack + game.players[2].stack + game.players[3].stack == 550, "nested side-pot settlement should conserve all chips")
+
+func _test_uncalled_bet_refund() -> void:
+	var game := PokerRound.new()
+	game.start_new_match(1, "medium")
+	game.community_cards = [c(2, "C"), c(7, "D"), c(9, "S"), c(11, "H"), c(3, "C")]
+	game.players[0].hole_cards = [c(14, "H"), c(14, "S")]
+	game.players[1].hole_cards = [c(7, "H"), c(9, "H")]
+	game.players[0].stack = 0
+	game.players[0].status = TableState.STATUS_ALL_IN
+	game.players[0].current_bet = 1000
+	game.players[0].total_bet = 1000
+	game.players[1].stack = 0
+	game.players[1].status = TableState.STATUS_ALL_IN
+	game.players[1].current_bet = 20
+	game.players[1].total_bet = 20
+	game._showdown()
+	_assert(game.players[0].stack == 980, "unmatched chips should be returned to their owner")
+	_assert(game.players[1].stack == 40, "winner should receive only the matched pot")
+	_assert(game.side_pots.size() == 1, "uncalled chips should not become a one-player side pot")
+	_assert(game.side_pots[0].amount == 40, "only matched contributions should remain contestable")
+	_assert(game.winners.size() == 1 and game.winners[0].player_index == 1, "refund should not be displayed as a win")
+	_assert(game.winners[0].amount == 40, "winner display should show only the contested payout")
+	_assert(game.last_hand_human_delta == -20, "uncalled refund scenario should record the human's net loss")
 
 func _test_split_pot() -> void:
 	var game := PokerRound.new()

@@ -75,6 +75,7 @@ func start_next_hand() -> void:
 		player.current_bet = 0
 		player.total_bet = 0
 		player.has_acted = false
+		player.last_action_bet = 0
 		player.last_action = ""
 		player.hand_result = {}
 		player.status = TableState.STATUS_ACTIVE if player.stack > 0 else TableState.STATUS_OUT
@@ -136,6 +137,7 @@ func apply_action(action_type: String, amount: int = 0, action_note: String = ""
 		_:
 			return false
 	_record_action_event(actor_index, action_type, amount, action_note)
+	player.last_action_bet = current_bet
 	_after_state_change()
 	return true
 
@@ -153,9 +155,14 @@ func get_legal_actions(player_index: int) -> Dictionary:
 		actions.append(TableState.ACTION_CALL)
 	var max_raise_to: int = player.current_bet + player.stack
 	var min_raise_to: int = current_bet + min_raise
-	if max_raise_to >= min_raise_to:
+	if _raise_is_reopened(player) and max_raise_to >= min_raise_to:
 		actions.append(TableState.ACTION_RAISE)
 	return {"actions": actions, "min_raise_to": min_raise_to, "max_raise_to": max_raise_to}
+
+func _raise_is_reopened(player: Dictionary) -> bool:
+	if not player.has_acted or str(player.last_action) == "Check":
+		return true
+	return current_bet - int(player.get("last_action_bet", current_bet)) >= min_raise
 
 func get_to_call(player_index: int) -> int:
 	return max(0, current_bet - players[player_index].current_bet)
@@ -210,10 +217,11 @@ func _make_player(id: int, name: String, is_human: bool, player_difficulty: Stri
 		"stack": TableState.INITIAL_STACK,
 		"hole_cards": [],
 		"current_bet": 0,
-		"total_bet": 0,
-		"status": TableState.STATUS_ACTIVE,
-		"has_acted": false,
-		"difficulty": player_difficulty,
+			"total_bet": 0,
+			"status": TableState.STATUS_ACTIVE,
+			"has_acted": false,
+			"last_action_bet": 0,
+			"difficulty": player_difficulty,
 		"personality": personality,
 		"last_action": "",
 		"last_action_note": "",
@@ -345,13 +353,18 @@ func _betting_round_complete() -> bool:
 
 func _all_remaining_all_in() -> bool:
 	var active_with_stack := 0
+	var active_player_index := -1
 	var remaining := 0
-	for player in players:
+	for i in range(players.size()):
+		var player: Dictionary = players[i]
 		if player.status != TableState.STATUS_FOLDED and player.status != TableState.STATUS_OUT:
 			remaining += 1
 			if player.status == TableState.STATUS_ACTIVE and player.stack > 0:
 				active_with_stack += 1
-	return remaining > 1 and active_with_stack <= 1
+				active_player_index = i
+	if remaining <= 1 or active_with_stack > 1:
+		return false
+	return active_player_index == -1 or get_to_call(active_player_index) == 0
 
 func _advance_stage() -> void:
 	match stage:
@@ -380,6 +393,7 @@ func _reset_street_bets() -> void:
 	for player in players:
 		player.current_bet = 0
 		player.has_acted = false
+		player.last_action_bet = 0
 
 func _deal_to_river() -> void:
 	while community_cards.size() < 5:
@@ -406,6 +420,7 @@ func _award_uncontested() -> void:
 
 func _showdown() -> void:
 	stage = TableState.STAGE_SHOWDOWN
+	_refund_uncalled_bet()
 	for i in range(players.size()):
 		if players[i].status != TableState.STATUS_FOLDED and players[i].status != TableState.STATUS_OUT:
 			players[i].hand_result = best_hand_for(i)
@@ -413,6 +428,33 @@ func _showdown() -> void:
 	stage = TableState.STAGE_HAND_OVER
 	current_player_index = -1
 	_finish_hand()
+
+func _refund_uncalled_bet() -> void:
+	var highest_bet := 0
+	var second_highest_bet := 0
+	var highest_player_index := -1
+	var highest_count := 0
+	for i in range(players.size()):
+		var contribution: int = players[i].total_bet
+		if contribution > highest_bet:
+			second_highest_bet = highest_bet
+			highest_bet = contribution
+			highest_player_index = i
+			highest_count = 1
+		elif contribution == highest_bet:
+			highest_count += 1
+		elif contribution > second_highest_bet:
+			second_highest_bet = contribution
+	if highest_count != 1 or highest_bet <= second_highest_bet:
+		return
+	var refund := highest_bet - second_highest_bet
+	var player: Dictionary = players[highest_player_index]
+	player.total_bet -= refund
+	player.current_bet = max(0, int(player.current_bet) - refund)
+	player.stack += refund
+	if player.status == TableState.STATUS_ALL_IN:
+		player.status = TableState.STATUS_ACTIVE
+	_record_event("settlement", "%s 收回未被跟注的 %d。" % [player.name, refund])
 
 func _resolve_side_pots() -> void:
 	side_pots = _build_side_pots()
