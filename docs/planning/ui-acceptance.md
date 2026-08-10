@@ -12,14 +12,15 @@
 
 - **M1 视口越界**：1280x720 / 1440x900 / 1920x1080 下，菜单、设置弹窗、牌桌各状态（翻前 / 翻后 / 加注 / 全下 / 结算）所有可见 Control 完全位于视口内。
 - **M2 文本不溢出**：所有 Label 的字体实测宽度 ≤ 可用宽度；带 `clip_text` 的 Label（名牌、事件日志行）不得发生截断；Button 文字不超出按钮内容区（stylebox content margin 之内）。
-- **M3 控件不压框、不互叠**：按钮 / 滑条 / 输入框完全位于所属面板内容区；所有 `StyleBoxTexture` 面板的 content margin ≥ 其九宫格 texture margin（内容不得画进装饰边框厚度内）；可见交互控件两两全矩形不相交。
-- **M4 素材分层白名单**：仅允许设计内重叠——名牌压角色下缘、筹码与角色压桌沿。禁止：行动标签 vs 任意底牌 / 公共牌、筹码 vs 公共牌、座位组件 vs 事件日志与动作面板。以命名节点（`Seat{n}Bet`、`Seat{n}HoleCards`、`CommunityCards`、`PotLabel` 等）实测矩形断言。
-- **M5 渲染清晰**：所有 TextureRect 与贴图按钮 `texture_filter == NEAREST`；按钮 / 字段 nine-slice 边距与源图切片一致（沿用 `ui_layout_probe.gd` 现有断言）。
+- **M3 控件不压框、不互叠**：按钮 / 滑条 / 输入框完全位于所属浮动面板内容区；可见交互控件两两全矩形不相交。关闭的 Log 不占据牌桌布局，打开后的 400px 抽屉不得越界。
+- **M4 素材分层白名单**：人物主体与 `TableFeltSafeZone` 重叠面积不超过人物框的 10%；禁止行动标签 / 底牌 / 公共牌 / `PotDisplay` 发生可见碰撞。以命名节点（`Seat{n}Portrait`、`Seat{n}Info`、`Seat{n}Bet`、`Seat{n}HoleCards`、`CommunityCards`、`PotDisplay`）实测矩形断言。
+- **M5 渲染清晰**：所有 TextureRect `texture_filter == NEAREST`；按钮和字段的 normal / hover / pressed / disabled / focus 均为 `anti_aliasing == false` 的 `StyleBoxFlat`，各状态保持相同轮廓。中文 caption ≥ 13px，按钮 ≥ 16px，Log 正文 14px、标题 16px。
+- **M6 状态与容量**：当前行动者必须有轮廓 shader 和三角标记，不允许矩形人物高亮；角色标记绑定正确座位。筹码贪心分解覆盖 `0、1、5、20、945、1000、6000`，座位最多 2×5，底池最多 3×8，金额文字保持精确。Log 打开时 `_ai_can_advance()` 为 false，关闭后恢复，已读后圆点消失。
 
 ## B. 人工对抗审查（agent 扮演玩家）
 
-- **M6 点击流零 P0/P1**：完整玩家路径——菜单 → 设置弹窗（含重置两步确认）→ 开局 → 每街行动（含加注滑条、全下）→ 结算 → 下一手 → 重新开始回菜单——逐状态截图（`/tmp/poker_audit/`），逐张以玩家视角审查。验收要求最后一轮 0 个 P0、0 个 P1。
-- **M7 回归全绿**：以下三条命令退出码均为 0：
+- **M7 点击流零 P0/P1**：完整玩家路径——菜单 → 设置弹窗（含重置两步确认）→ 开局 → Log 开关 → 每街行动（含加注展开、全下）→ 结算 → 下一手 → 重新开始回菜单——逐状态截图（`/tmp/poker_audit/`），逐张以玩家视角审查。验收要求最后一轮 0 个 P0、0 个 P1。
+- **M8 回归全绿**：以下三条命令退出码均为 0：
 
 ```sh
 /Applications/Godot_mono.app/Contents/MacOS/Godot --headless --path . -s tests/test_runner.gd
@@ -32,4 +33,4 @@
 1. 运行 playthrough 探针，收集机检失败项与 `/tmp/poker_audit/*.png`。
 2. 逐张查看截图，按 P0/P1/P2 记录问题清单。
 3. 只修改 `scripts/ui/`（必要时含测试节点命名），不碰 `scripts/game/` 与 `scripts/ai/`。
-4. 重跑三条测试命令；回到第 1 步，直到 M1-M7 全部满足。
+4. 重跑三条测试命令；回到第 1 步，直到 M1-M8 全部满足。

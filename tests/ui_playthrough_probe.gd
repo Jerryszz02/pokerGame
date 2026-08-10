@@ -2,7 +2,7 @@ extends SceneTree
 ## Simulates a player clicking through the whole game (menu, settings, hands,
 ## result, restart) while capturing screenshots to /tmp/poker_audit/ and
 ## asserting the machine-checkable UI acceptance metrics from
-## docs/planning/ui-acceptance.md (M1-M5). Run windowed, not headless:
+## docs/planning/ui-acceptance.md (M1-M8). Run windowed, not headless:
 ##   Godot --path . -s tests/ui_playthrough_probe.gd
 
 var failures := 0
@@ -80,6 +80,20 @@ func _playthrough(viewport_size: Vector2i) -> void:
 	start_button.emit_signal("pressed")
 	await process_frame
 	await process_frame
+	var log_button := scene.find_child("LogButton", true, false) as Button
+	_assert(log_button != null, "%s table should expose the log drawer button" % tag)
+	if log_button != null:
+		log_button.emit_signal("pressed")
+		await process_frame
+		await process_frame
+		_assert(scene.find_child("LogDrawer", true, false) != null, "%s log drawer should open over the table" % tag)
+		_assert(not scene._ai_can_advance(), "%s open log drawer should pause AI" % tag)
+		await _state(scene, tag + "_03b_log_drawer")
+		var close_log := scene.find_child("LogCloseButton", true, false) as Button
+		if close_log != null:
+			close_log.emit_signal("pressed")
+			await process_frame
+			await process_frame
 
 	await _drive_hand(scene, tag, 60, "safe")
 	await _state(scene, tag + "_09_result")
@@ -126,6 +140,12 @@ func _drive_hand(scene: Node, tag: String, max_actions: int = 60, style: String 
 			continue
 		human_turns += 1
 		await _state(scene, "%s_05_human%d_%s" % [tag, human_turns, scene.game.stage])
+		if human_turns == 1 and scene.game.get_legal_actions(0).actions.has(TableState.ACTION_RAISE):
+			scene.raise_expanded = true
+			scene._render_table()
+			await process_frame
+			await process_frame
+			await _state(scene, "%s_05b_raise_expanded" % tag)
 		_act_human(scene, human_turns, style)
 		await process_frame
 		await process_frame
@@ -166,7 +186,7 @@ func _act_human(scene: Node, human_turns: int, style: String) -> void:
 		else:
 			scene._on_action(TableState.ACTION_FOLD, 0)
 
-# --- Machine checks (M1-M5) -------------------------------------------------
+# --- Machine checks (M1-M8) -------------------------------------------------
 
 func _state(scene: Node, label: String) -> void:
 	_audit(scene, label)
@@ -266,7 +286,9 @@ func _layering_whitelist(node: Node, context: String) -> void:
 	if bets.is_empty() and hole_cards.is_empty():
 		return
 	var community := node.find_child("CommunityCards", true, false) as Control
-	var pot := node.find_child("PotLabel", true, false) as Control
+	var pot := node.find_child("PotDisplay", true, false) as Control
+	if community != null and community.visible and pot != null and pot.visible:
+		_assert_rects_apart(community, pot, context)
 	for bet in bets:
 		for cards in hole_cards:
 			_assert_rects_apart(bet, cards, context)

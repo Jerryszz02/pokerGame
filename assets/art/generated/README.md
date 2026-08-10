@@ -1,6 +1,6 @@
 # Generated Poker Art Assets
 
-Generated with the built-in GPT Image 2 host workflow on 2026-07-10, 2026-07-16, and 2026-07-24.
+Generated with the built-in GPT Image 2 host workflow on 2026-07-10, 2026-07-16, 2026-07-24, and 2026-08-10.
 
 Prompt source:
 
@@ -48,6 +48,8 @@ Prompt source:
 - `ui/result-banners.png`
 - `ui/action-tags.png`
 - `ui/seat-nameplates.png`
+- `ui/chip-modules-source.png`
+- `ui/chip-modules.png`
 
 ### Characters
 
@@ -69,6 +71,7 @@ Prompt source:
 - Transparent deliverables were converted to RGBA with transparent corners and retained beside their source images.
 - `ui/button-atlas-native-source.png` preserves the 2026-07-16 GPT Image 2 render; `ui/button-atlas-native.png` is its transparent, limited-palette, runtime-sized atlas.
 - `ui/action-tags-source.png`, `ui/seat-nameplates-source.png`, and `table/table-light-overlay-source.png` preserve the 2026-07-24 renders with baked checkerboard backgrounds. The final `ui/action-tags.png` (2x3 grid of 96x24 cells with 4px padding), `ui/seat-nameplates.png` (3 cells of 110x26), and `table/table-light-overlay.png` were produced locally: near-gray bright pixels were keyed to transparency, then cells were cropped to content bounds and resized with nearest-neighbor to native display size.
+- `ui/chip-modules-source.png` preserves the GPT Image 2 generation used as the construction reference. `ui/chip-modules.png` is the runtime 160x40 RGBA atlas: five 32x20 columns, top caps at `(column*32+4, 4, 24, 12)`, and repeatable bodies at `(column*32+4, 27, 24, 5)`. Its cream, blue-gray, green, red, and black/brass columns use identical geometry and the seven-color core palette.
 - The menu background and app icon are intentionally opaque RGB images.
 
 ## Required production cleanup
@@ -81,6 +84,6 @@ Prompt source:
 
 ## Runtime integration
 
-The main menu and table use the generated background, logo, table preview, table surface, character states, card frames, card backs, blind tokens, and chip stacks through `scripts/ui/main.gd`. The table stage also integrates the panel atlas (header/action bar/event log nine-slice frames), HUD icons (header metrics and log title), result banners (showdown title), action tags (seat action labels beside bet chips), seat nameplates (name/stack plates, with current-actor and all-in states), and the table light overlay (lamplight pool over the felt at reduced opacity).
+The main menu and table use the generated background, logo, table preview, table surface, character states, card frames, card backs, action tags, neutral seat nameplates, modular chip atlas, and table light overlay through `scripts/ui/main.gd`. Old blind-token, large chip-stack, panel, HUD-icon, result-banner, form-control, and button atlases remain historical references but are no longer loaded by the runtime UI.
 
-Card ranks and suits remain runtime text so poker values stay exact. Runtime buttons use the normalized native-resolution atlas with nearest-neighbor filtering; the remaining form-control atlas stays as source material for later normalization.
+Card ranks, suits, role labels, stack values, pot values, actions, and log entries remain runtime text so poker values stay exact. Runtime buttons, fields, panels, sliders, blind-role badges, and the pot number plaque are drawn by Godot without anti-aliasing.

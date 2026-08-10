@@ -17,8 +17,8 @@ The main scene is `res://scenes/main.tscn`, backed by `scripts/ui/main.gd`.
 5. Human actions come from the UI and call `PokerRound.apply_action()`.
 6. AI turns wait for a randomized difficulty/personality-dependent delay, call `AiDecision.decide()`, and pass the returned action through `PokerRound.apply_action()`.
 7. The rules engine advances streets, resolves uncontested pots, or runs showdown through `HandEvaluator`.
-8. The UI renders the current table and recent event log. Completed hands update the local statistics once.
-9. The result panel shows payouts and offers the next hand or a restart.
+8. The UI renders the full-screen table. The event log is a normally closed overlay drawer; opening it pauses UI-driven AI timing and closing it resumes play. Completed hands update the local statistics once.
+9. The floating result dock shows payouts and offers the next hand or a restart.
 
 ## Game Layer
 
@@ -54,26 +54,26 @@ The visible wait before an AI action belongs to the UI layer and does not change
 
 ## UI And Art Layer
 
-`scripts/ui/main.gd` builds the interface programmatically with Godot `Control` nodes and theme overrides. It composes generated PNG textures from `assets/art/generated/` for the menu, title, table, characters, cards, blind tokens, chip stacks, panel frames, HUD icons, result banners, form fields, and button states. Dynamic Chinese text, card ranks, suits, values, and event content remain runtime-rendered so game information stays exact.
+`scripts/ui/main.gd` builds the interface programmatically with Godot `Control` nodes and theme overrides. It composes generated PNG textures from `assets/art/generated/` for the menu, title, table, characters, cards, action tags, neutral nameplates, and modular chips. Dynamic Chinese text, card ranks, suits, values, and event content remain runtime-rendered so game information stays exact. Buttons, fields, panels, sliders, blind-role badges, the pot amount plaque, and HUD chrome use hard-edged `StyleBoxFlat` or runtime-drawn controls instead of enlarged UI atlases.
 
 The table is a fixed-aspect `AspectRatioContainer` stage (`TableStage`, ratio 1619:971 matching the table texture). The table texture's built-in dark margins double as standing room: character sprites anchored at each seat overlap the rail from outside, selling players sitting around the table. All seat elements are positioned with fractional anchors from `SEAT_LAYOUTS` so the layout holds at any window size:
 
 - `SEAT_ORDERS_BY_PLAYER_COUNT` selects a balanced subset for 2-6 players while preserving the rules engine's increasing player index as a continuous counterclockwise path around the visible table.
-- Characters use the 4-state sheets (idle/thinking/betting/folded); folded players dim, and the current actor and hand winners get a brass ring (all-in gets red).
-- Hole cards lie on the felt beside or below each seat (the human's cards sit left of the human character so they never cover the face); AI cards stay face down until showdown, and folded hands are hidden.
-- A seat's current action renders as a textured speech tag (`Seat{n}Bet`, brass for raises/blinds, blue-gray for calls/checks, dim for folds; tail points toward the seat) including the amount; the tag replaces per-seat chip piles so tags never collide. Blinds render as token discs on the felt; name and stack sit on a textured nameplate over the character's lower edge (brass state for the current actor and winners, red for all-in).
-- Community cards render compact and centered through `CommunityCards`; the pot instrument (`PotLabel`) renders chips plus the pot total below them. Bet/card/pot holders use point anchors with both grow directions (`_stage_place_centered`) so content stays centered on its layout point instead of overflowing from a fixed corner. Dynamic pot chips use `_chip_stack_view()`: amount/big-blind ratio picks one of four stack tiers and a color column.
-- Chrome panels (header, event log, action bar) keep their nine-slice content margins at or above the texture slice margins so controls never draw over the decorative frame. The showdown result view is a single compact horizontal strip (banner, winner rows, next-hand/restart buttons) so the table stage keeps its full size at hand-over. A dithered lamplight overlay (`table/table-light-overlay.png`) sits above the table art at reduced opacity for the late-night light pool.
+- Portraits use the 4-state character sheets but stand outside the wooden rail. `Seat{n}Info` stays inside the former seat footprint and owns that player's hole cards, exact stack number, modular chip stack, role markers, and latest action. Folded players dim. The current actor uses a shader-generated alpha-contour brass pulse plus a small triangle; all-in and winner contours are stable red and gold. Nameplates remain neutral and no rectangular frame represents turn state.
+- `D`, `小盲`, and `大盲` are runtime text over a modular chip top and are attached to the correct `Seat{n}RoleMarkers`. Multiple roles can coexist on one seat.
+- Community cards render compact and centered through `CommunityCards`. `PotDisplay` uses a maximum 3x8 module stack and a small exact-number plaque; seat stacks use at most 2x5 visible modules. `_chip_breakdown()` greedily decomposes `[500, 100, 25, 5, 1]`; visible stacks compress at capacity while the labels remain authoritative.
+- The full-screen stage has no persistent header, footer, or log column. `FloatingStatus` sits top-left, `UtilityButtons` top-right, and `ActionDock` bottom-right. The raise controls expand only when requested. `LogDrawer` overlays 400 pixels from the right and does not reduce the table. Its unread dot compares the latest event's hand/type/text fingerprint without changing the rules-engine event schema.
+- A dithered lamplight overlay (`table/table-light-overlay.png`) sits above the table art at reduced opacity for the late-night light pool.
 
-The header, action bar, and event log use nine-sliced panel-atlas frames with HUD icons; key widgets carry stable node names (`HeaderPanel`, `EventLogPanel`, `ActionPanel`, `PotLabel`, `CommunityCards`, `Seat{n}Character/HoleCards/Bet/Plate/Token`) so the UI probes can assert their geometry.
+Key widgets carry stable node names (`TableStageRoot`, `TableFeltSafeZone`, `FloatingStatus`, `LogDrawer`, `ActionDock`, `PotDisplay`, `CommunityCards`, and `Seat{n}Portrait/Info/HoleCards/StackChips/RoleMarkers/Bet/Plate`) so the UI probes can assert geometry and state ownership.
 
 The UI displays:
 
 - Chinese main menu with AI-count and difficulty controls.
 - A settings popup for local sound/music switches and aggregate statistics, including a two-step reset confirmation.
-- Hand, street, pot, current bet, status message, community cards, player seats, blind markers, stacks, and bets.
-- A right-side event log containing only actual recent game events.
-- Legal action buttons plus raise amount controls when raising is legal.
+- A compact floating hand/street/status capsule, community cards, player seats, role markers, stacks, bets, and a physical pot display.
+- An on-demand right-side event-log drawer containing only actual recent game events.
+- A bottom-right dock containing only legal actions; raise amount controls appear only after expanding raise.
 - Result rows with payout and hand-rank text, followed by next-hand or restart controls.
 
 The canonical visual constraints are documented in `docs/art-direction.md`. Asset inventory, source/final file conventions, and production cleanup are documented in `assets/art/generated/README.md`.
@@ -89,6 +89,6 @@ The canonical visual constraints are documented in `docs/art-direction.md`. Asse
 ## Tests
 
 - `tests/test_runner.gd` covers cards, hand evaluation, action legality, side/split pots, Chinese result text, event history, local profile round-trips, AI profiles/actions, AI sampling, and Monte Carlo bounds.
-- `tests/ui_layout_probe.gd` checks the 1280x720 menu/settings flow and table layout at 1280x720, 1440x900, and 1920x1080 (stretch content 1280x720/1152x720). It also verifies critical generated-asset integration, nearest-neighbor button rendering, event-log compaction, and in-place statistics reset confirmation.
-- `tests/ui_playthrough_probe.gd` scripts a full player click-through (menu, settings with reset confirmation, a safe hand, a next-hand all-in, result, restart) at two window sizes, saves per-state screenshots to `/tmp/poker_audit/`, and asserts the machine-checkable UI acceptance metrics in `docs/planning/ui-acceptance.md` (viewport bounds, text fit, panel content margins, seat-widget layering, nearest filtering). Windowed, not part of the headless gate.
+- `tests/ui_layout_probe.gd` checks menu/settings and the table at 1280x720, 1440x900, and 1920x1080. It verifies the 78% table width, 1619:971 ratio, floating controls, portrait/felt safety, seat bindings, role markers, log pause/unread behavior, hard-edged `StyleBoxFlat` states, chip breakdowns, and visible-stack capacities.
+- `tests/ui_playthrough_probe.gd` scripts a full player click-through (menu, settings with reset confirmation, log drawer, collapsed/expanded actions, safe hand, next-hand all-in, result, restart) at two window sizes, saves per-state screenshots to `/tmp/poker_audit/`, and asserts viewport bounds, text fit, seat-widget layering, control overlap, and nearest filtering. Windowed, not part of the headless gate.
 - `tests/ui_table_snapshot.gd` is a visual dev tool: it renders preflop tables with 1/3/5 AI plus rigged flop and showdown states and saves PNGs to `/tmp/poker_table_*.png` for manual layout review (opens a window briefly; not part of the headless test gate).

@@ -9,18 +9,18 @@ const COLOR_BRASS = Color(0.795, 0.630, 0.300)
 const COLOR_ACTION = Color(0.195, 0.310, 0.365)
 const COLOR_DANGER = Color(0.620, 0.180, 0.165)
 
-const FONT_CAPTION := 11
-const FONT_SMALL := 12
-const FONT_BODY := 13
-const FONT_LABEL := 14
-const FONT_BUTTON := 15
+const FONT_CAPTION := 13
+const FONT_SMALL := 14
+const FONT_BODY := 15
+const FONT_LABEL := 15
+const FONT_BUTTON := 16
 const FONT_CARD_COMPACT := 16
 const FONT_TITLE := 18
 const FONT_VALUE := 20
 const FONT_CARD := 21
 const FONT_DISPLAY := 24
 
-const BUTTON_SIZE := Vector2(118, 42)
+const BUTTON_SIZE := Vector2(104, 40)
 const BUTTON_STEP_SIZE := Vector2(36, 36)
 const CARD_SIZE := Vector2(52, 68)
 const CARD_SIZE_COMPACT := Vector2(40, 52)
@@ -47,34 +47,9 @@ const MENU_PREVIEW_TEXTURE := preload("res://assets/art/generated/misc/menu-tabl
 const TITLE_LOGO_TEXTURE := preload("res://assets/art/generated/misc/title-logo.png")
 const TABLE_TEXTURE := preload("res://assets/art/generated/table/poker-table.png")
 const CARD_COMPONENTS_TEXTURE := preload("res://assets/art/generated/cards/card-components.png")
-const BLIND_TOKENS_TEXTURE := preload("res://assets/art/generated/ui/blind-tokens.png")
-const CHIP_ATLAS_TEXTURE := preload("res://assets/art/generated/ui/chip-atlas.png")
-const BUTTON_ATLAS_TEXTURE := preload("res://assets/art/generated/ui/button-atlas-native.png")
-const FORM_CONTROLS_ATLAS_TEXTURE := preload("res://assets/art/generated/ui/form-controls-atlas.png")
-const BUTTON_GOLD_REGIONS := {
-	"normal": Rect2(8, 8, 118, 42),
-	"hover": Rect2(134, 8, 118, 42),
-	"pressed": Rect2(260, 8, 118, 42),
-	"disabled": Rect2(386, 8, 118, 42),
-	"focus": Rect2(512, 8, 118, 42)
-}
-const BUTTON_BLUE_REGIONS := {
-	"normal": Rect2(8, 58, 118, 42),
-	"hover": Rect2(134, 58, 118, 42),
-	"pressed": Rect2(260, 58, 118, 42),
-	"disabled": Rect2(386, 58, 118, 42),
-	"focus": Rect2(512, 58, 118, 42)
-}
-const BUTTON_RED_REGIONS := {
-	"normal": Rect2(8, 108, 118, 42),
-	"hover": Rect2(134, 108, 118, 42),
-	"pressed": Rect2(260, 108, 118, 42),
-	"disabled": Rect2(386, 108, 118, 42),
-	"focus": Rect2(512, 108, 118, 42)
-}
-const FIELD_SELECT_CLOSED_REGION := Rect2(151, 100, 264, 122)
-const FIELD_SELECT_OPEN_REGION := Rect2(466, 100, 255, 123)
-const TRANSPARENT_PIXEL_REGION := Rect2(0, 0, 1, 1)
+const CHIP_MODULES_TEXTURE := preload("res://assets/art/generated/ui/chip-modules.png")
+const ChipStackViewScript := preload("res://scripts/ui/chip_stack.gd")
+const PORTRAIT_OUTLINE_SHADER := preload("res://scripts/ui/portrait_outline.gdshader")
 const CHARACTER_TEXTURES := [
 	preload("res://assets/art/generated/characters/player.png"),
 	preload("res://assets/art/generated/characters/ai-fox.png"),
@@ -83,27 +58,9 @@ const CHARACTER_TEXTURES := [
 	preload("res://assets/art/generated/characters/ai-veteran.png"),
 	preload("res://assets/art/generated/characters/ai-crow.png")
 ]
-const PANEL_ATLAS_TEXTURE := preload("res://assets/art/generated/ui/panel-atlas.png")
-const HUD_ICONS_TEXTURE := preload("res://assets/art/generated/ui/hud-icons.png")
-const RESULT_BANNERS_TEXTURE := preload("res://assets/art/generated/ui/result-banners.png")
 const ACTION_TAGS_TEXTURE := preload("res://assets/art/generated/ui/action-tags.png")
 const SEAT_NAMEPLATES_TEXTURE := preload("res://assets/art/generated/ui/seat-nameplates.png")
 const TABLE_LIGHT_OVERLAY_TEXTURE := preload("res://assets/art/generated/table/table-light-overlay.png")
-const PANEL_FRAME_REGION := Rect2(40, 100, 520, 335)
-const RESULT_BANNER_REGION := Rect2(210, 35, 1250, 190)
-const HUD_ICON_REGIONS := {
-	"hand": Rect2(150, 75, 260, 235),
-	"street": Rect2(495, 135, 150, 135),
-	"pot": Rect2(1085, 80, 365, 230),
-	"bet": Rect2(1145, 350, 190, 245),
-	"log": Rect2(650, 810, 245, 200)
-}
-const CHIP_STACK_REGIONS := [
-	Rect2(0, 40, 325, 180),
-	Rect2(0, 250, 325, 200),
-	Rect2(0, 470, 325, 215),
-	Rect2(0, 715, 325, 220)
-]
 const SEAT_ORDERS_BY_PLAYER_COUNT := {
 	2: [0, 2],
 	3: [0, 3, 1],
@@ -112,12 +69,12 @@ const SEAT_ORDERS_BY_PLAYER_COUNT := {
 	6: [0, 5, 3, 2, 1, 4]
 }
 const SEAT_LAYOUTS := {
-	0: {"char": Vector2(0.500, 0.815), "char_h": 0.370, "cards": Vector2(0.300, 0.780), "bet": Vector2(0.685, 0.780), "plate": Vector2(0.500, 0.945), "token": Vector2(0.210, 0.780)},
-	1: {"char": Vector2(0.280, 0.170), "char_h": 0.340, "cards": Vector2(0.220, 0.370), "bet": Vector2(0.362, 0.405), "plate": Vector2(0.280, 0.300), "token": Vector2(0.380, 0.330)},
-	2: {"char": Vector2(0.500, 0.170), "char_h": 0.340, "cards": Vector2(0.490, 0.340), "bet": Vector2(0.627, 0.405), "plate": Vector2(0.500, 0.300), "token": Vector2(0.370, 0.330)},
-	3: {"char": Vector2(0.730, 0.170), "char_h": 0.340, "cards": Vector2(0.760, 0.370), "bet": Vector2(0.630, 0.330), "plate": Vector2(0.730, 0.300), "token": Vector2(0.615, 0.270)},
-	4: {"char": Vector2(0.115, 0.470), "char_h": 0.340, "cards": Vector2(0.200, 0.500), "bet": Vector2(0.300, 0.655), "plate": Vector2(0.115, 0.665), "token": Vector2(0.215, 0.385)},
-	5: {"char": Vector2(0.885, 0.470), "char_h": 0.340, "cards": Vector2(0.800, 0.500), "bet": Vector2(0.700, 0.655), "plate": Vector2(0.885, 0.665), "token": Vector2(0.785, 0.385)}
+	0: {"portrait": Vector2(0.500, 0.910), "portrait_h": 0.245, "info": Vector2(0.500, 0.735), "plate": Vector2(0.500, 0.835)},
+	1: {"portrait": Vector2(0.280, 0.090), "portrait_h": 0.225, "info": Vector2(0.280, 0.285), "plate": Vector2(0.280, 0.175)},
+	2: {"portrait": Vector2(0.500, 0.080), "portrait_h": 0.225, "info": Vector2(0.500, 0.280), "plate": Vector2(0.500, 0.165)},
+	3: {"portrait": Vector2(0.720, 0.090), "portrait_h": 0.225, "info": Vector2(0.720, 0.285), "plate": Vector2(0.720, 0.175)},
+	4: {"portrait": Vector2(0.070, 0.500), "portrait_h": 0.230, "info": Vector2(0.205, 0.500), "plate": Vector2(0.120, 0.625)},
+	5: {"portrait": Vector2(0.930, 0.500), "portrait_h": 0.230, "info": Vector2(0.795, 0.500), "plate": Vector2(0.880, 0.625)}
 }
 
 var game := PokerRound.new()
@@ -134,6 +91,10 @@ var stats_reset_button: Button
 var stats_reset_pending := false
 var last_recorded_hand_number := 0
 var ai_pending := false
+var log_open := false
+var raise_expanded := false
+var last_seen_event_fingerprint := ""
+var last_rendered_pot := -1
 
 func _ready() -> void:
 	randomize()
@@ -142,11 +103,13 @@ func _ready() -> void:
 	_show_menu()
 
 func _process(_delta: float) -> void:
-	if game.is_ai_turn() and not ai_pending:
+	if _ai_can_advance() and game.is_ai_turn() and not ai_pending:
 		ai_pending = true
 		_run_ai_turn()
 
 func _clear() -> void:
+	raise_slider = null
+	raise_button = null
 	for child in get_children():
 		if child == sound_player:
 			continue
@@ -375,17 +338,16 @@ func _apply_field_style(field: Control) -> void:
 	field.add_theme_color_override("font_pressed_color", COLOR_CARD)
 	field.add_theme_font_size_override("font_size", FONT_LABEL)
 	if field is SpinBox:
-		_apply_texture_button_style(field, BUTTON_BLUE_REGIONS)
+		_apply_command_button_style(field, COLOR_ACTION)
 		var line_edit := (field as SpinBox).get_line_edit()
 		line_edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
-		line_edit.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		line_edit.add_theme_color_override("font_color", _white_color())
 		line_edit.add_theme_color_override("caret_color", COLOR_BRASS)
 		line_edit.add_theme_font_size_override("font_size", FONT_LABEL)
-		line_edit.add_theme_stylebox_override("normal", _texture_style(BUTTON_ATLAS_TEXTURE, BUTTON_BLUE_REGIONS.normal, Vector2(16, 7)))
-		line_edit.add_theme_stylebox_override("focus", _texture_style(BUTTON_ATLAS_TEXTURE, BUTTON_BLUE_REGIONS.focus, Vector2(16, 7)))
+		line_edit.add_theme_stylebox_override("normal", _field_style(COLOR_SLOT, _edge_color()))
+		line_edit.add_theme_stylebox_override("focus", _field_style(COLOR_SLOT.lightened(0.04), COLOR_BRASS, true))
 	else:
-		_apply_select_field_style(field)
+		_apply_command_button_style(field, COLOR_ACTION)
 
 func _on_start_pressed() -> void:
 	var difficulty := "medium"
@@ -400,6 +362,10 @@ func _on_start_pressed() -> void:
 	profile.settings.difficulty = difficulty
 	LocalProfileScript.save_profile(profile)
 	last_recorded_hand_number = 0
+	last_seen_event_fingerprint = ""
+	last_rendered_pot = -1
+	log_open = false
+	raise_expanded = false
 	game.start_new_match(int(ai_count_spin.value), difficulty)
 	_play_sound(420.0, 0.08)
 	_render_table()
@@ -409,107 +375,158 @@ func _render_table() -> void:
 	_clear()
 	add_child(_background(MENU_BACKGROUND_TEXTURE, Color(0.005, 0.014, 0.012, 0.76)))
 
-	var root := VBoxContainer.new()
-	root.anchor_left = 0.035
-	root.anchor_top = 0.0
-	root.anchor_right = 0.965
-	root.anchor_bottom = 1.0
-	root.offset_top = 12
-	root.offset_bottom = -12
-	root.add_theme_constant_override("separation", 8)
+	var root := Control.new()
+	root.name = "TableSceneRoot"
+	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
 
-	root.add_child(_build_header())
-	var body := HBoxContainer.new()
-	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.add_theme_constant_override("separation", 8)
-	root.add_child(body)
+	var table := _build_table_shell()
+	table.anchor_left = 0.105
+	table.anchor_top = 0.045
+	table.anchor_right = 0.895
+	table.anchor_bottom = 0.955
+	root.add_child(table)
+	root.add_child(_build_floating_status())
+	root.add_child(_build_utility_buttons())
+	root.add_child(_build_action_dock())
+	if log_open:
+		root.add_child(_build_log_drawer())
 
-	var play_area := VBoxContainer.new()
-	play_area.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	play_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	play_area.add_theme_constant_override("separation", 8)
-	body.add_child(play_area)
-	play_area.add_child(_build_table_shell())
-	play_area.add_child(_build_actions())
-	body.add_child(_build_event_log())
-
-func _build_header() -> Control:
-	var header := PanelContainer.new()
-	header.name = "HeaderPanel"
-	header.custom_minimum_size = Vector2(0, 70)
-	header.add_theme_stylebox_override("panel", _themed_panel_style(16.0, Vector2(20, 16)))
-
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 16)
-	header.add_child(row)
-
-	row.add_child(_metric_label("hand", "手牌", str(game.hand_number), _white_color()))
-	row.add_child(_metric_label("street", "街道", _stage_label(game.stage), _white_color()))
-	row.add_child(_metric_label("pot", "底池", str(game.total_pot()), COLOR_BRASS))
-	row.add_child(_metric_label("bet", "当前下注", str(game.current_bet), _white_color()))
-
-	var message := Label.new()
-	message.text = _status_message()
-	message.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	message.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	message.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	message.add_theme_color_override("font_color", COLOR_BRASS if game.is_human_turn() else _white_color())
-	message.add_theme_font_size_override("font_size", FONT_BUTTON)
-	row.add_child(message)
-	return header
-
-func _metric_label(icon_key: String, label_text: String, value_text: String, accent: Color) -> Control:
-	var row := HBoxContainer.new()
-	row.custom_minimum_size = Vector2(124, 0)
-	row.add_theme_constant_override("separation", 6)
-	var icon := _hud_icon(icon_key)
-	icon.custom_minimum_size = Vector2(24, 24)
-	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(icon)
+func _build_floating_status() -> Control:
+	var panel := PanelContainer.new()
+	panel.name = "FloatingStatus"
+	panel.anchor_left = 0.0
+	panel.anchor_top = 0.0
+	panel.anchor_right = 0.0
+	panel.anchor_bottom = 0.0
+	panel.offset_left = 24
+	panel.offset_top = 20
+	panel.offset_right = 292
+	panel.offset_bottom = 80
+	panel.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL_DARK, COLOR_BRASS.darkened(0.32), 2, 1, Vector2(12, 7)))
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 0)
-	var label := Label.new()
-	label.text = label_text
-	label.add_theme_color_override("font_color", _muted_color())
-	label.add_theme_font_size_override("font_size", FONT_CAPTION)
-	box.add_child(label)
-	var value := Label.new()
-	value.text = value_text
-	value.add_theme_color_override("font_color", accent)
-	value.add_theme_font_size_override("font_size", FONT_VALUE)
-	box.add_child(value)
-	row.add_child(box)
+	box.add_theme_constant_override("separation", 1)
+	panel.add_child(box)
+	var title := Label.new()
+	title.name = "FloatingStatusTitle"
+	title.text = "第 %d 手 · %s" % [game.hand_number, _stage_label(game.stage)]
+	title.add_theme_color_override("font_color", COLOR_BRASS)
+	title.add_theme_font_size_override("font_size", FONT_BUTTON)
+	box.add_child(title)
+	var detail := Label.new()
+	detail.name = "FloatingStatusDetail"
+	detail.text = _status_detail()
+	detail.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	detail.add_theme_color_override("font_color", _white_color() if game.is_human_turn() else _muted_color())
+	detail.add_theme_font_size_override("font_size", FONT_CAPTION)
+	box.add_child(detail)
+	return panel
+
+func _status_detail() -> String:
+	if game.is_human_turn():
+		return "轮到你行动"
+	var events := game.recent_events(1)
+	if not events.is_empty():
+		return _event_log_text(str(events[0].text))
+	return _status_message()
+
+func _build_utility_buttons() -> Control:
+	var row := HBoxContainer.new()
+	row.name = "UtilityButtons"
+	row.anchor_left = 1.0
+	row.anchor_top = 0.0
+	row.anchor_right = 1.0
+	row.anchor_bottom = 0.0
+	row.offset_left = -224
+	row.offset_top = 20
+	row.offset_right = -24
+	row.offset_bottom = 60
+	row.add_theme_constant_override("separation", 8)
+	var log_button := _command_button("记录", COLOR_ACTION, _white_color())
+	log_button.name = "LogButton"
+	log_button.custom_minimum_size = Vector2(96, 40)
+	log_button.pressed.connect(_toggle_log)
+	if _has_unread_log():
+		var unread := Label.new()
+		unread.name = "LogUnreadDot"
+		unread.text = "●"
+		unread.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		unread.add_theme_color_override("font_color", COLOR_DANGER.lightened(0.15))
+		unread.add_theme_font_size_override("font_size", FONT_CAPTION)
+		unread.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		unread.offset_left = -17
+		unread.offset_top = 2
+		unread.offset_right = -3
+		unread.offset_bottom = 18
+		unread.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		log_button.add_child(unread)
+	row.add_child(log_button)
+	var settings := _command_button("设置", COLOR_ACTION, _white_color())
+	settings.name = "SettingsButton"
+	settings.custom_minimum_size = Vector2(96, 40)
+	settings.pressed.connect(_show_settings_popup)
+	row.add_child(settings)
 	return row
 
-func _hud_icon(key: String) -> TextureRect:
-	var icon := _texture_rect(_atlas_texture(HUD_ICONS_TEXTURE, HUD_ICON_REGIONS[key]), TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return icon
+func _toggle_log() -> void:
+	log_open = not log_open
+	if log_open:
+		last_seen_event_fingerprint = _event_fingerprint()
+	_render_table()
 
-func _themed_panel_style(slice_margin: float, content_margins: Vector2) -> StyleBoxTexture:
-	var style := StyleBoxTexture.new()
-	style.texture = _atlas_texture(PANEL_ATLAS_TEXTURE, PANEL_FRAME_REGION)
-	style.texture_margin_left = slice_margin
-	style.texture_margin_top = slice_margin
-	style.texture_margin_right = slice_margin
-	style.texture_margin_bottom = slice_margin
-	style.content_margin_left = content_margins.x
-	style.content_margin_top = content_margins.y
-	style.content_margin_right = content_margins.x
-	style.content_margin_bottom = content_margins.y
-	return style
+func _build_log_drawer() -> Control:
+	var drawer := PanelContainer.new()
+	drawer.name = "LogDrawer"
+	drawer.anchor_left = 1.0
+	drawer.anchor_top = 0.0
+	drawer.anchor_right = 1.0
+	drawer.anchor_bottom = 1.0
+	drawer.offset_left = -424
+	drawer.offset_top = 72
+	drawer.offset_right = -24
+	drawer.offset_bottom = -24
+	drawer.z_index = 50
+	drawer.mouse_filter = Control.MOUSE_FILTER_STOP
+	drawer.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL_DARK, COLOR_BRASS.darkened(0.25), 2, 2, Vector2(16, 14)))
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 10)
+	drawer.add_child(box)
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 8)
+	box.add_child(header)
+	var title := Label.new()
+	title.text = "牌局记录"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.add_theme_color_override("font_color", COLOR_BRASS)
+	title.add_theme_font_size_override("font_size", 16)
+	header.add_child(title)
+	var close := _command_button("关闭", COLOR_ACTION, _white_color())
+	close.name = "LogCloseButton"
+	close.custom_minimum_size = Vector2(72, 34)
+	close.pressed.connect(_toggle_log)
+	header.add_child(close)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_child(scroll)
+	var list := VBoxContainer.new()
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	list.add_theme_constant_override("separation", 6)
+	scroll.add_child(list)
+	for event in game.recent_events(40):
+		var label := Label.new()
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label.text = "> %s" % _event_log_text(str(event.text))
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_color_override("font_color", _muted_color())
+		label.add_theme_font_size_override("font_size", 14)
+		list.add_child(label)
+	return drawer
 
 func _build_table_shell() -> Control:
-	var shell := PanelContainer.new()
-	shell.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	shell.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-
 	var stage := AspectRatioContainer.new()
 	stage.name = "TableStage"
 	stage.ratio = TABLE_ASPECT
-	shell.add_child(stage)
+	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var table_root := Control.new()
 	table_root.name = "TableStageRoot"
@@ -526,6 +543,14 @@ func _build_table_shell() -> Control:
 	light.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	light.modulate = Color(1.0, 1.0, 1.0, 0.45)
 	table_root.add_child(light)
+	var felt_safe_zone := Control.new()
+	felt_safe_zone.name = "TableFeltSafeZone"
+	felt_safe_zone.anchor_left = 0.145
+	felt_safe_zone.anchor_top = 0.205
+	felt_safe_zone.anchor_right = 0.855
+	felt_safe_zone.anchor_bottom = 0.795
+	felt_safe_zone.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	table_root.add_child(felt_safe_zone)
 
 	table_root.add_child(_build_pot_instrument())
 	var seat_order: Array = _seat_order_for_player_count(game.players.size())
@@ -534,21 +559,15 @@ func _build_table_shell() -> Control:
 			break
 		var seat_index := int(seat_order[player_index])
 		var layout: Dictionary = SEAT_LAYOUTS[seat_index]
-		var glow := _seat_glow(player_index, layout)
-		if glow != null:
-			table_root.add_child(glow)
-		table_root.add_child(_seat_character(player_index, layout))
-		table_root.add_child(_seat_hole_cards(player_index, layout))
-		var bet_widget := _seat_bet_widget(player_index, layout)
-		if bet_widget != null:
-			table_root.add_child(bet_widget)
-		var blind_token := _seat_blind_token(player_index, layout)
-		if blind_token != null:
-			table_root.add_child(blind_token)
+		table_root.add_child(_seat_portrait(player_index, layout))
+		table_root.add_child(_seat_info(player_index, layout))
 		table_root.add_child(_seat_nameplate(player_index, layout))
+		var current_marker := _seat_current_marker(player_index, layout)
+		if current_marker != null:
+			table_root.add_child(current_marker)
 	if _last_event_type() == "street":
-		_pulse_control(shell, COLOR_BRASS)
-	return shell
+		_pulse_control(stage, COLOR_BRASS)
+	return stage
 
 func _seat_order_for_player_count(player_count: int) -> Array:
 	var order: Variant = SEAT_ORDERS_BY_PLAYER_COUNT.get(player_count)
@@ -586,13 +605,13 @@ func _character_cell_aspect(player_index: int) -> float:
 	var texture: Texture2D = CHARACTER_TEXTURES[clampi(player_index, 0, CHARACTER_TEXTURES.size() - 1)]
 	return float(texture.get_width()) / 4.0 / float(texture.get_height())
 
-func _seat_character(player_index: int, layout: Dictionary) -> Control:
+func _seat_portrait(player_index: int, layout: Dictionary) -> Control:
 	var player: Dictionary = game.players[player_index]
-	var height_frac: float = layout.char_h
+	var height_frac: float = layout.portrait_h
 	var width_frac := height_frac * _character_cell_aspect(player_index) / TABLE_ASPECT
 	var frame := Control.new()
-	frame.name = "Seat%dCharacter" % player_index
-	_stage_place(frame, layout.char, Vector2(width_frac, height_frac))
+	frame.name = "Seat%dPortrait" % player_index
+	_stage_place(frame, layout.portrait, Vector2(width_frac, height_frac))
 	var texture_index := clampi(player_index, 0, CHARACTER_TEXTURES.size() - 1)
 	var texture: Texture2D = CHARACTER_TEXTURES[texture_index]
 	var cell_width := float(texture.get_width()) / 4.0
@@ -601,6 +620,18 @@ func _seat_character(player_index: int, layout: Dictionary) -> Control:
 	sprite.set_anchors_preset(Control.PRESET_FULL_RECT)
 	sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.add_child(sprite)
+	var outline_state := _portrait_outline_state(player_index)
+	if not outline_state.is_empty():
+		var material := ShaderMaterial.new()
+		material.shader = PORTRAIT_OUTLINE_SHADER
+		material.set_shader_parameter("source_texel", Vector2(1.0 / float(texture.get_width()), 1.0 / float(texture.get_height())))
+		material.set_shader_parameter("outline_color", outline_state.color)
+		material.set_shader_parameter("outline_alpha", 0.9)
+		sprite.material = material
+		if bool(outline_state.current):
+			var tween := create_tween().set_loops()
+			tween.tween_method(func(alpha: float): material.set_shader_parameter("outline_alpha", alpha), 0.58, 1.0, 0.75)
+			tween.tween_method(func(alpha: float): material.set_shader_parameter("outline_alpha", alpha), 1.0, 0.58, 0.75)
 	match str(player.status):
 		TableState.STATUS_FOLDED:
 			sprite.modulate = Color(0.45, 0.47, 0.44)
@@ -608,7 +639,30 @@ func _seat_character(player_index: int, layout: Dictionary) -> Control:
 			sprite.modulate = Color(0.30, 0.32, 0.30)
 	return frame
 
-func _seat_glow(player_index: int, layout: Dictionary) -> Control:
+func _seat_current_marker(player_index: int, layout: Dictionary) -> Control:
+	if player_index != game.current_player_index or game.stage == TableState.STAGE_HAND_OVER:
+		return null
+	var holder := CenterContainer.new()
+	holder.name = "Seat%dCurrentMarker" % player_index
+	var portrait_position: Vector2 = layout.portrait
+	var vertical_offset := 0.09 if portrait_position.y > 0.75 else 0.11
+	_stage_place_centered(holder, Vector2(portrait_position.x, portrait_position.y - vertical_offset))
+	holder.z_as_relative = false
+	holder.z_index = 5
+	var marker := Label.new()
+	marker.text = "▼"
+	marker.custom_minimum_size = Vector2(28, 22)
+	marker.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	marker.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	marker.add_theme_color_override("font_color", COLOR_BRASS)
+	marker.add_theme_color_override("font_outline_color", COLOR_DEEP)
+	marker.add_theme_constant_override("outline_size", 3)
+	marker.add_theme_font_size_override("font_size", FONT_TITLE)
+	marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(marker)
+	return holder
+
+func _portrait_outline_state(player_index: int) -> Dictionary:
 	var player: Dictionary = game.players[player_index]
 	var is_current := player_index == game.current_player_index and game.stage != TableState.STAGE_HAND_OVER
 	var is_winner := false
@@ -616,53 +670,91 @@ func _seat_glow(player_index: int, layout: Dictionary) -> Control:
 		for win in game.winners:
 			if int(win.player_index) == player_index:
 				is_winner = true
-	if not is_current and not is_winner and player.status != TableState.STATUS_ALL_IN:
-		return null
-	var ring_color := COLOR_BRASS
-	if player.status == TableState.STATUS_ALL_IN and not is_current and not is_winner:
-		ring_color = COLOR_DANGER
-	var width_frac: float = layout.char_h * _character_cell_aspect(player_index) / TABLE_ASPECT + 0.016
-	var height_frac: float = layout.char_h + 0.028
-	var ring := PanelContainer.new()
-	_stage_place(ring, layout.char, Vector2(width_frac, height_frac))
-	ring.add_theme_stylebox_override("panel", _panel_style(Color(0, 0, 0, 0), ring_color, 3, 2, Vector2(0, 0)))
+	if is_winner:
+		return {"color": COLOR_BRASS.lightened(0.14), "current": false}
+	if player.status == TableState.STATUS_ALL_IN:
+		return {"color": COLOR_DANGER.lightened(0.08), "current": false}
 	if is_current:
-		_pulse_control(ring, COLOR_BRASS)
-	return ring
+		return {"color": COLOR_BRASS, "current": true}
+	return {}
 
-func _seat_hole_cards(player_index: int, layout: Dictionary) -> Control:
+func _seat_info(player_index: int, layout: Dictionary) -> Control:
 	var player: Dictionary = game.players[player_index]
 	var holder := CenterContainer.new()
-	holder.name = "Seat%dHoleCards" % player_index
-	_stage_place_centered(holder, layout.cards)
-	if player.status == TableState.STATUS_FOLDED or player.status == TableState.STATUS_OUT:
-		return holder
-	var is_human := bool(player.is_human)
-	var reveal := is_human or game.stage == TableState.STAGE_HAND_OVER
+	holder.name = "Seat%dInfo" % player_index
+	_stage_place_centered(holder, layout.info)
+	var box := VBoxContainer.new()
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 2)
+	holder.add_child(box)
 	var cards := HBoxContainer.new()
+	cards.name = "Seat%dHoleCards" % player_index
 	cards.alignment = BoxContainer.ALIGNMENT_CENTER
-	cards.add_theme_constant_override("separation", 4)
-	for card in player.hole_cards:
-		cards.add_child(_card_view(card, reveal, not is_human))
-	holder.add_child(cards)
-	return holder
-
-func _seat_bet_widget(player_index: int, layout: Dictionary) -> Control:
-	var player: Dictionary = game.players[player_index]
+	cards.add_theme_constant_override("separation", 3)
+	if player.status != TableState.STATUS_FOLDED and player.status != TableState.STATUS_OUT:
+		var reveal := bool(player.is_human) or game.stage == TableState.STAGE_HAND_OVER
+		for card in player.hole_cards:
+			cards.add_child(_card_view(card, reveal, true))
+	box.add_child(cards)
+	var resources := HBoxContainer.new()
+	resources.alignment = BoxContainer.ALIGNMENT_CENTER
+	resources.add_theme_constant_override("separation", 5)
+	var stack_chips := _chip_stack_view(int(player.stack), 2, 5, 1)
+	stack_chips.name = "Seat%dStackChips" % player_index
+	resources.add_child(stack_chips)
+	var stack_label := Label.new()
+	stack_label.name = "Seat%dStackAmount" % player_index
+	stack_label.text = str(int(player.stack))
+	stack_label.add_theme_color_override("font_color", _white_color())
+	stack_label.add_theme_font_size_override("font_size", FONT_CAPTION)
+	resources.add_child(stack_label)
+	var roles := HBoxContainer.new()
+	roles.name = "Seat%dRoleMarkers" % player_index
+	roles.add_theme_constant_override("separation", 2)
+	for role in _role_markers(player_index):
+		roles.add_child(_role_marker(player_index, role))
+	resources.add_child(roles)
+	box.add_child(resources)
 	var bet := int(player.current_bet)
 	var last_action := str(player.last_action)
-	if bet <= 0 and last_action.is_empty():
-		return null
-	var holder := CenterContainer.new()
-	holder.name = "Seat%dBet" % player_index
-	_stage_place_centered(holder, layout.bet)
-	if not last_action.is_empty():
-		holder.add_child(_action_tag(player_index, last_action, bet, layout.char.y > layout.bet.y))
-	else:
-		var chips := _chip_stack_view(bet)
-		chips.custom_minimum_size = Vector2(56, 34)
-		holder.add_child(chips)
+	if bet > 0 or not last_action.is_empty():
+		var bet_holder := CenterContainer.new()
+		bet_holder.name = "Seat%dBet" % player_index
+		if not last_action.is_empty():
+			bet_holder.add_child(_action_tag(player_index, last_action, bet, layout.portrait.y > layout.info.y))
+		else:
+			bet_holder.add_child(_chip_stack_view(bet, 2, 3, 1))
+		box.add_child(bet_holder)
 	return holder
+
+func _role_markers(player_index: int) -> Array:
+	var roles: Array = []
+	if player_index == game.button_index:
+		roles.append({"key": "Dealer", "text": "D", "atlas_index": 0})
+	if player_index == game.small_blind_player_index:
+		roles.append({"key": "SmallBlind", "text": "小盲", "atlas_index": 1})
+	if player_index == game.big_blind_player_index:
+		roles.append({"key": "BigBlind", "text": "大盲", "atlas_index": 4})
+	return roles
+
+func _role_marker(player_index: int, role: Dictionary) -> Control:
+	var marker := Control.new()
+	marker.name = "Seat%d%s" % [player_index, str(role.key)]
+	marker.custom_minimum_size = Vector2(48, 24)
+	marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var art := _texture_rect(_atlas_texture(CHIP_MODULES_TEXTURE, Rect2(int(role.atlas_index) * 32 + 4, 4, 24, 12)), TextureRect.STRETCH_SCALE)
+	art.set_anchors_preset(Control.PRESET_FULL_RECT)
+	marker.add_child(art)
+	var label := Label.new()
+	label.text = str(role.text)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	label.add_theme_color_override("font_color", _ink_color() if int(role.atlas_index) != 4 else COLOR_CARD)
+	label.add_theme_font_size_override("font_size", FONT_CAPTION)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	marker.add_child(label)
+	return marker
 
 func _action_tag(player_index: int, last_action: String, bet: int, tail_down: bool) -> Control:
 	var player: Dictionary = game.players[player_index]
@@ -678,92 +770,52 @@ func _action_tag(player_index: int, last_action: String, bet: int, tail_down: bo
 	elif last_action == "Raise" or last_action == "All-in" or last_action.begins_with("Blind"):
 		row = 0
 		text_color = _ink_color()
-	var tag := PanelContainer.new()
-	tag.add_theme_stylebox_override("panel", _tag_style(row, tail_down))
+	var tag := Control.new()
+	tag.custom_minimum_size = Vector2(96, 24)
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var col := 0 if tail_down else 1
+	var art := _texture_rect(_atlas_texture(ACTION_TAGS_TEXTURE, Rect2(col * 104 + 4, row * 32 + 4, 96, 24)), TextureRect.STRETCH_SCALE)
+	art.set_anchors_preset(Control.PRESET_FULL_RECT)
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tag.add_child(art)
 	var label := Label.new()
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	label.add_theme_color_override("font_color", text_color)
 	label.add_theme_font_size_override("font_size", FONT_CAPTION)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tag.add_child(label)
 	return tag
 
-func _tag_style(row: int, tail_down: bool) -> StyleBoxTexture:
-	var col := 0 if tail_down else 1
-	var style := StyleBoxTexture.new()
-	style.texture = _atlas_texture(ACTION_TAGS_TEXTURE, Rect2(col * 104 + 4, row * 32 + 4, 96, 24))
-	style.texture_margin_left = 12.0
-	style.texture_margin_top = 9.0
-	style.texture_margin_right = 12.0
-	style.texture_margin_bottom = 9.0
-	style.content_margin_left = 12.0
-	style.content_margin_top = 9.0
-	style.content_margin_right = 12.0
-	style.content_margin_bottom = 9.0
-	return style
-
-func _seat_blind_token(player_index: int, layout: Dictionary) -> Control:
-	var token_index := -1
-	if player_index == game.button_index:
-		token_index = 0
-	elif player_index == game.small_blind_player_index:
-		token_index = 1
-	elif player_index == game.big_blind_player_index:
-		token_index = 2
-	else:
-		return null
-	var regions := [Rect2(205, 42, 345, 370), Rect2(645, 42, 350, 370), Rect2(1090, 42, 390, 370)]
-	var token := _texture_rect(_atlas_texture(BLIND_TOKENS_TEXTURE, regions[token_index]), TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
-	token.name = "Seat%dToken" % player_index
-	_stage_place(token, layout.token, Vector2(0.045, 0.045 * TABLE_ASPECT))
-	return token
-
 func _seat_nameplate(player_index: int, layout: Dictionary) -> Control:
 	var player: Dictionary = game.players[player_index]
-	var is_human := bool(player.is_human)
-	var is_current := player_index == game.current_player_index and game.stage != TableState.STAGE_HAND_OVER
-	var is_winner := false
-	if game.stage == TableState.STAGE_HAND_OVER:
-		for win in game.winners:
-			if int(win.player_index) == player_index:
-				is_winner = true
-	var plate := PanelContainer.new()
-	plate.name = "Seat%dPlate" % player_index
-	_stage_place(plate, layout.plate, Vector2(0.170, 0.054) if is_human else Vector2(0.140, 0.050))
-	var state := 0
-	if player.status == TableState.STATUS_ALL_IN:
-		state = 2
-	elif is_current or is_winner:
-		state = 1
-	plate.add_theme_stylebox_override("panel", _nameplate_style(state))
+	var holder := CenterContainer.new()
+	holder.name = "Seat%dPlate" % player_index
+	_stage_place_centered(holder, layout.plate)
+	var plate := Control.new()
+	plate.custom_minimum_size = Vector2(110, 26)
+	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(plate)
+	var art := _texture_rect(_atlas_texture(SEAT_NAMEPLATES_TEXTURE, Rect2(4, 4, 110, 26)), TextureRect.STRETCH_SCALE)
+	art.set_anchors_preset(Control.PRESET_FULL_RECT)
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plate.add_child(art)
 	var label := Label.new()
 	label.text = _nameplate_text(player_index)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.set_anchors_preset(Control.PRESET_FULL_RECT)
 	label.clip_text = true
 	var font_color := _white_color()
 	if player.status == TableState.STATUS_FOLDED or player.status == TableState.STATUS_OUT:
 		font_color = _muted_color()
-	elif is_current:
-		font_color = COLOR_BRASS
 	label.add_theme_color_override("font_color", font_color)
 	label.add_theme_font_size_override("font_size", FONT_CAPTION)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	plate.add_child(label)
-	return plate
-
-func _nameplate_style(state: int) -> StyleBoxTexture:
-	var style := StyleBoxTexture.new()
-	style.texture = _atlas_texture(SEAT_NAMEPLATES_TEXTURE, Rect2(state * 118 + 4, 4, 110, 26))
-	style.texture_margin_left = 10.0
-	style.texture_margin_top = 8.0
-	style.texture_margin_right = 10.0
-	style.texture_margin_bottom = 8.0
-	style.content_margin_left = 10.0
-	style.content_margin_top = 8.0
-	style.content_margin_right = 10.0
-	style.content_margin_bottom = 8.0
-	return style
+	return holder
 
 func _nameplate_text(player_index: int) -> String:
 	var player: Dictionary = game.players[player_index]
@@ -775,53 +827,7 @@ func _nameplate_text(player_index: int) -> String:
 			return "%s · 全下" % display_name
 		TableState.STATUS_OUT:
 			return "%s · 出局" % display_name
-	return "%s · %d" % [display_name, int(player.stack)]
-
-func _build_event_log() -> Control:
-	var panel := PanelContainer.new()
-	panel.name = "EventLogPanel"
-	panel.custom_minimum_size = Vector2(260, 0)
-	panel.size_flags_horizontal = Control.SIZE_SHRINK_END
-	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panel.add_theme_stylebox_override("panel", _themed_panel_style(16.0, Vector2(20, 16)))
-
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 4)
-	box.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panel.add_child(box)
-
-	var title_row := HBoxContainer.new()
-	title_row.add_theme_constant_override("separation", 6)
-	var title_icon := _hud_icon("log")
-	title_icon.custom_minimum_size = Vector2(18, 18)
-	title_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	title_row.add_child(title_icon)
-	var title := Label.new()
-	title.text = "牌局记录"
-	title.add_theme_color_override("font_color", COLOR_BRASS)
-	title.add_theme_font_size_override("font_size", FONT_SMALL)
-	title_row.add_child(title)
-	box.add_child(title_row)
-
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	box.add_child(scroll)
-
-	var list := VBoxContainer.new()
-	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	list.add_theme_constant_override("separation", 3)
-	scroll.add_child(list)
-
-	var events := game.recent_events(14)
-	for event in events:
-		var label := Label.new()
-		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		label.text = "> %s" % _event_log_text(str(event.text))
-		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		label.add_theme_color_override("font_color", _muted_color())
-		label.add_theme_font_size_override("font_size", FONT_SMALL)
-		list.add_child(label)
-	return panel
+	return display_name
 
 func _event_log_text(event_text: String) -> String:
 	var compact_text := event_text
@@ -845,7 +851,7 @@ func _build_pot_instrument() -> Control:
 
 	var cards_holder := CenterContainer.new()
 	cards_holder.name = "CommunityCards"
-	_stage_place_centered(cards_holder, Vector2(0.5, 0.510))
+	_stage_place_centered(cards_holder, Vector2(0.5, 0.450))
 	var cards := HBoxContainer.new()
 	cards.alignment = BoxContainer.ALIGNMENT_CENTER
 	cards.add_theme_constant_override("separation", 6)
@@ -855,49 +861,70 @@ func _build_pot_instrument() -> Control:
 	overlay.add_child(cards_holder)
 
 	var pot_holder := CenterContainer.new()
-	pot_holder.name = "PotLabel"
-	_stage_place_centered(pot_holder, Vector2(0.5, 0.625))
-	var pot_row := HBoxContainer.new()
-	pot_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	pot_row.add_theme_constant_override("separation", 10)
-	var chips := _chip_stack_view(game.total_pot())
-	chips.custom_minimum_size = Vector2(72, 40)
-	pot_row.add_child(chips)
-	var pot := Label.new()
-	pot.text = "底池 %d" % game.total_pot()
-	pot.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	pot.add_theme_color_override("font_color", COLOR_BRASS)
-	pot.add_theme_font_size_override("font_size", FONT_DISPLAY)
-	pot_row.add_child(pot)
-	pot_holder.add_child(pot_row)
+	pot_holder.name = "PotDisplay"
+	_stage_place_centered(pot_holder, Vector2(0.5, 0.555))
+	var pot_box := VBoxContainer.new()
+	pot_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	pot_box.add_theme_constant_override("separation", 2)
+	var chips := _chip_stack_view(game.total_pot(), 3, 8, 1)
+	chips.name = "PotChips"
+	chips.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	pot_box.add_child(chips)
+	var amount_plate := PanelContainer.new()
+	amount_plate.name = "PotAmountPlate"
+	amount_plate.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	amount_plate.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL_DARK, COLOR_BRASS.darkened(0.18), 1, 1, Vector2(10, 3)))
+	var amount := Label.new()
+	amount.name = "PotAmount"
+	amount.text = str(game.total_pot())
+	amount.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	amount.add_theme_color_override("font_color", COLOR_BRASS)
+	amount.add_theme_font_size_override("font_size", FONT_BUTTON)
+	amount_plate.add_child(amount)
+	pot_box.add_child(amount_plate)
+	pot_holder.add_child(pot_box)
 	overlay.add_child(pot_holder)
+	if last_rendered_pot >= 0 and last_rendered_pot != game.total_pot():
+		_pulse_control(amount_plate, COLOR_BRASS)
+		chips.scale = Vector2(0.92, 0.92)
+		create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).tween_property(chips, "scale", Vector2.ONE, 0.22)
+	last_rendered_pot = game.total_pot()
 	return panel
 
-func _chip_stack_view(amount: int) -> TextureRect:
-	if amount <= 0:
-		return _texture_rect(null, TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
-	var ratio := float(amount) / maxf(1.0, float(game.big_blind))
-	var tier := 0
-	if ratio > 12.0:
-		tier = 3
-	elif ratio > 4.0:
-		tier = 2
-	elif ratio > 1.5:
-		tier = 1
-	var region: Rect2 = CHIP_STACK_REGIONS[tier]
-	region.position.x = mini(tier + 1, 4) * 325.0
-	var chips := _texture_rect(_atlas_texture(CHIP_ATLAS_TEXTURE, region), TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
-	chips.mouse_filter = Control.MOUSE_FILTER_IGNORE
+func _chip_breakdown(amount: int) -> Array:
+	var result: Array = []
+	var remaining := maxi(0, amount)
+	var values := [500, 100, 25, 5, 1]
+	var atlas_indices := [4, 3, 2, 1, 0]
+	for index in range(values.size()):
+		var count := remaining / int(values[index])
+		if count > 0:
+			result.append({"denomination": int(values[index]), "count": count, "atlas_index": int(atlas_indices[index])})
+			remaining %= int(values[index])
+	return result
+
+func _chip_stack_view(amount: int, max_columns: int, max_layers: int, pixel_scale: int) -> Control:
+	var chips := ChipStackViewScript.new()
+	chips.configure(CHIP_MODULES_TEXTURE, _chip_breakdown(amount), max_columns, max_layers, pixel_scale)
 	return chips
 
-func _build_actions() -> Control:
+func _build_action_dock() -> Control:
 	var panel := PanelContainer.new()
-	panel.name = "ActionPanel"
-	panel.custom_minimum_size = Vector2(0, 116)
-	panel.add_theme_stylebox_override("panel", _themed_panel_style(16.0, Vector2(20, 16)))
+	panel.name = "ActionDock"
+	panel.anchor_left = 1.0
+	panel.anchor_top = 1.0
+	panel.anchor_right = 1.0
+	panel.anchor_bottom = 1.0
+	var dock_width := 580 if game.stage == TableState.STAGE_HAND_OVER else 372
+	var dock_height := _result_dock_height() if game.stage == TableState.STAGE_HAND_OVER else (110 if raise_expanded and game.is_human_turn() else 60)
+	panel.offset_left = -dock_width - 24
+	panel.offset_top = -dock_height - 20
+	panel.offset_right = -24
+	panel.offset_bottom = -20
+	panel.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL_DARK, _edge_color(), 2, 1, Vector2(10, 9)))
 
 	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 8)
+	box.add_theme_constant_override("separation", 6)
 	panel.add_child(box)
 
 	if game.stage == TableState.STAGE_HAND_OVER:
@@ -905,7 +932,7 @@ func _build_actions() -> Control:
 		return panel
 	if not game.is_human_turn():
 		var waiting := Label.new()
-		waiting.text = "等待 %s 行动..." % game.players[game.current_player_index].name
+		waiting.text = "等待 AI…"
 		waiting.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		waiting.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		waiting.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -917,7 +944,7 @@ func _build_actions() -> Control:
 	var legal := game.get_legal_actions(0)
 	var actions_row := HBoxContainer.new()
 	actions_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	actions_row.add_theme_constant_override("separation", 10)
+	actions_row.add_theme_constant_override("separation", 6)
 	box.add_child(actions_row)
 
 	_add_action_button(actions_row, "弃牌", TableState.ACTION_FOLD, legal, COLOR_DANGER)
@@ -926,9 +953,18 @@ func _build_actions() -> Control:
 	_add_action_button(actions_row, "全下", TableState.ACTION_ALL_IN, legal, COLOR_DANGER)
 
 	if legal.actions.has(TableState.ACTION_RAISE):
+		var expand_button := _command_button("加注", COLOR_BRASS, _ink_color())
+		expand_button.name = "RaiseExpandButton"
+		expand_button.custom_minimum_size = Vector2(68, 38)
+		expand_button.pressed.connect(func():
+			raise_expanded = not raise_expanded
+			_render_table()
+		)
+		actions_row.add_child(expand_button)
+	if raise_expanded and legal.actions.has(TableState.ACTION_RAISE):
 		var raise_row := HBoxContainer.new()
 		raise_row.alignment = BoxContainer.ALIGNMENT_CENTER
-		raise_row.add_theme_constant_override("separation", 12)
+		raise_row.add_theme_constant_override("separation", 6)
 		box.add_child(raise_row)
 		var decrease_button := _raise_step_button("-")
 		decrease_button.pressed.connect(func(): _change_raise_by_step(-1))
@@ -938,7 +974,7 @@ func _build_actions() -> Control:
 		raise_slider.max_value = legal.max_raise_to
 		raise_slider.step = game.big_blind
 		raise_slider.value = legal.min_raise_to
-		raise_slider.custom_minimum_size = Vector2(320, 32)
+		raise_slider.custom_minimum_size = Vector2(176, 32)
 		raise_slider.add_theme_stylebox_override("slider", _panel_style(COLOR_SLOT, _edge_color().darkened(0.30), 1, 2, Vector2(0, 0)))
 		raise_slider.add_theme_stylebox_override("grabber_area", _panel_style(COLOR_BRASS, COLOR_BRASS.darkened(0.30), 1, 2, Vector2(0, 0)))
 		raise_slider.value_changed.connect(_on_raise_slider_changed)
@@ -947,30 +983,31 @@ func _build_actions() -> Control:
 		increase_button.pressed.connect(func(): _change_raise_by_step(1))
 		raise_row.add_child(increase_button)
 		raise_button = _command_button("加注到", COLOR_BRASS, _ink_color())
+		raise_button.custom_minimum_size = Vector2(96, 36)
 		raise_button.pressed.connect(func(): _on_action(TableState.ACTION_RAISE, int(raise_slider.value)))
 		raise_row.add_child(raise_button)
 		_on_raise_slider_changed(raise_slider.value)
 	return panel
 
+func _result_dock_height() -> int:
+	var payout_players: Dictionary = {}
+	for win in game.winners:
+		payout_players[int(win.player_index)] = true
+	var row_count := payout_players.size()
+	if game.match_over and not game.match_summary.is_empty():
+		row_count += 1
+	return maxi(96, 56 + row_count * 19)
+
 func _result_panel() -> Control:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 16)
-	var banner_stack := Control.new()
-	banner_stack.custom_minimum_size = Vector2(260, 40)
-	var banner_art := _texture_rect(_atlas_texture(RESULT_BANNERS_TEXTURE, RESULT_BANNER_REGION), TextureRect.STRETCH_SCALE)
-	banner_art.set_anchors_preset(Control.PRESET_FULL_RECT)
-	banner_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	banner_stack.add_child(banner_art)
+	row.add_theme_constant_override("separation", 10)
 	var title := Label.new()
 	title.text = _status_message()
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title.set_anchors_preset(Control.PRESET_FULL_RECT)
 	title.add_theme_color_override("font_color", COLOR_BRASS)
-	title.add_theme_font_size_override("font_size", FONT_LABEL)
-	banner_stack.add_child(title)
-	row.add_child(banner_stack)
+	title.add_theme_font_size_override("font_size", FONT_BUTTON)
+	row.add_child(title)
 	var info := VBoxContainer.new()
 	info.alignment = BoxContainer.ALIGNMENT_CENTER
 	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -985,9 +1022,18 @@ func _result_panel() -> Control:
 		summary.add_theme_color_override("font_color", _white_color())
 		summary.add_theme_font_size_override("font_size", FONT_SMALL)
 		info.add_child(summary)
+	var payouts: Dictionary = {}
+	var payout_order: Array[int] = []
 	for win in game.winners:
+		var player_index := int(win.player_index)
+		if not payouts.has(player_index):
+			payouts[player_index] = {"amount": 0, "rank_name": str(win.rank_name)}
+			payout_order.append(player_index)
+		payouts[player_index].amount += int(win.amount)
+	for player_index in payout_order:
+		var payout: Dictionary = payouts[player_index]
 		var win_label := Label.new()
-		win_label.text = "%s +%d (%s)" % [game.players[win.player_index].name, win.amount, win.rank_name]
+		win_label.text = "%s +%d（%s）" % [game.players[player_index].name, int(payout.amount), str(payout.rank_name)]
 		win_label.add_theme_color_override("font_color", _white_color())
 		win_label.add_theme_font_size_override("font_size", FONT_SMALL)
 		info.add_child(win_label)
@@ -1008,7 +1054,6 @@ func _result_panel() -> Control:
 	restart_button.pressed.connect(_show_menu)
 	buttons.add_child(restart_button)
 	row.add_child(buttons)
-	_fade_in(row, 0.22)
 	return row
 
 func _card_view(card: Dictionary, face_up: bool, compact: bool = false) -> Control:
@@ -1042,6 +1087,7 @@ func _add_action_button(parent: Control, label: String, action: String, legal: D
 	if not legal.actions.has(action):
 		return
 	var button := _command_button(label, color, _white_color() if color != COLOR_BRASS else _ink_color())
+	button.custom_minimum_size = Vector2(94 if action == TableState.ACTION_CALL else 72, 38)
 	button.pressed.connect(func(): _on_action(action, 0))
 	parent.add_child(button)
 
@@ -1094,6 +1140,7 @@ func _on_reset_stats_pressed() -> void:
 	_refresh_stats_panel()
 
 func _on_action(action: String, amount: int) -> void:
+	raise_expanded = false
 	game.apply_action(action, amount)
 	_play_action_sound(action)
 	_render_table()
@@ -1101,13 +1148,41 @@ func _on_action(action: String, amount: int) -> void:
 func _run_ai_turn() -> void:
 	var delay := _ai_action_delay(game.players[game.current_player_index])
 	await get_tree().create_timer(delay).timeout
-	if game.is_ai_turn():
-		var idx := game.current_player_index
-		var decision := AiDecision.decide(game, idx)
-		game.apply_action(decision.action_type, int(decision.get("amount", 0)), str(decision.get("decision_label", "")))
-		_play_action_sound(str(decision.action_type))
+	if not _execute_ai_turn_if_allowed():
+		ai_pending = false
+		return
 	ai_pending = false
 	_render_table()
+
+func _execute_ai_turn_if_allowed() -> bool:
+	if not _ai_can_advance() or not game.is_ai_turn():
+		return false
+	var idx := game.current_player_index
+	var decision := AiDecision.decide(game, idx)
+	game.apply_action(decision.action_type, int(decision.get("amount", 0)), str(decision.get("decision_label", "")))
+	_play_action_sound(str(decision.action_type))
+	return true
+
+func _ai_can_advance() -> bool:
+	return not log_open and not _has_visible_popup(self)
+
+func _has_visible_popup(node: Node) -> bool:
+	for child in node.get_children():
+		if child is Popup and (child as Popup).visible:
+			return true
+		if _has_visible_popup(child):
+			return true
+	return false
+
+func _event_fingerprint() -> String:
+	if game.event_log.is_empty():
+		return ""
+	var event: Dictionary = game.event_log[game.event_log.size() - 1]
+	return "%d|%s|%s" % [int(event.get("hand", game.hand_number)), str(event.get("type", "")), str(event.get("text", ""))]
+
+func _has_unread_log() -> bool:
+	var current := _event_fingerprint()
+	return not log_open and not current.is_empty() and current != last_seen_event_fingerprint
 
 func _ai_action_delay(player: Dictionary) -> float:
 	if str(player.get("difficulty", "medium")) != "hard":
@@ -1144,6 +1219,8 @@ func _record_completed_hand_if_needed() -> void:
 	LocalProfileScript.save_profile(profile)
 
 func _setup_audio() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
 	sound_player = AudioStreamPlayer.new()
 	var stream := AudioStreamGenerator.new()
 	stream.mix_rate = AUDIO_SAMPLE_RATE
@@ -1199,6 +1276,7 @@ func _atlas_texture(texture: Texture2D, region: Rect2) -> AtlasTexture:
 	var atlas := AtlasTexture.new()
 	atlas.atlas = texture
 	atlas.region = region
+	atlas.filter_clip = true
 	return atlas
 
 func _texture_rect(texture: Texture2D, stretch_mode_value: int) -> TextureRect:
@@ -1232,7 +1310,7 @@ func _white_color() -> Color:
 	return COLOR_CARD.lightened(0.05)
 
 func _muted_color() -> Color:
-	return Color(0.565, 0.545, 0.455)
+	return Color(0.690, 0.665, 0.555)
 
 func _ink_color() -> Color:
 	return Color(0.025, 0.028, 0.024)
@@ -1255,14 +1333,15 @@ func _panel_style(bg: Color, border: Color, radius: int, border_width: int, marg
 	style.content_margin_right = margins.x
 	style.content_margin_top = margins.y
 	style.content_margin_bottom = margins.y
+	style.anti_aliasing = false
 	return style
 
 func _button_style(bg: Color, outline_alpha: float) -> StyleBoxFlat:
 	var border := COLOR_CARD.darkened(0.10) if outline_alpha > 0.0 else bg.lightened(0.12)
 	var style := _panel_style(bg, border, 1, 2, Vector2(14, 8))
 	style.shadow_color = Color(0.005, 0.012, 0.010, 0.72)
-	style.shadow_size = 3
-	style.shadow_offset = Vector2(0, 3)
+	style.shadow_size = 2
+	style.shadow_offset = Vector2(0, 2)
 	if outline_alpha > 0.0:
 		style.expand_margin_left = 2
 		style.expand_margin_top = 2
@@ -1270,52 +1349,15 @@ func _button_style(bg: Color, outline_alpha: float) -> StyleBoxFlat:
 		style.expand_margin_bottom = 2
 	return style
 
-func _texture_style(texture: Texture2D, region: Rect2, margins: Vector2) -> StyleBoxTexture:
-	var style := StyleBoxTexture.new()
-	style.texture = _atlas_texture(texture, region)
-	style.texture_margin_left = 8.0
-	style.texture_margin_top = 6.0
-	style.texture_margin_right = 8.0
-	style.texture_margin_bottom = 6.0
-	style.content_margin_left = margins.x
-	style.content_margin_top = margins.y
-	style.content_margin_right = margins.x
-	style.content_margin_bottom = margins.y
-	return style
-
-func _apply_texture_button_style(control: Control, regions: Dictionary) -> void:
-	control.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	control.add_theme_stylebox_override("normal", _texture_style(BUTTON_ATLAS_TEXTURE, regions.normal, Vector2(16, 7)))
-	control.add_theme_stylebox_override("hover", _texture_style(BUTTON_ATLAS_TEXTURE, regions.hover, Vector2(16, 7)))
-	control.add_theme_stylebox_override("pressed", _texture_style(BUTTON_ATLAS_TEXTURE, regions.pressed, Vector2(16, 7)))
-	control.add_theme_stylebox_override("disabled", _texture_style(BUTTON_ATLAS_TEXTURE, regions.disabled, Vector2(16, 7)))
-	control.add_theme_stylebox_override("focus", _texture_style(BUTTON_ATLAS_TEXTURE, regions.focus, Vector2(16, 7)))
-
 func _apply_command_button_style(control: Control, color: Color) -> void:
-	var regions := BUTTON_BLUE_REGIONS
-	if color == COLOR_BRASS:
-		regions = BUTTON_GOLD_REGIONS
-	elif color == COLOR_DANGER:
-		regions = BUTTON_RED_REGIONS
-	_apply_texture_button_style(control, regions)
-
-func _select_field_style(region: Rect2) -> StyleBoxTexture:
-	var style := StyleBoxTexture.new()
-	style.texture = _atlas_texture(FORM_CONTROLS_ATLAS_TEXTURE, region)
-	style.content_margin_left = 16.0
-	style.content_margin_top = 7.0
-	style.content_margin_right = 40.0
-	style.content_margin_bottom = 7.0
-	return style
-
-func _apply_select_field_style(control: Control) -> void:
-	control.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	control.add_theme_stylebox_override("normal", _select_field_style(FIELD_SELECT_CLOSED_REGION))
-	control.add_theme_stylebox_override("hover", _select_field_style(FIELD_SELECT_OPEN_REGION))
-	control.add_theme_stylebox_override("pressed", _select_field_style(FIELD_SELECT_OPEN_REGION))
-	control.add_theme_stylebox_override("disabled", _select_field_style(FIELD_SELECT_CLOSED_REGION))
-	control.add_theme_stylebox_override("focus", _select_field_style(FIELD_SELECT_OPEN_REGION))
-	control.add_theme_icon_override("arrow", _atlas_texture(FORM_CONTROLS_ATLAS_TEXTURE, TRANSPARENT_PIXEL_REGION))
+	control.add_theme_stylebox_override("normal", _button_style(color, 0.0))
+	control.add_theme_stylebox_override("hover", _button_style(color.lightened(0.10), 0.0))
+	var pressed := _button_style(color.darkened(0.10), 0.0)
+	pressed.content_margin_top = 9
+	pressed.content_margin_bottom = 7
+	control.add_theme_stylebox_override("pressed", pressed)
+	control.add_theme_stylebox_override("disabled", _button_style(color.darkened(0.42), 0.0))
+	control.add_theme_stylebox_override("focus", _button_style(color, 1.0))
 
 func _field_style(bg: Color, border: Color, focused: bool = false) -> StyleBoxFlat:
 	var style := _panel_style(bg, border, 1, 2, Vector2(12, 7))
