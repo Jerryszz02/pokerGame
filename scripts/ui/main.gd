@@ -996,21 +996,20 @@ func _result_dock_height() -> int:
 	var row_count := payout_players.size()
 	if game.match_over and not game.match_summary.is_empty():
 		row_count += 1
-	return maxi(96, 56 + row_count * 19)
+	return maxi(120, 96 + row_count * 22)
 
 func _result_panel() -> Control:
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 10)
+	# Vertical stacking keeps every line within the fixed 580px dock width,
+	# even on the match-over screen with the summary and payout lines.
+	var column := VBoxContainer.new()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 4)
 	var title := Label.new()
 	title.text = _status_message()
-	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_color_override("font_color", COLOR_BRASS)
 	title.add_theme_font_size_override("font_size", FONT_BUTTON)
-	row.add_child(title)
-	var info := VBoxContainer.new()
-	info.alignment = BoxContainer.ALIGNMENT_CENTER
-	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	column.add_child(title)
 	if game.match_over and not game.match_summary.is_empty():
 		var summary := Label.new()
 		summary.text = "总手数 %d · 最终筹码 %d · 净盈利 %d · 最大单手 +%d" % [
@@ -1019,9 +1018,10 @@ func _result_panel() -> Control:
 			int(game.match_summary.net_profit),
 			int(game.match_summary.max_single_hand_win)
 		]
+		summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		summary.add_theme_color_override("font_color", _white_color())
 		summary.add_theme_font_size_override("font_size", FONT_SMALL)
-		info.add_child(summary)
+		column.add_child(summary)
 	var payouts: Dictionary = {}
 	var payout_order: Array[int] = []
 	for win in game.winners:
@@ -1034,13 +1034,12 @@ func _result_panel() -> Control:
 		var payout: Dictionary = payouts[player_index]
 		var win_label := Label.new()
 		win_label.text = "%s +%d（%s）" % [game.players[player_index].name, int(payout.amount), str(payout.rank_name)]
+		win_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		win_label.add_theme_color_override("font_color", _white_color())
 		win_label.add_theme_font_size_override("font_size", FONT_SMALL)
-		info.add_child(win_label)
-	row.add_child(info)
+		column.add_child(win_label)
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
-	buttons.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	buttons.add_theme_constant_override("separation", 10)
 	if game.players[0].stack > 0 and not game.match_over:
 		var next_button := _command_button("下一手", COLOR_BRASS, _ink_color())
@@ -1053,8 +1052,8 @@ func _result_panel() -> Control:
 	var restart_button := _command_button("重新开始", COLOR_ACTION, _white_color())
 	restart_button.pressed.connect(_show_menu)
 	buttons.add_child(restart_button)
-	row.add_child(buttons)
-	return row
+	column.add_child(buttons)
+	return column
 
 func _card_view(card: Dictionary, face_up: bool, compact: bool = false) -> Control:
 	var panel := PanelContainer.new()
