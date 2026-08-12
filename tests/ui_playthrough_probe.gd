@@ -54,6 +54,7 @@ func _playthrough(viewport_size: Vector2i) -> void:
 		await _state(scene, tag + "_02_settings")
 		var reset_button := _find_button_with_text(popup, "重置统计") if popup != null else null
 		_assert(reset_button != null, "%s settings popup should expose reset stats button" % tag)
+		_assert(_find_button_with_text(popup, "暂停游戏") == null, "%s menu settings popup should not expose a pause button" % tag)
 		if reset_button != null:
 			reset_button.emit_signal("pressed")
 			await process_frame
@@ -94,6 +95,31 @@ func _playthrough(viewport_size: Vector2i) -> void:
 			close_log.emit_signal("pressed")
 			await process_frame
 			await process_frame
+
+	var table_settings := scene.find_child("SettingsButton", true, false) as Button
+	_assert(table_settings != null, "%s table should expose a settings button" % tag)
+	if table_settings != null:
+		table_settings.emit_signal("pressed")
+		var table_popup := await _wait_for_popup(scene)
+		_assert(table_popup != null, "%s settings popup should open from the table" % tag)
+		var pause_button := _find_button_with_text(table_popup, "暂停游戏") if table_popup != null else null
+		_assert(pause_button != null, "%s in-match settings popup should expose a pause button" % tag)
+		if pause_button != null:
+			pause_button.emit_signal("pressed")
+			await process_frame
+			await process_frame
+			_assert(scene.paused, "%s pause button should pause the match" % tag)
+			_assert(not scene._ai_can_advance(), "%s paused match should block AI advancement" % tag)
+			_assert(scene.find_child("PauseOverlay", true, false) != null, "%s paused match should show the pause overlay" % tag)
+			await _state(scene, tag + "_03c_paused")
+			var resume_button := scene.find_child("PauseResumeButton", true, false) as Button
+			_assert(resume_button != null, "%s pause overlay should expose a resume button" % tag)
+			if resume_button != null:
+				resume_button.emit_signal("pressed")
+				await process_frame
+				await process_frame
+				_assert(not scene.paused, "%s resume button should unpause the match" % tag)
+				_assert(scene._ai_can_advance(), "%s resumed match should allow AI advancement" % tag)
 
 	await _drive_hand(scene, tag, 60, "safe")
 	await _state(scene, tag + "_09_result")
