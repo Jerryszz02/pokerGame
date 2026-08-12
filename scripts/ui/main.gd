@@ -92,6 +92,7 @@ var stats_reset_pending := false
 var last_recorded_hand_number := 0
 var ai_pending := false
 var log_open := false
+var paused := false
 var raise_expanded := false
 var last_seen_event_fingerprint := ""
 var last_rendered_pot := -1
@@ -119,6 +120,7 @@ func _clear() -> void:
 func _show_menu(reset_pending: bool = true) -> void:
 	if reset_pending:
 		stats_reset_pending = false
+	paused = false
 	_clear()
 	add_child(_background(MENU_BACKGROUND_TEXTURE, Color(0.008, 0.018, 0.016, 0.24)))
 
@@ -255,17 +257,18 @@ func _settings_button() -> Button:
 	return button
 
 func _show_settings_popup() -> void:
+	var in_match := _in_match()
 	var popup := PopupPanel.new()
 	popup.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL, _edge_color(), 2, 2, Vector2(14, 12)))
 	add_child(popup)
 	popup.popup_hide.connect(func(): popup.queue_free())
-	popup.add_child(_settings_panel(popup))
-	popup.popup_centered(Vector2i(390, 330))
+	popup.add_child(_settings_panel(popup, in_match))
+	popup.popup_centered(Vector2i(390, 384) if in_match else Vector2i(390, 330))
 
-func _settings_panel(popup: PopupPanel) -> Control:
+func _settings_panel(popup: PopupPanel, in_match: bool) -> Control:
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL_DARK, _edge_color(), 1, 1, Vector2(10, 6)))
-	panel.custom_minimum_size = Vector2(350, 270)
+	panel.custom_minimum_size = Vector2(350, 318 if in_match else 270)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 6)
 	panel.add_child(box)
@@ -277,6 +280,15 @@ func _settings_panel(popup: PopupPanel) -> Control:
 	box.add_child(_menu_row("音效", _build_sound_toggle()))
 	box.add_child(_menu_row("音乐", _build_music_toggle()))
 	box.add_child(_stats_panel())
+	if in_match:
+		var pause_button := _command_button("继续游戏" if paused else "暂停游戏", COLOR_ACTION, _white_color())
+		pause_button.name = "PauseToggleButton"
+		pause_button.custom_minimum_size = Vector2(0, 36)
+		pause_button.pressed.connect(func():
+			popup.hide()
+			_toggle_pause()
+		)
+		box.add_child(pause_button)
 	var close_button := _command_button("关闭", COLOR_ACTION, _white_color())
 	close_button.custom_minimum_size = Vector2(0, 36)
 	close_button.pressed.connect(func(): popup.hide())
@@ -365,6 +377,7 @@ func _on_start_pressed() -> void:
 	last_seen_event_fingerprint = ""
 	last_rendered_pot = -1
 	log_open = false
+	paused = false
 	raise_expanded = false
 	game.start_new_match(int(ai_count_spin.value), difficulty)
 	_play_sound(420.0, 0.08)
@@ -391,6 +404,8 @@ func _render_table() -> void:
 	root.add_child(_build_action_dock())
 	if log_open:
 		root.add_child(_build_log_drawer())
+	if paused:
+		root.add_child(_build_pause_overlay())
 
 func _build_floating_status() -> Control:
 	var panel := PanelContainer.new()
@@ -521,6 +536,51 @@ func _build_log_drawer() -> Control:
 		label.add_theme_font_size_override("font_size", 14)
 		list.add_child(label)
 	return drawer
+
+func _in_match() -> bool:
+	return find_child("TableSceneRoot", true, false) != null
+
+func _toggle_pause() -> void:
+	if not _in_match():
+		return
+	paused = not paused
+	if paused:
+		log_open = false
+	raise_expanded = false
+	_render_table()
+
+func _build_pause_overlay() -> Control:
+	var overlay := ColorRect.new()
+	overlay.name = "PauseOverlay"
+	overlay.color = Color(0.004, 0.010, 0.009, 0.72)
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.add_child(center)
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL_DARK, COLOR_BRASS.darkened(0.32), 2, 2, Vector2(26, 18)))
+	center.add_child(panel)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 10)
+	panel.add_child(box)
+	var title := Label.new()
+	title.text = "已暂停"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", COLOR_BRASS)
+	title.add_theme_font_size_override("font_size", FONT_DISPLAY)
+	box.add_child(title)
+	var resume_button := _command_button("继续游戏", COLOR_BRASS, _ink_color())
+	resume_button.name = "PauseResumeButton"
+	resume_button.custom_minimum_size = Vector2(160, 40)
+	resume_button.pressed.connect(_toggle_pause)
+	box.add_child(resume_button)
+	var quit_button := _command_button("返回菜单", COLOR_ACTION, _white_color())
+	quit_button.name = "PauseQuitButton"
+	quit_button.custom_minimum_size = Vector2(160, 40)
+	quit_button.pressed.connect(func(): _show_menu())
+	box.add_child(quit_button)
+	return overlay
 
 func _build_table_shell() -> Control:
 	var stage := AspectRatioContainer.new()
@@ -1139,6 +1199,8 @@ func _on_reset_stats_pressed() -> void:
 	_refresh_stats_panel()
 
 func _on_action(action: String, amount: int) -> void:
+	if paused:
+		return
 	raise_expanded = false
 	game.apply_action(action, amount)
 	_play_action_sound(action)
@@ -1163,7 +1225,7 @@ func _execute_ai_turn_if_allowed() -> bool:
 	return true
 
 func _ai_can_advance() -> bool:
-	return not log_open and not _has_visible_popup(self)
+	return _in_match() and not paused and not log_open and not _has_visible_popup(self)
 
 func _has_visible_popup(node: Node) -> bool:
 	for child in node.get_children():
