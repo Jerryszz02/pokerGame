@@ -139,6 +139,37 @@ func _playthrough(viewport_size: Vector2i) -> void:
 		await process_frame
 		await _state(scene, tag + "_10_menu_again")
 
+	# Regression: quitting to the menu mid-AI-turn must stop the abandoned
+	# match from scheduling or completing AI turns (PR #3 review).
+	var menu_start := scene.find_child("MenuStartButton", true, false) as Button
+	if menu_start != null:
+		menu_start.emit_signal("pressed")
+		await process_frame
+		await process_frame
+		scene.game.current_player_index = 1 # force an AI turn before quitting
+		scene._render_table()
+		await process_frame
+		var quit_settings := scene.find_child("SettingsButton", true, false) as Button
+		if quit_settings != null:
+			quit_settings.emit_signal("pressed")
+			var quit_popup := await _wait_for_popup(scene)
+			var quit_pause := _find_button_with_text(quit_popup, "暂停游戏") if quit_popup != null else null
+			if quit_pause != null:
+				quit_pause.emit_signal("pressed")
+				await process_frame
+				await process_frame
+				var quit_button := scene.find_child("PauseQuitButton", true, false) as Button
+				_assert(quit_button != null, "%s pause overlay should expose a quit-to-menu button" % tag)
+				if quit_button != null:
+					quit_button.emit_signal("pressed")
+					await process_frame
+					await process_frame
+					_assert(scene.find_child("MenuStartButton", true, false) != null, "%s quit-to-menu should return to the menu" % tag)
+					_assert(not scene.paused, "%s quit-to-menu should clear the paused state" % tag)
+					_assert(not scene._ai_can_advance(), "%s menu after quitting mid-AI-turn should block AI advancement" % tag)
+					_assert(not scene._execute_ai_turn_if_allowed(), "%s a pending AI callback should stop after quitting to the menu" % tag)
+					await _state(scene, tag + "_11_menu_after_quit")
+
 	if scene.sound_player:
 		scene.sound_player.stop()
 	scene.queue_free()
