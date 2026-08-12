@@ -14,7 +14,7 @@
 - `scripts/ai/` 内的起手牌评分、Monte Carlo、个性配置和行动选择。
 - `scripts/ui/main.gd` 内的菜单、设置弹窗、生成式美术组合、牌桌渲染、事件日志、玩家输入和结果面板。
 - `scripts/game/local_profile.gd` 内的本地偏好与聚合统计持久化。
-- `tests/test_runner.gd` 和 `tests/ui_layout_probe.gd` 内的当前自动化回归方式。
+- `tests/test_runner.gd`、`tests/ui_layout_probe.gd` 和 `tests/ui_playthrough_probe.gd` 内的当前自动化回归方式。
 
 不适用：
 
@@ -32,7 +32,7 @@
 | `scripts/game/local_profile.gd` | `LocalProfile` 使用 Godot `ConfigFile` 规范化并保存本地偏好与聚合统计。 |
 | `scripts/ui/main.gd` | UI 程序化创建节点、组合生成式 PNG 和动态文字，玩家按钮调用 `_on_action()` 后重新渲染牌桌。 |
 | `docs/art-direction.md`、`assets/art/generated/README.md` | 定义视觉约束、运行时/来源文件边界和仍需生产清理的资源。 |
-| `tests/test_runner.gd`、`tests/ui_layout_probe.gd` | 当前验证方式包括规则/AI/配置脚本测试和菜单/桌面布局探针。 |
+| `tests/test_runner.gd`、`tests/ui_layout_probe.gd`、`tests/ui_playthrough_probe.gd` | 当前验证方式包括规则/AI/配置脚本测试、菜单/桌面布局探针和窗口模式完整点击流。 |
 
 ## 关键决策
 
@@ -45,6 +45,7 @@
 | Hard AI 保持“确定形态 + 随机选择” | AGENTS 规定 preflop 用 `StartingHandTable`，postflop 用 `MonteCarlo`，个性来自 `PersonalityProfiles`。 | 可以调参，但不应绕开这些组成部分。 |
 | 本地配置与牌局状态分离 | 设置和聚合统计需要跨启动保留，但不应让 UI 成为扑克规则源。 | `LocalProfile` 只保存偏好和结果汇总，不保存进行中的权威牌局。 |
 | 视觉资源与动态数据分离 | 生成图片中的文字和牌值不可靠，且动态状态需要实时变化。 | PNG 负责背景、框架、角色和装饰；中文、牌值、金额、事件和结果由运行时绘制。 |
+| AI 推进服从可见 UI 生命周期 | 日志、设置和暂停期间不能让延迟回调偷偷改变牌局；离开牌桌后旧回调必须失效。 | `_ai_can_advance()` 同时检查牌桌存在、暂停、日志和弹窗状态，延迟结束后执行前再次检查。 |
 
 ## 子系统边界
 
@@ -54,7 +55,7 @@
 | 本地配置 | `scripts/game/local_profile.gd` | 默认值、输入规范化、本地偏好和聚合统计的 `ConfigFile` 读写。 | 扑克牌局进程、玩家行动或云同步。 |
 | AI | `scripts/ai/` | 起手牌评分、Monte Carlo 权益、个性参数、行动选择。 | 直接扣筹码、推进街道、结算底池。 |
 | UI | `scripts/ui/main.gd` | 菜单、设置、PNG/动态文字组合、牌桌布局、音效、事件展示、输入和结果面板。 | 手牌比较、行动合法性、筹码结算。 |
-| 测试 | `tests/test_runner.gd`、`tests/ui_layout_probe.gd` | 规则/AI/配置回归与 UI 布局、关键纹理接入验证。 | 产品运行时逻辑。 |
+| 测试 | `tests/test_runner.gd`、`tests/ui_layout_probe.gd`、`tests/ui_playthrough_probe.gd` | 规则/AI/配置回归、响应式 UI 断言和窗口模式完整点击流。 | 产品运行时逻辑。 |
 
 ## 状态和控制流
 
@@ -63,8 +64,8 @@
 3. UI 调用 `PokerRound.start_new_match(ai_count, difficulty)`。
 4. `PokerRound.start_next_hand()` 重置手牌状态、洗牌、发牌、收盲注、设置当前行动者并写入事件。
 5. 人类回合时，UI 读取 `get_legal_actions(0)` 并只展示合法行动；点击后调用 `PokerRound.apply_action()`。
-6. AI 回合先等待难度/人格对应的随机时间，再由 `AiDecision.decide()` 返回行动。
-7. AI 返回值仍传入 `PokerRound.apply_action()`。
+6. AI 回合仅在牌桌仍可推进时等待难度/人格对应的随机时间；日志、可见弹窗或暂停状态会阻止调度。
+7. 延迟结束后再次检查牌桌仍存在且允许推进，再由 `AiDecision.decide()` 返回行动并传入 `PokerRound.apply_action()`。
 8. `PokerRound` 在每次行动后记录事件并推进下注轮、公共牌、无人争夺结算或摊牌。
 9. `HandEvaluator` 在摊牌时评估每名仍有资格玩家的最佳五张牌。
 10. UI 重新渲染纹理、动态文字、事件日志和结果面板；手牌完成后只更新一次聚合统计。
@@ -75,6 +76,7 @@
 - `get_legal_actions()` 对无效玩家索引或非 active 玩家返回空行动。
 - AI 如果拿到空行动列表，当前实现返回 check 形状；后续如调整，仍必须让规则引擎最终校验。
 - profile 缺失或字段无效时回退到 `LocalProfile.default_profile()` 和规范化值；统计重置必须经过 UI 两步确认。
+- 暂停和日志状态属于 UI 生命周期，不修改规则引擎；从暂停覆盖层返回菜单后，待执行 AI 回调必须因牌桌不存在而直接终止。
 - 运行时资源依赖以 `main.gd` 的 `preload()` 为准；生成目录中未 preload 的图集只是候选资源。
 - .NET 只属于本机 Mono Godot 运行条件；项目代码不应因此引入 C#。
 
@@ -83,7 +85,7 @@
 - 保持 `project.godot` 的 `run/main_scene="res://scenes/main.tscn"`，除非同步更新 README、runbook 和验证方式。
 - 保持 `tests/test_runner.gd` 可由 Godot headless 直接运行。
 - 保持 `assets/icon.svg` 或同步更新 `project.godot` 图标引用；新增运行时 PNG 时同步资源清单、布局探针和启动检查。
-- 纹理按钮和像素资产保持 nearest-neighbor filtering；动态中文、牌值和金额不得固化进位图。
+- 像素纹理保持 nearest-neighbor filtering；按钮和字段使用无抗锯齿的运行时 `StyleBoxFlat`；动态中文、牌值和金额不得固化进位图。
 - 如移动端或 Steam 成为目标，需要先补 release plan 和可能的 UI/输入设计；当前文档不假设这些目标已确认。
 
 ## 任务拆分指引
@@ -117,8 +119,8 @@
 ## 验收标准
 
 - Godot headless 测试通过。
-- UI 布局探针和主场景资源启动检查通过。
-- 主要人工流程可从菜单开始并完成一手牌。
+- UI 布局探针、窗口模式完整点击流和主场景资源启动检查通过。
+- 主要流程可从菜单开始完成一手牌，并验证日志、暂停/继续及返回菜单。
 - 规则、AI、UI 的职责边界没有被打破。
 - README、runbook 或 planning 文档在入口、命令或行为改变时同步更新。
 

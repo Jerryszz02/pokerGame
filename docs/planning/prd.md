@@ -28,12 +28,12 @@
 | `README.md` | 项目是本地 Godot 4 + GDScript 单人 Texas Hold'em 原型；支持 1-5 个 AI、三档难度、标准下注流程、边池、分池、中文 UI、本地设置/战绩和生成式美术。 |
 | `AGENTS.md` | 不引入 C#、外部 API、LLM、遥测或第三方插件；所有行动通过 `PokerRound.apply_action()`。 |
 | `docs/architecture.md` | 主流程为菜单选择、开局、发牌、下注、AI 决策、推进街道、摊牌或无人争夺结算、结果面板。 |
-| `scripts/ui/main.gd` | 菜单包含 AI 数量和难度；设置弹窗包含本地开关和战绩；牌桌显示底池、公共牌、座位、盲注、行动控件、事件日志和结果面板，并接入生成式 PNG。 |
+| `scripts/ui/main.gd` | 菜单包含 AI 数量和难度；设置弹窗包含本地开关和战绩；全屏牌桌使用浮动状态/操作控件、按需日志抽屉、暂停覆盖层、模块化筹码和运行时绘制的盲注标记。 |
 | `scripts/game/local_profile.gd` | 通过 `ConfigFile` 保存 AI 数量、难度、音效/音乐开关、总手数、胜手数、净盈利和最大单手收益。 |
 | `scripts/game/poker_round.gd` | 规则引擎拥有行动合法性、盲注、街道推进、边池、分池和摊牌。 |
 | `scripts/ai/ai_decision.gd` | AI 根据合法行动、权益估计、底池赔率和个性参数返回 fold/check/call/raise/all_in。 |
 | `assets/art/generated/`、`docs/art-direction.md` | 当前视觉方向为克制的深夜地下牌局像素风；运行时已接入菜单、牌桌、角色、卡牌、筹码和部分 UI atlas。 |
-| `tests/test_runner.gd`、`tests/ui_layout_probe.gd` | 自动测试覆盖核心规则、中文结果、事件、本地配置、AI 行为，以及菜单/设置/桌面布局和关键美术资源接入。 |
+| `tests/test_runner.gd`、`tests/ui_layout_probe.gd`、`tests/ui_playthrough_probe.gd` | 自动测试覆盖核心规则、中文结果、事件、本地配置、AI 行为、响应式布局和窗口模式完整点击流。 |
 
 ## 用户和使用场景
 
@@ -61,8 +61,10 @@
 | PRD-13 | AI 行动必须分时执行：简单/中等使用 3-5 秒随机等待，困难根据人格使用不同随机范围；等待时间只影响呈现，不影响决策强度。 |
 | PRD-14 | 设置弹窗必须保存 AI 数量、难度、音效和音乐开关，并显示总手数、胜手数、净盈利和最大单手收益。 |
 | PRD-15 | 统计重置必须两次确认，第一次点击后设置弹窗保持打开并在原位置显示确认状态。 |
-| PRD-16 | 牌桌必须显示最近真实事件，不用占位行补齐日志；大小盲标识必须在后续行动后保持可见。 |
+| PRD-16 | 牌桌必须显示实际发生的最新牌局事件，不用占位行补齐日志；大小盲标识必须在后续行动后保持可见。 |
 | PRD-17 | 菜单、牌桌、角色、卡牌和行动控件应遵守 `docs/art-direction.md`；动态中文、牌值、花色和金额必须由运行时生成。 |
+| PRD-18 | 牌局记录默认关闭并以右侧覆盖抽屉按需打开；打开期间 AI 不得执行，关闭后应恢复正常推进。 |
+| PRD-19 | 牌局内设置必须提供暂停入口；暂停覆盖层必须阻止玩家与 AI 行动，并提供继续游戏和返回菜单。返回菜单后，已排队的 AI 回调不得恢复旧牌桌。 |
 
 ## 非功能需求
 
@@ -74,6 +76,7 @@
 | 可验证性 | 行为改动必须优先用 `tests/test_runner.gd`；UI/资源改动还必须运行 `tests/ui_layout_probe.gd` 和主场景启动检查。 |
 | 可移植性 | 当前窗口配置为 1280x720、canvas_items stretch、expand aspect；移动端/Steam 适配仍待确认。 |
 | 视觉一致性 | 使用七色核心色板、硬边像素与 nearest-neighbor 过滤；不把动态文字和游戏数值固化进 PNG。 |
+| 可暂停性 | 日志、设置弹窗和暂停状态必须阻止 UI 驱动的 AI 推进；恢复或关闭后只允许当前有效牌桌继续。 |
 
 ## 边界情况
 
@@ -113,7 +116,8 @@
 - 边池和分池测试通过。
 - `tests/test_runner.gd` 输出 `All poker tests passed.`。
 - `tests/ui_layout_probe.gd` 输出 `All UI layout probes passed.`。
-- 设置、统计确认、事件日志、盲注标识和关键生成式美术在主场景中可见且不越界。
+- `tests/ui_playthrough_probe.gd` 退出码为 0，并覆盖日志、暂停/继续和 AI 回合中返回菜单。
+- 设置、统计确认、事件日志、暂停覆盖层、盲注标识和关键生成式美术在主场景中可见且不越界。
 
 ## 待确认
 

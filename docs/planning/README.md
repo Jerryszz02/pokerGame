@@ -11,7 +11,7 @@
 | 项目 | 内容 |
 | --- | --- |
 | 请求 | 根据当前 Godot 扑克项目进度同步 `docs/` 项目文档 |
-| 生成时间 | 2026-07-01；同步时间 2026-07-16 |
+| 生成时间 | 2026-07-01；核对日期 2026-08-13 |
 | 项目根目录 | `/Users/jerryszz/Desktop/Projects/pokerGame` |
 | 项目类型 | Godot 4 + GDScript 本地单人 Texas Hold'em 原型 |
 
@@ -29,11 +29,11 @@
 | `scripts/game/*.gd` | 确认牌组、手牌评估、桌面状态、下注流程、边池、摊牌和行动合法性。 |
 | `scripts/ai/*.gd` | 确认简单/中等/困难 AI 的决策来源、Monte Carlo 和个性配置。 |
 | `assets/art/generated/README.md`、`style/style-guide.png`、生成 Prompt | 确认当前像素美术方向、资源清单、来源文件约定和运行时清理要求。 |
-| `tests/test_runner.gd`、`tests/ui_layout_probe.gd` | 确认当前规则/AI/本地配置回归和 UI 布局、资源接入探针。 |
+| `tests/test_runner.gd`、`tests/ui_layout_probe.gd`、`tests/ui_playthrough_probe.gd`、`docs/planning/ui-acceptance.md` | 确认当前规则/AI/本地配置回归、UI 布局探针、窗口模式完整点击流和 M1-M8 验收指标。 |
 
 ## 项目概览
 
-PokerGame 是一个本地运行的 Texas Hold'em 单人原型。玩家在中文 Godot UI 中选择 1-5 个 AI 对手和 AI 难度后开始牌局。每手牌由规则引擎发牌、收盲注、处理下注轮、推进公共牌阶段，并在无人跟注或摊牌时结算筹码。当前界面已经接入深夜地下牌局主题的生成式像素美术，并提供真实事件日志、设置弹窗、本地音效开关和聚合战绩。
+PokerGame 是一个本地运行的 Texas Hold'em 单人原型。玩家在中文 Godot UI 中选择 1-5 个 AI 对手和 AI 难度后开始牌局。每手牌由规则引擎发牌、收盲注、处理下注轮、推进公共牌阶段，并在无人跟注或摊牌时结算筹码。当前界面采用全屏牌桌与角落浮动控件，提供按需打开的事件日志、牌局暂停/继续/返回菜单、设置弹窗、本地音效开关和聚合战绩。
 
 当前项目刻意保持离线：没有账号、联网、真实货币、外部 API、LLM 对手、Steamworks 集成或第三方扑克库。后续开发应先保持这个边界，除非用户明确要求扩展。
 
@@ -54,6 +54,7 @@ PokerGame 是一个本地运行的 Texas Hold'em 单人原型。玩家在中文 
 | `docs/planning/prd.md` | 定义当前原型必须保留的用户可见行为、功能边界和非功能要求。 |
 | `docs/planning/technical-design.md` | 定义后续实现必须遵守的模块边界、状态流、关键约束和任务拆分方式。 |
 | `docs/planning/test-plan.md` | 定义当前最小自动化与人工验收方式，以及测试未覆盖风险。 |
+| `docs/planning/ui-acceptance.md` | 定义全屏牌桌、浮动控件、日志、暂停、筹码容量与截图审查的 M1-M8 验收指标。 |
 | `docs/art-direction.md` | 定义当前像素美术色板、硬边表现、动态内容边界和资产维护基线。 |
 | `docs/architecture.md` | 同步当前规则、AI、UI、美术、本地配置和测试边界。 |
 | `docs/runbook.md` | 同步当前本机环境、验证命令、人工烟测、本地数据和资源维护流程。 |
@@ -79,6 +80,7 @@ PokerGame 是一个本地运行的 Texas Hold'em 单人原型。玩家在中文 
 | 改用户可见玩法、UI 流程或 AI 难度 | `docs/planning/prd.md` |
 | 改规则引擎、AI 决策或 UI 与规则层交互 | `docs/planning/technical-design.md` |
 | 改测试、修规则 bug 或准备验收 | `docs/planning/test-plan.md` |
+| 改牌桌 UI、日志、暂停或布局约束 | `docs/planning/ui-acceptance.md` |
 | 理解现有代码结构 | `docs/architecture.md` |
 | 本地运行、测试或导出准备 | `docs/runbook.md` |
 | 创建、替换或接入美术资源 | `docs/art-direction.md`、`assets/art/generated/README.md` |

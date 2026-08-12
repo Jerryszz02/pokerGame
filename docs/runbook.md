@@ -65,7 +65,7 @@ Render visual table snapshots (preflop with 1/3/5 AI, rigged flop and showdown) 
 /Applications/Godot_mono.app/Contents/MacOS/Godot --path . -s tests/ui_table_snapshot.gd
 ```
 
-Run the scripted player playthrough (menu, settings, two hands with raise/all-in, result, restart) which screenshots every state to `/tmp/poker_audit/` and asserts the UI acceptance metrics in `docs/planning/ui-acceptance.md`; this opens a window and needs OS focus for the settings popup:
+Run the scripted player playthrough (menu, settings, log drawer, pause/resume, two hands with raise/all-in, result, restart, and quit-to-menu during an AI turn). It screenshots every state to `/tmp/poker_audit/` and asserts the UI acceptance metrics in `docs/planning/ui-acceptance.md`; this opens a window and needs OS focus for the settings popup:
 
 ```sh
 /Applications/Godot_mono.app/Contents/MacOS/Godot --path . -s tests/ui_playthrough_probe.gd
@@ -83,11 +83,13 @@ If a fresh shell fails with `dotnet: command not found`, verify `DOTNET_ROOT` an
 
 ## Manual Smoke Check
 
-- Confirm the main menu shows the generated background, title, notice board, table preview, textured selection controls, and pixel-art buttons without blurred filtering.
+- Confirm the main menu shows the generated background, title, notice board and table preview; runtime-drawn selection controls and buttons must have crisp hard edges and whole-control hover states.
 - Open settings, toggle local sound/music settings, close and reopen the popup, and confirm the state persists.
 - Click `重置统计` once and confirm the popup stays open with `再次点击确认`; click again only when intentionally testing reset.
 - Start games with 1, 3, and 5 AI and try simple, medium, and hard difficulty.
-- Confirm the table shows seats, character art, cards, chips, durable SB/BB markers, public information, and real event-log entries.
+- Confirm the full-screen table shows characters outside the felt, seat information inside the rail, cards, modular chips, durable dealer/SB/BB markers, the physical pot display, and real event-log entries.
+- Open and close the log drawer; confirm it overlays the right side without relayout and AI does not advance while it is open.
+- During a match, pause from settings, resume from the overlay, then pause again and return to the menu; confirm no queued AI action restores the abandoned table.
 - Confirm the player can fold, check, call, raise, and all-in only when legal.
 - Play until an uncontested result or showdown and confirm Chinese winner, payout, and hand-rank text.
 - Confirm the next hand/restart flow works and completed-hand statistics update only once.
