@@ -257,7 +257,7 @@ func _settings_button() -> Button:
 	return button
 
 func _show_settings_popup() -> void:
-	var in_match := find_child("TableSceneRoot", true, false) != null
+	var in_match := _in_match()
 	var popup := PopupPanel.new()
 	popup.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL, _edge_color(), 2, 2, Vector2(14, 12)))
 	add_child(popup)
@@ -537,8 +537,11 @@ func _build_log_drawer() -> Control:
 		list.add_child(label)
 	return drawer
 
+func _in_match() -> bool:
+	return find_child("TableSceneRoot", true, false) != null
+
 func _toggle_pause() -> void:
-	if find_child("TableSceneRoot", true, false) == null:
+	if not _in_match():
 		return
 	paused = not paused
 	if paused:
@@ -1222,7 +1225,7 @@ func _execute_ai_turn_if_allowed() -> bool:
 	return true
 
 func _ai_can_advance() -> bool:
-	return not paused and not log_open and not _has_visible_popup(self)
+	return _in_match() and not paused and not log_open and not _has_visible_popup(self)
 
 func _has_visible_popup(node: Node) -> bool:
 	for child in node.get_children():
