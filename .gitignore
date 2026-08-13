@@ -3,3 +3,4 @@
 export/
 *.tmp
 *.translation
+*.baiduyun.uploading.cfg

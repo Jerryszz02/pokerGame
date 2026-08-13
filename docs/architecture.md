@@ -17,8 +17,9 @@ The main scene is `res://scenes/main.tscn`, backed by `scripts/ui/main.gd`.
 5. Human actions come from the UI and call `PokerRound.apply_action()`.
 6. AI turns wait for a randomized difficulty/personality-dependent delay, call `AiDecision.decide()`, and pass the returned action through `PokerRound.apply_action()`.
 7. The rules engine advances streets, resolves uncontested pots, or runs showdown through `HandEvaluator`.
-8. The UI renders the full-screen table. The event log is a normally closed overlay drawer; opening it pauses UI-driven AI timing and closing it resumes play. Completed hands update the local statistics once.
-9. The floating result dock shows payouts and offers the next hand or a restart.
+8. The UI renders the full-screen table. The event log is a normally closed overlay drawer; opening it blocks UI-driven AI advancement and closing it resumes play.
+9. During a match, the settings popup can pause play. The pause overlay blocks player input and AI advancement, and offers resume or return-to-menu. Both scheduled and pending AI callbacks re-check that the table is still active before applying an action.
+10. Completed hands update local statistics once. The floating result dock shows payouts and offers the next hand or a restart.
 
 ## Game Layer
 
@@ -71,8 +72,9 @@ The UI displays:
 
 - Chinese main menu with AI-count and difficulty controls.
 - A settings popup for local sound/music switches and aggregate statistics, including a two-step reset confirmation.
+- During a match, the settings popup also exposes pause; the full-screen pause overlay offers resume and return-to-menu.
 - A compact floating hand/street/status capsule, community cards, player seats, role markers, stacks, bets, and a physical pot display.
-- An on-demand right-side event-log drawer containing only actual recent game events.
+- An on-demand right-side event-log drawer containing only actual game events.
 - A bottom-right dock containing only legal actions; raise amount controls appear only after expanding raise.
 - Result rows with payout and hand-rank text, followed by next-hand or restart controls.
 
@@ -90,5 +92,5 @@ The canonical visual constraints are documented in `docs/art-direction.md`. Asse
 
 - `tests/test_runner.gd` covers cards, hand evaluation, action legality, side/split pots, Chinese result text, event history, local profile round-trips, AI profiles/actions, AI sampling, and Monte Carlo bounds.
 - `tests/ui_layout_probe.gd` checks menu/settings and the table at 1280x720, 1440x900, and 1920x1080. It verifies the 78% table width, 1619:971 ratio, floating controls, portrait/felt safety, seat bindings, role markers, log pause/unread behavior, hard-edged `StyleBoxFlat` states, chip breakdowns, and visible-stack capacities.
-- `tests/ui_playthrough_probe.gd` scripts a full player click-through (menu, settings with reset confirmation, log drawer, collapsed/expanded actions, safe hand, next-hand all-in, result, restart) at two window sizes, saves per-state screenshots to `/tmp/poker_audit/`, and asserts viewport bounds, text fit, seat-widget layering, control overlap, and nearest filtering. Windowed, not part of the headless gate.
+- `tests/ui_playthrough_probe.gd` scripts a full player click-through (menu, settings with reset confirmation, log drawer, pause/resume, collapsed/expanded actions, safe hand, next-hand all-in, result, restart, and quit-to-menu during an AI turn) at two window sizes. It saves per-state screenshots to `/tmp/poker_audit/` and asserts viewport bounds, text fit, seat-widget layering, control overlap, nearest filtering, and the AI pause/quit safety gates. Windowed, not part of the headless gate.
 - `tests/ui_table_snapshot.gd` is a visual dev tool: it renders preflop tables with 1/3/5 AI plus rigged flop and showdown states and saves PNGs to `/tmp/poker_table_*.png` for manual layout review (opens a window briefly; not part of the headless test gate).
