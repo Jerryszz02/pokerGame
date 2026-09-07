@@ -27,11 +27,14 @@ $GodotBinary = python tools/bootstrap_godot.py --templates
 python3 tools/verify.py --godot "$GODOT_BIN"
 python3 tools/verify.py --godot "$GODOT_BIN" --windowed
 python3 tools/soak.py --godot "$GODOT_BIN"
+"$GODOT_BIN" --headless --path . -s tests/ai_benchmark.gd
 ```
 
 `verify.py` 包含规则、10,000 手固定种子检查、后台 AI 生命周期、材质动画清理及布局检查。`--windowed` 额外执行 1280×720、1440×900、1920×1080 的菜单、帮助、设置、日志、暂停、下注、全下、结算、离桌确认和多人出局总结流程，截图写入 `/tmp/poker_audit/`。
 
 长测默认运行 30 分钟，包装器记录提交、dirty 状态和运行资源指纹，并把日志和报告保存在 `export/evidence/`（引擎原始报告仍写入 `user://poker_stability_report.json`）；必须同时确认成功标记、退出码、帧延迟和资源曲线。`-- --seconds=15 --min-ai=1` 只用于检查脚本能否运行，不满足首发长测门。所有 UI 探针使用各自独立 profile，不能修改真实玩家战绩。
+
+`ai_benchmark.gd` 对 1/5 个对手的翻牌、转牌、河牌固定场景各记录 5 次后台工作耗时，结果写入 `export/evidence/ai-benchmark.json`；其中包含快照与轮询开销，不用于替代窗口帧延迟。
 
 检查日志在 `export/logs/`。Godot 某些脚本错误可能返回 0，所以不能只凭退出码认定成功；包装器会检查 `ERROR`/`SCRIPT ERROR` 和成功标记。历史窗口探针曾有 1 个 ObjectDB 退出告警；新增或持续增长的对象/动画不能按历史告警放行。
 
@@ -44,15 +47,19 @@ python3 tools/build_release.py --godot "$GODOT_BIN" --target windows
 
 正式构建要求干净 checkout。开发中的本地包可显式加 `--candidate`，manifest 会标记 dirty，不能作为不可变提交的发布证据。
 
-输出：`export/packages/` 内的版本 ZIP、平台 manifest 和 SHA256SUMS；原始导出在 `export/macos/` 或 `export/windows/`。manifest 记录提交、引擎、主机、平台、哈希和原生包自检结果。构建本身不会公开发布，也不自动将 `public_release_ready` 设为 true。
+输出：`export/packages/` 内的版本 ZIP、平台 manifest 和 SHA256SUMS；原始导出在 `export/macos/` 或 `export/windows/`。manifest 记录提交、引擎、主机、平台、哈希和原生包自检结果。`.gitattributes` 固定文本 LF，避免 Windows checkout 换行转换使同一提交的资源指纹不同；构建前后会检查运行资源和 checkout 未被导入器修改。构建本身不会公开发布，也不自动将 `public_release_ready` 设为 true。
 
 原生系统上，构建脚本会把包放进独立临时目录，并使用其中的实际程序运行 `--headless -- --self-test`。这个固定内置诊断检查场景、字体、9 组人数/难度和统计幂等，使用缓存目录里的测试 profile。官方模板不开放外部脚本和路径覆盖，测试不修改这一设置。
+
+初始窗口使用最大化模式，避免 Retina 屏幕上 1280×720 物理像素只占 640×360 逻辑点。固定分辨率探针会显式还原窗口；长测沿用玩家的启动模式。
 
 `export_presets.cfg` 明确列出运行资源，避免仅选场景时漏掉全局 GDScript 类或动态资源。macOS 使用官方 Universal 模板；测试范围仍按实际设备声明。当前 macOS 候选包只有 ad-hoc 签名，公证/下载隔离体验未完成验证。签名配置与凭据只能在用户授权的具体发布步骤使用，不写入仓库。
 
 ## CI 与发布
 
 `.github/workflows/desktop.yml` 在 Linux 执行 headless 检查，在 Windows/macOS 分别导出并运行实际模板自检，上传包及日志。CI artifact 不等于公开 Release，也不能代替图形设备和真人试玩。
+
+目标系统和真人试玩使用 [试玩记录模板](releases/playtest-template.md)，先记录包哈希，再执行并填写。
 
 发布前核对 R1–R9 的逐项证据、对应提交的检查和审查、签名/目标系统结果及试玩反馈。通过后受控 squash 合并，生成与合并提交对应的版本包、校验和与发行说明，公开发布后重新下载验证。不要覆盖已发布版本的包；修复使用新版本。
 

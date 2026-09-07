@@ -6,6 +6,7 @@ func _init() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	root.mode = Window.MODE_WINDOWED
 	await _probe_menu_and_styles(Vector2i(1280, 720))
 	for viewport_size in [Vector2i(1280, 720), Vector2i(1440, 900), Vector2i(1920, 1080)]:
 		await _probe_table_layout(viewport_size)

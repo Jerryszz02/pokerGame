@@ -12,6 +12,7 @@ func _init() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	root.mode = Window.MODE_WINDOWED
 	DirAccess.make_dir_recursive_absolute(shot_dir)
 	for viewport_size in [Vector2i(1280, 720), Vector2i(1440, 900), Vector2i(1920, 1080)]:
 		await _playthrough(viewport_size)

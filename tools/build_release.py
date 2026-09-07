@@ -46,6 +46,7 @@ def main():
     if dirty and not args.candidate:
         raise RuntimeError('Release build requires a clean checkout. Use --candidate for an explicitly unverified local build.')
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
+    source_sha256 = runtime_fingerprint()
     version = re.search(r'config/version="([^"]+)"', (ROOT / 'project.godot').read_text()).group(1)
     raw = ROOT / 'export' / args.target
     raw.mkdir(parents=True, exist_ok=True)
@@ -54,6 +55,10 @@ def main():
     output = raw / ('PokerGame.exe' if windows else 'PokerGame.zip')
     run([godot, '--headless', '--path', ROOT, '--import'], timeout=600, log_name='import-' + args.target)
     run([godot, '--headless', '--path', ROOT, '--export-release', preset, output], timeout=900, log_name='export-' + args.target)
+    if runtime_fingerprint() != source_sha256:
+        raise RuntimeError('Runtime sources changed during import/export; inspect and commit before rebuilding.')
+    if not args.candidate and subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT, text=True).strip():
+        raise RuntimeError('Import/export changed the checkout; inspect and commit before rebuilding.')
     if not output.is_file() or output.stat().st_size < 1024 * 1024:
         raise RuntimeError('Export did not produce a complete binary package')
     native = (windows and platform.system() == 'Windows') or (not windows and platform.system() == 'Darwin')
@@ -93,7 +98,7 @@ def main():
             archive.write(item, 'licenses/' + item.name)
     manifest = {
         'version': version, 'commit': commit, 'dirty': dirty, 'engine': engine,
-        'source_sha256': runtime_fingerprint(),
+        'source_sha256': source_sha256,
         'target': target_label, 'host_os': platform.platform(),
         'package_self_test_passed': native, 'graphical_platform_validation': 'not established by this script',
         'macos_signing': 'ad-hoc; not notarized' if not windows else None,

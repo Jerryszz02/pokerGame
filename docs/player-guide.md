@@ -6,7 +6,7 @@
 
 当前正在首发验收，候选包不代表全部发布门已经通过。目标是 Windows x64 和 macOS Apple Silicon；macOS 包使用官方 Universal 模板，包含 Intel 二进制不代表 Intel 已完成测试。最低系统要求与最终公开下载入口以正式发布说明为准。当前 macOS 候选包为 ad-hoc 签名，尚未公证；下载后的系统安全校验仍待完成。
 
-Windows：完整解压压缩包后启动 `PokerGame.exe`。macOS：解压后打开 `PokerGame.app`，也可以把它移到“应用程序”目录。运行不需要 Godot 编辑器、.NET 或项目源码。至少需要 1280×720 的显示区域；当前渲染使用 Godot Mobile 渲染器，需要兼容的图形驱动。
+Windows：完整解压压缩包后启动 `PokerGame.exe`。macOS：解压后打开 `PokerGame.app`，也可以把它移到“应用程序”目录。运行不需要 Godot 编辑器、.NET 或项目源码。默认以最大化窗口打开，可用窗口按钮还原或调整大小；至少需要 1280×720 的显示区域；当前渲染使用 Godot Mobile 渲染器，需要兼容的图形驱动。
 
 ## 开始与目标
 

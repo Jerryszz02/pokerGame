@@ -6,6 +6,7 @@ func _init() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	root.mode = Window.MODE_WINDOWED
 	DisplayServer.window_set_size(Vector2i(1280, 720))
 	root.size = Vector2i(1280, 720)
 	await process_frame

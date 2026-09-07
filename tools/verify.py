@@ -14,7 +14,7 @@ def run(command, marker=None, timeout=300, log_name='check', cwd=ROOT):
     output = re.sub(r'\x1b\[[0-9;]*m', '', result.stdout + result.stderr)
     logs = ROOT / 'export/logs'
     logs.mkdir(parents=True, exist_ok=True)
-    (logs / (log_name + '.log')).write_text(output)
+    (logs / (log_name + '.log')).write_text(output, encoding="utf-8")
     if result.returncode or re.search(r'(^|\n)(?:SCRIPT )?ERROR:', output) or (marker and marker not in output):
         raise RuntimeError(f'{log_name} failed (exit {result.returncode}):\n{output[-12000:]}')
     print(f'PASS {log_name}', flush=True)
