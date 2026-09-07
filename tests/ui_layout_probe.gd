@@ -6,6 +6,7 @@ func _init() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	root.mode = Window.MODE_WINDOWED
 	await _probe_menu_and_styles(Vector2i(1280, 720))
 	for viewport_size in [Vector2i(1280, 720), Vector2i(1440, 900), Vector2i(1920, 1080)]:
 		await _probe_table_layout(viewport_size)
@@ -20,6 +21,7 @@ func _probe_table_layout(viewport_size: Vector2i) -> void:
 	root.size = viewport_size
 	await process_frame
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
+	scene.profile_path = "user://poker_ui_layout_probe.cfg"
 	root.add_child(scene)
 	var main_control := scene as Control
 	main_control.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -99,6 +101,7 @@ func _probe_menu_and_styles(viewport_size: Vector2i) -> void:
 	root.size = viewport_size
 	await process_frame
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
+	scene.profile_path = "user://poker_ui_layout_probe.cfg"
 	root.add_child(scene)
 	var main_control := scene as Control
 	main_control.set_anchors_preset(Control.PRESET_FULL_RECT)

@@ -4,6 +4,7 @@ extends RefCounted
 var players: Array = []
 var community_cards: Array = []
 var deck := Deck.new()
+var shuffle_rng := RandomNumberGenerator.new()
 var button_index := 0
 var small_blind_player_index := -1
 var big_blind_player_index := -1
@@ -27,6 +28,9 @@ var max_single_hand_win := 0
 var last_hand_human_delta := 0
 var last_hand_human_won := false
 var _human_stack_at_hand_start := TableState.INITIAL_STACK
+
+func _init() -> void:
+	shuffle_rng.randomize()
 
 func start_new_match(ai_count: int, selected_difficulty: String) -> void:
 	difficulty = selected_difficulty
@@ -52,17 +56,16 @@ func start_new_match(ai_count: int, selected_difficulty: String) -> void:
 func start_next_hand() -> void:
 	if players.is_empty() or match_over:
 		return
-	if _players_with_chips().size() < 2:
+	if players[0].stack <= 0 or _players_with_chips().size() < 2:
 		_finish_match()
 		return
+	_select_positions()
 	hand_number += 1
 	last_hand_human_delta = 0
 	last_hand_human_won = false
 	_human_stack_at_hand_start = players[0].stack
-	button_index = _next_index_with_chips(button_index if hand_number == 1 else button_index + 1)
-	small_blind_player_index = -1
-	big_blind_player_index = -1
 	deck = Deck.new()
+	deck.rng.seed = shuffle_rng.randi()
 	deck.shuffle()
 	community_cards = []
 	winners = []
@@ -142,20 +145,23 @@ func apply_action(action_type: String, amount: int = 0, action_note: String = ""
 	return true
 
 func get_legal_actions(player_index: int) -> Dictionary:
-	if player_index < 0 or player_index >= players.size():
+	if stage == TableState.STAGE_HAND_OVER or player_index < 0 or player_index >= players.size():
 		return {"actions": [], "min_raise_to": 0, "max_raise_to": 0}
 	var player: Dictionary = players[player_index]
 	if player.status != TableState.STATUS_ACTIVE:
 		return {"actions": [], "min_raise_to": 0, "max_raise_to": 0}
 	var to_call := get_to_call(player_index)
-	var actions := [TableState.ACTION_FOLD, TableState.ACTION_ALL_IN]
+	var actions := [TableState.ACTION_FOLD]
+	# A shove is a raise when it exceeds the amount to call.
+	if player.stack <= to_call or (_opponent_can_bet(player_index) and _raise_is_reopened(player)):
+		actions.append(TableState.ACTION_ALL_IN)
 	if to_call == 0:
 		actions.append(TableState.ACTION_CHECK)
 	else:
 		actions.append(TableState.ACTION_CALL)
 	var max_raise_to: int = player.current_bet + player.stack
 	var min_raise_to: int = current_bet + min_raise
-	if _raise_is_reopened(player) and max_raise_to >= min_raise_to:
+	if _opponent_can_bet(player_index) and _raise_is_reopened(player) and max_raise_to >= min_raise_to:
 		actions.append(TableState.ACTION_RAISE)
 	return {"actions": actions, "min_raise_to": min_raise_to, "max_raise_to": max_raise_to}
 
@@ -164,8 +170,21 @@ func _raise_is_reopened(player: Dictionary) -> bool:
 		return true
 	return current_bet - int(player.get("last_action_bet", current_bet)) >= min_raise
 
+func _opponent_can_bet(player_index: int) -> bool:
+	for i in range(players.size()):
+		if i != player_index and players[i].status == TableState.STATUS_ACTIVE and players[i].stack > 0:
+			return true
+	return false
+
 func get_to_call(player_index: int) -> int:
-	return max(0, current_bet - players[player_index].current_bet)
+	var target := current_bet
+	if not _opponent_can_bet(player_index):
+		# With only all-in opponents, no extra wager or empty side pot exists.
+		target = 0
+		for i in range(players.size()):
+			if i != player_index and players[i].status == TableState.STATUS_ALL_IN:
+				target = maxi(target, int(players[i].current_bet))
+	return max(0, target - players[player_index].current_bet)
 
 func total_pot() -> int:
 	var total := 0
@@ -235,10 +254,6 @@ func _players_with_chips() -> Array:
 			result.append(i)
 	return result
 
-func _reset_stacks() -> void:
-	for player in players:
-		player.stack = TableState.INITIAL_STACK
-
 func _next_index_with_chips(start: int) -> int:
 	for i in range(players.size()):
 		var idx := (start + i) % players.size()
@@ -246,12 +261,36 @@ func _next_index_with_chips(start: int) -> int:
 			return idx
 	return 0
 
+func _select_positions() -> void:
+	var live := _players_with_chips()
+	if hand_number == 0:
+		button_index = _next_index_with_chips(button_index)
+		small_blind_player_index = button_index if live.size() == 2 else _next_index_with_chips(button_index + 1)
+		big_blind_player_index = _next_index_with_chips(small_blind_player_index + 1)
+		return
+	# The big blind always moves to the next surviving seat. Use the previous
+	# hand's occupied orbit for the dead button/small blind after elimination.
+	var next_big := _next_index_with_chips(big_blind_player_index + 1)
+	if live.size() == 2:
+		button_index = _next_index_with_chips(next_big + 1)
+		small_blind_player_index = button_index
+	else:
+		var previous_seats := []
+		for i in range(players.size()):
+			if not players[i].hole_cards.is_empty():
+				previous_seats.append(i)
+		var big_position := previous_seats.find(next_big)
+		var small_seat: int = previous_seats[(big_position - 1 + previous_seats.size()) % previous_seats.size()]
+		button_index = previous_seats[(big_position - 2 + previous_seats.size()) % previous_seats.size()]
+		small_blind_player_index = small_seat if players[small_seat].stack > 0 else -1
+	big_blind_player_index = next_big
+
 func _post_blinds() -> void:
-	small_blind_player_index = _small_blind_index()
-	big_blind_player_index = _big_blind_index()
-	_post_blind(small_blind_player_index, small_blind)
+	if small_blind_player_index >= 0:
+		_post_blind(small_blind_player_index, small_blind)
 	_post_blind(big_blind_player_index, big_blind)
-	current_bet = players[big_blind_player_index].current_bet
+	# A short blind changes its contribution, never the full opening wager.
+	current_bet = big_blind
 
 func _post_blind(player_index: int, amount: int) -> void:
 	var player: Dictionary = players[player_index]
@@ -264,14 +303,6 @@ func _post_blind(player_index: int, amount: int) -> void:
 	player.last_action = "Blind %d" % paid
 	player.last_action_note = ""
 	_record_event("blind", "%s 支付盲注 %d。" % [player.name, paid])
-
-func _small_blind_index() -> int:
-	if _players_with_chips().size() == 2:
-		return button_index
-	return _next_index_with_chips(button_index + 1)
-
-func _big_blind_index() -> int:
-	return _next_index_with_chips(_small_blind_index() + 1)
 
 func _first_preflop_actor() -> int:
 	return _next_active_actor(big_blind_player_index + 1)
@@ -409,6 +440,7 @@ func _award_uncontested() -> void:
 		if players[i].status != TableState.STATUS_FOLDED and players[i].status != TableState.STATUS_OUT:
 			winner_index = i
 	if winner_index >= 0:
+		_refund_uncalled_bet()
 		var pot := total_pot()
 		players[winner_index].stack += pot
 		winners = [{"player_index": winner_index, "amount": pot, "rank_name": "无人跟注"}]
@@ -471,6 +503,8 @@ func _resolve_side_pots() -> void:
 				best_indices.append(idx)
 		if best_indices.is_empty():
 			continue
+		# The odd chip belongs to the first winning seat after the button.
+		best_indices.sort_custom(func(a, b): return (a - button_index - 1 + players.size()) % players.size() < (b - button_index - 1 + players.size()) % players.size())
 		var share: int = int(pot.amount / best_indices.size())
 		var remainder: int = int(pot.amount) % best_indices.size()
 		for i in range(best_indices.size()):
@@ -544,7 +578,7 @@ func _finish_hand() -> void:
 	last_hand_human_won = last_hand_human_delta > 0
 	if last_hand_human_delta > max_single_hand_win:
 		max_single_hand_win = last_hand_human_delta
-	if _players_with_chips().size() < 2:
+	if players[0].stack <= 0 or _players_with_chips().size() < 2:
 		_finish_match()
 
 func _finish_match() -> void:

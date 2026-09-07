@@ -12,8 +12,9 @@ func _init() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	root.mode = Window.MODE_WINDOWED
 	DirAccess.make_dir_recursive_absolute(shot_dir)
-	for viewport_size in [Vector2i(1280, 720), Vector2i(1440, 900)]:
+	for viewport_size in [Vector2i(1280, 720), Vector2i(1440, 900), Vector2i(1920, 1080)]:
 		await _playthrough(viewport_size)
 	if failures == 0:
 		print("UI playthrough probe passed.")
@@ -31,7 +32,9 @@ func _playthrough(viewport_size: Vector2i) -> void:
 			break
 		await process_frame
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
+	scene.profile_path = "user://poker_ui_playthrough_probe.cfg"
 	root.add_child(scene)
+	scene.set_process(false)
 	scene.set_anchors_preset(Control.PRESET_FULL_RECT)
 	scene.ai_pending = true # the probe drives AI turns itself, without UI delays
 	await process_frame
@@ -39,6 +42,15 @@ func _playthrough(viewport_size: Vector2i) -> void:
 	var tag := "%dx%d" % [viewport_size.x, viewport_size.y]
 
 	await _state(scene, tag + "_01_menu")
+	scene._show_help()
+	await process_frame
+	await process_frame
+	await _state(scene, tag + "_01b_help")
+	var help_popup: PopupPanel = scene.find_child("HelpPopup", true, false)
+	_assert(help_popup != null, "menu exposes rules and exit semantics")
+	if help_popup != null:
+		help_popup.hide()
+	await process_frame
 
 	var settings_button := _find_button_with_text(scene, "设置")
 	_assert(settings_button != null, "%s menu should expose a settings button" % tag)
@@ -51,6 +63,20 @@ func _playthrough(viewport_size: Vector2i) -> void:
 				break
 		_assert(popup != null, "%s settings popup should open from menu" % tag)
 		await process_frame
+		# Exercise the visible settings through their actual signals and save path.
+		scene.sound_toggle.button_pressed = false
+		scene.sound_player.stop()
+		scene._play_sound(300.0, 0.02)
+		_assert(not scene.sound_player.playing, "disabled sound does not start the generator")
+		scene.sound_toggle.button_pressed = true
+		scene._play_sound(300.0, 0.02)
+		_assert(scene.sound_player.playing, "enabled sound starts the generator")
+		scene.pace_toggle.button_pressed = true
+		_assert(scene._ai_action_delay({"difficulty": "simple"}) < 1.0, "fast setting changes actual scheduled delay")
+		var saved: Dictionary = scene.LocalProfileScript.load_profile(scene.profile_path)
+		_assert(saved.settings.sound_enabled and saved.settings.fast_mode, "visible settings persist together")
+		scene.pace_toggle.button_pressed = false
+		_assert(scene._ai_action_delay({"difficulty": "simple"}) >= 3.0, "normal setting restores normal delay")
 		await _state(scene, tag + "_02_settings")
 		var reset_button := _find_button_with_text(popup, "重置统计") if popup != null else null
 		_assert(reset_button != null, "%s settings popup should expose reset stats button" % tag)
@@ -164,11 +190,57 @@ func _playthrough(viewport_size: Vector2i) -> void:
 					quit_button.emit_signal("pressed")
 					await process_frame
 					await process_frame
+					await _state(scene, tag + "_10b_leave_confirm")
+					var confirm_leave: Button = scene.find_child("ConfirmLeaveButton", true, false)
+					_assert(confirm_leave != null, "leaving an unfinished match needs clear confirmation")
+					if confirm_leave != null:
+						confirm_leave.emit_signal("pressed")
+					await process_frame
+					await process_frame
 					_assert(scene.find_child("MenuStartButton", true, false) != null, "%s quit-to-menu should return to the menu" % tag)
 					_assert(not scene.paused, "%s quit-to-menu should clear the paused state" % tag)
 					_assert(not scene._ai_can_advance(), "%s menu after quitting mid-AI-turn should block AI advancement" % tag)
 					_assert(not scene._execute_ai_turn_if_allowed(), "%s a pending AI callback should stop after quitting to the menu" % tag)
 					await _state(scene, tag + "_11_menu_after_quit")
+
+	# Deterministic multiway human bust: the result must remain readable.
+	scene.game.start_new_match(5, "simple")
+	scene.game.players[0].stack = 0
+	scene.game._finish_hand()
+	scene.game.stage = TableState.STAGE_HAND_OVER
+	scene._render_table()
+	await process_frame
+	await process_frame
+	_assert(scene.game.match_over, "multiway bust must show a match result")
+	_assert(_find_button_with_text(scene, "下一手") == null, "busted human cannot start another hand")
+	await _state(scene, tag + "_12_bust_summary")
+	scene.game.start_new_match(5, "simple")
+	for player in scene.game.players:
+		player.stack = 0
+		player.current_bet = 0
+		player.total_bet = 0
+	scene.game.players[0].stack = TableState.INITIAL_STACK * 6
+	scene.game.start_next_hand()
+	scene._render_table()
+	await process_frame
+	await process_frame
+	_assert(scene.game.match_result == "你赢得牌局", "human owning all chips reaches the victory summary")
+	_assert(_find_button_with_text(scene, "下一手") == null, "completed match does not offer another hand")
+	var restart := _find_button_with_text(scene, "重新开始")
+	_assert(restart != null, "victory summary offers a restart")
+	await _state(scene, tag + "_13_win_summary")
+	if restart != null:
+		restart.emit_signal("pressed")
+		await process_frame
+		_assert(scene.find_child("MenuStartButton", true, false) != null, "victory restart returns to the menu")
+	var original_profile_path: String = scene.profile_path
+	scene.profile_path = "user://missing-ui-save-probe-parent/profile.cfg"
+	scene._save_profile()
+	await process_frame
+	await process_frame
+	_assert(scene.find_child("SaveErrorPopup", true, false) != null, "save failure is visible to the player")
+	await _state(scene, tag + "_14_save_error")
+	scene.profile_path = original_profile_path
 
 	if scene.sound_player:
 		scene.sound_player.stop()

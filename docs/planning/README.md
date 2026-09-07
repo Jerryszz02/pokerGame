@@ -1,104 +1,40 @@
-# PokerGame 项目规划文档
+# PokerGame 项目规划入口
 
-## 文档目的
+请求：稳定公开桌面首发，先定义验收再实施。工作模式：实施与验收。更新日期：2026-09-07。项目根目录：`/Users/jerryszz/Desktop/Projects/pokerGame`；本轮 worktree：`/Users/jerryszz/Desktop/Projects/pokerGame-release`。
 
-本目录是 PokerGame 后续开发前的 planning 入口。它不是代码说明书的替代品，而是把当前仓库已经能证明的产品行为、实现边界和验收方式整理成可维护的开发依据。
+项目是 Godot 4 + GDScript 中文离线单人德州扑克。首发目标、验收门和执行顺序以 [release-plan.md](release-plan.md) 为准。当前处于候选构建验收阶段，尚未满足公开发布门。
 
-本次生成属于现有项目梳理模式：仅根据当前仓库可见内容整理；未在仓库中找到证据的功能、用户、架构、API、数据库、部署目标、时间线和负责人均不做假设。
+## 设计与验收文档
 
-## 生成信息
+- [release-plan.md](release-plan.md)：新增，R1–R9 定义稳定公开桌面首发，含真实发行包、目标平台与公开下载门；用户于 2026-09-07 取消 R8 真人试玩门并要求零成本首发。
+- [prd.md](prd.md)：已有产品需求和离线边界；首发新增要求见 release plan，旧原型描述不覆盖首发目标。
+- [technical-design.md](technical-design.md)：已有架构与实现约束，随对应阶段更新。
+- [test-plan.md](test-plan.md)：原型回归入口；发布性能、CI、设备矩阵现已纳入首发范围，见 release plan。
+- [ui-acceptance.md](ui-acceptance.md)：M1–M8 布局与截图指标，首发增加帮助、退出确认和比赛总结状态。
 
-| 项目 | 内容 |
-| --- | --- |
-| 请求 | 根据当前 Godot 扑克项目进度同步 `docs/` 项目文档 |
-| 生成时间 | 2026-07-01；核对日期 2026-08-13 |
-| 项目根目录 | `/Users/jerryszz/Desktop/Projects/pokerGame` |
-| 项目类型 | Godot 4 + GDScript 本地单人 Texas Hold'em 原型 |
+## 当前证据与维护文档
 
-## 已检查的项目证据
+本轮核对 `AGENTS.md`、`project.godot`、规则/AI/UI/测试脚本及 `origin/main`（起点 `ebf7623`）。前序同日审计规则、布局和完整窗口流程均通过，但额外复现短盲注停滞、全下绕过加注权和多人出局结算缺口。此记录是基线历史，不证明后续分支或发行包通过。
 
-| 证据 | 用途 |
-| --- | --- |
-| `README.md` | 确认项目目标、当前功能、运行方式、测试命令和离线约束。 |
-| `AGENTS.md` | 确认开发规则：Godot 4 + GDScript、禁止未请求的 C#/外部 API/LLM/插件、规则/AI/UI 分层。 |
-| `docs/architecture.md` | 确认现有运行流程、游戏层、AI 层、UI 层和测试覆盖。 |
-| `docs/runbook.md` | 确认本地 Godot/.NET 状态、运行命令、测试命令和导出准备限制。 |
-| `project.godot` | 确认项目名称、主场景、窗口尺寸、图标和 Godot 4.7 配置。 |
-| `scenes/main.tscn`、`scripts/ui/main.gd` | 确认主 UI 入口、菜单、桌面、行动按钮和结果面板。 |
-| `scripts/game/local_profile.gd` | 确认本地设置、聚合战绩、默认值和 `user://poker_profile.cfg` 持久化边界。 |
-| `scripts/game/*.gd` | 确认牌组、手牌评估、桌面状态、下注流程、边池、摊牌和行动合法性。 |
-| `scripts/ai/*.gd` | 确认简单/中等/困难 AI 的决策来源、Monte Carlo 和个性配置。 |
-| `assets/art/generated/README.md`、`style/style-guide.png`、生成 Prompt | 确认当前像素美术方向、资源清单、来源文件约定和运行时清理要求。 |
-| `tests/test_runner.gd`、`tests/ui_layout_probe.gd`、`tests/ui_playthrough_probe.gd`、`docs/planning/ui-acceptance.md` | 确认当前规则/AI/本地配置回归、UI 布局探针、窗口模式完整点击流和 M1-M8 验收指标。 |
+- [README](../../README.md)：面向首次访问者的介绍与运行入口；发布阶段改为玩家下载入口。
+- [架构说明](../architecture.md)：当前实现，随代码同 PR 更新。
+- [运行手册](../runbook.md)：开发验证、构建和本地数据，随对应机制更新。
+- [美术规范](../art-direction.md)：美术方向和动态文本边界。
 
-## 项目概览
+规则入口：`Godot --headless --path . -s tests/test_runner.gd`；布局：`Godot --headless --path . -s tests/ui_layout_probe.gd`；窗口流程：`Godot --path . -s tests/ui_playthrough_probe.gd`。发布验证已固定 Godot 4.7.2 标准版及匹配模板，由 `tools/bootstrap_godot.py` 获取并校验。本机旧 Mono 编辑器可继续开发使用；实际命令见运行手册，未验证的新命令不记为通过。
 
-PokerGame 是一个本地运行的 Texas Hold'em 单人原型。玩家在中文 Godot UI 中选择 1-5 个 AI 对手和 AI 难度后开始牌局。每手牌由规则引擎发牌、收盲注、处理下注轮、推进公共牌阶段，并在无人跟注或摊牌时结算筹码。当前界面采用全屏牌桌与角落浮动控件，提供按需打开的事件日志、牌局暂停/继续/返回菜单、设置弹窗、本地音效开关和聚合战绩。
+设计目标由本目录维护，当前实现由代码和架构/runbook说明，单次证据进入 `docs/releases/`（产生报告时创建），CI 和公开 Release 是其各自状态的权威来源。
 
-当前项目刻意保持离线：没有账号、联网、真实货币、外部 API、LLM 对手、Steamworks 集成或第三方扑克库。后续开发应先保持这个边界，除非用户明确要求扩展。
+## 文档选择与待确认
 
-核心协作方式：
+新增 release plan，撤销旧索引“无需发布计划”的决定。没有退役其他文档；不创建重复架构、项目简述、API、数据库、在线运维文档，相关边界仍为离线且已有文档足够。
 
-1. UI 层只收集玩家输入并展示状态。
-2. AI 层只产出候选行动。
-3. 所有人类和 AI 行动都必须进入 `PokerRound.apply_action()`。
-4. 规则引擎统一检查行动是否合法、更新下注状态、推进牌局和结算。
-5. 摊牌比较必须使用 `HandEvaluator.evaluate()`。
-6. 本地设置和聚合战绩由 `LocalProfile` 通过 Godot `ConfigFile` 保存；它不属于扑克规则状态。
-7. 运行时 UI 组合生成式 PNG 与动态中文文字；牌值、数值和事件不得固化进图片。
+待确认：首发平台与渠道、Windows 图形测试设备，以及若包含 macOS 时的分发/签名路径。零成本约束已确定，真人试玩已移出 Goal。工程阶段可先推进，不把这些未验证项记为完成。
 
-## 已生成或已更新文档
+## 本轮实现位置
 
-| 文档 | 用途 |
-| --- | --- |
-| `docs/planning/prd.md` | 定义当前原型必须保留的用户可见行为、功能边界和非功能要求。 |
-| `docs/planning/technical-design.md` | 定义后续实现必须遵守的模块边界、状态流、关键约束和任务拆分方式。 |
-| `docs/planning/test-plan.md` | 定义当前最小自动化与人工验收方式，以及测试未覆盖风险。 |
-| `docs/planning/ui-acceptance.md` | 定义全屏牌桌、浮动控件、日志、暂停、筹码容量与截图审查的 M1-M8 验收指标。 |
-| `docs/art-direction.md` | 定义当前像素美术色板、硬边表现、动态内容边界和资产维护基线。 |
-| `docs/architecture.md` | 同步当前规则、AI、UI、美术、本地配置和测试边界。 |
-| `docs/runbook.md` | 同步当前本机环境、验证命令、人工烟测、本地数据和资源维护流程。 |
+首发分支已新增规则回归、后台 AI、输入与动画生命周期保护、帮助/离桌确认、独立字体、标准构建与 CI。实现中不等于发布完成；R7/R9 仍须以目标设备和公开发行证据判定；R8 已按用户要求取消。
 
-## 已跳过目录文档
+新增玩家安装/玩法说明：[player-guide.md](../player-guide.md)。本轮范围同步更新 release plan、测试计划、索引、验收报告、可选试玩模板、根 README 和运行手册；不新增重复文档。文档索引/本地链接审计与差异检查通过；本轮未重跑游戏测试。没有退役文档。Windows 图形测试及 macOS 签名/下载的待执行步骤已写入运行手册。最新验证命令见 [runbook.md](../runbook.md)，独立包与每次构建日志位于被 Git 忽略的 `export/`，逐门验收证据已在 `docs/releases/` 归档。
 
-| 文档 | 跳过原因 |
-| --- | --- |
-| `project-brief.md` | 项目背景、目标用户、范围和非目标已合并到本索引与 `prd.md`，单独成篇会重复。 |
-| `architecture.md` | 仓库已有 `docs/architecture.md` 覆盖模块职责和运行流程，planning 中只保留技术约束，不重复生成。 |
-| `user-flow.md` | 当前用户流程可以放进 `prd.md` 的功能需求和验收场景，单独文档会重复。 |
-| `api-design.md` | 当前仓库没有 HTTP/RPC/GraphQL/WebSocket/插件 API 证据，也没有 API 变更请求。 |
-| `database-design.md` | 当前只使用 `ConfigFile` 保存少量本地设置和聚合统计，没有数据库、迁移或跨版本 schema 设计需求；字段边界已并入 `technical-design.md`。 |
-| `security-privacy.md` | 当前只存少量非敏感本地设置和聚合统计，无账号、联网、支付、凭据或遥测；边界并入 PRD 和技术设计即可。 |
-| `release-plan.md` | 当前只有本地运行和未来导出准备，没有已确认的发布目标、feature flag、迁移或生产发布流程。 |
-| `operations-runbook.md` | 仓库已有 `docs/runbook.md` 覆盖本地运行、测试和导出准备；没有长期运行服务或运维进程。 |
-| `decision-log.md` | 关键取舍数量少，已合并到 `technical-design.md` 的关键决策。 |
-
-## 后续开发入口
-
-| 场景 | 先读 |
-| --- | --- |
-| 改用户可见玩法、UI 流程或 AI 难度 | `docs/planning/prd.md` |
-| 改规则引擎、AI 决策或 UI 与规则层交互 | `docs/planning/technical-design.md` |
-| 改测试、修规则 bug 或准备验收 | `docs/planning/test-plan.md` |
-| 改牌桌 UI、日志、暂停或布局约束 | `docs/planning/ui-acceptance.md` |
-| 理解现有代码结构 | `docs/architecture.md` |
-| 本地运行、测试或导出准备 | `docs/runbook.md` |
-| 创建、替换或接入美术资源 | `docs/art-direction.md`、`assets/art/generated/README.md` |
-
-## 待确认
-
-| 问题 | 为什么不能从当前证据确定 |
-| --- | --- |
-| 目标发布平台和优先级 | `docs/runbook.md` 提到桌面、iOS 和 Steam 的未来准备项，但没有确认发布计划或顺序。 |
-| 最终目标用户 | 仓库能证明这是本地单人原型，但没有说明面向练习玩家、休闲玩家、教学用途还是发布商品。 |
-| 最终中文像素字体、动画范围和可访问性目标 | 当前已有视觉规范和 PNG 资产，但字体样张不可直接作为运行时字体；动画范围、输入策略和无障碍要求仍未确认。 |
-| AI 强度目标 | 仓库能证明三档 AI 的实现方式，但没有可量化胜率、风格稳定性或性能预算目标。 |
-| 更完整的存档范围 | 当前只保存 AI 数量、难度、音效/音乐开关和聚合战绩；是否保存当前牌局、筹码或历史明细仍待确认。 |
-| 负责人、时间线和发布验收人 | 仓库没有项目管理或发布责任信息。 |
-
-## 人工检查建议
-
-- 请确认下一阶段是否仍保持“本地单人、无联网、无外部 API、无 LLM、无第三方插件”的边界；这会直接影响 PRD、技术设计和安全文档是否需要扩展。
-- 请确认发布目标是否只是本地可玩，还是要优先准备桌面、Steam 或 iOS；当前 planning 没有生成 release plan，因为仓库证据不足。
-- 请确认 AI 的“好玩”标准，例如更像真人、速度优先、难度可控或策略正确性优先；当前代码有实现机制，但没有产品指标。
-- 请确认最终中文像素字体的选择与授权，以及哪些候选 atlas/VFX 需要继续切片和接入；当前仓库只能证明视觉方向和部分运行时集成。
+当前逐门证据与剩余阻塞见 [2026-09-07 桌面验收记录](../releases/2026-09-07-desktop-acceptance.md)，可选真人反馈使用 [试玩记录模板](../releases/playtest-template.md)。该记录包含未通过项，不是首发放行声明。

@@ -1,96 +1,28 @@
 # PokerGame
 
-一个使用 Godot 4 和 GDScript 制作的本地单人 Texas Hold'em（德州扑克）原型。玩家可与 1–5 名 AI 对手进行离线牌局；项目不包含账号、联网、真实货币、外部 API、LLM 对手、Steamworks 或第三方扑克库。
+中文离线单人德州扑克。选择 1–5 个 AI 对手和三档难度，在像素牌桌上完成下注、全下、摊牌和边池结算。目标是赢得所有筹码；玩家出局时显示比赛总结。
 
-## 当前内容
+游戏没有账号、联网、真实货币、外部 API 或遥测。设置和已完成手牌的聚合战绩保存在本机；当前对局不保存，离开时会提示。菜单和设置内提供玩法说明、音效与行动节奏设置。
 
-- 完整的德州扑克流程：盲注、翻前、翻牌、转牌、河牌、弃牌、过牌、跟注、加注、全下、摊牌、边池与分池。
-- 1–5 名 AI 对手，以及简单、中等、困难三档难度。
-- 困难 AI 在翻前使用起手牌评分，翻后使用 Monte Carlo 胜率估算，并结合底池赔率与随机人格参数决策。
-- 中文界面：全屏牌桌、桌沿外角色、公共牌、模块化筹码、浮动行动控件、按需打开的牌局记录、结算面板和设置弹窗。
-- 本地设置与战绩：保存 AI 数量、难度、音效/音乐开关，以及总手数、胜手数、净盈利和单手最大收益；可在设置中二次确认后重置统计。
-- 牌局内可从设置暂停、继续或返回菜单；暂停、日志抽屉和设置弹窗会阻止 UI 调度新的 AI 行动。
-- 已接入生成式牌桌、菜单、角色、卡牌和模块化筹码 PNG；按钮、面板、盲注标记及动态牌值、花色和金额由 Godot 运行时绘制。
+## 首发状态
 
-## 环境要求
+正在进行稳定桌面首发验收，当前候选包不能视为全部验收完成。公开下载入口会在目标系统验证及公开发布完成后更新。[首发验收标准](docs/planning/release-plan.md)明确区分代码检查、独立安装包、目标设备验证和公开发布。
 
-- Godot 4.7 或兼容的 Godot 4 版本。
-- 项目仅使用 GDScript；本机可用 Godot 路径为 `/Applications/Godot_mono.app/Contents/MacOS/Godot`。
-- 若使用该 Mono 版 Godot，在新的 shell 中先配置 .NET 8：
+[玩家说明](docs/player-guide.md)介绍操作、数据位置和反馈方式。字体、引擎及美术来源见 [第三方说明](THIRD_PARTY_NOTICES.md)。
+
+## 从源码运行
+
+项目仅使用 Godot 4 + GDScript。正式构建固定使用 Godot 4.7.2 标准版；不需要 .NET。安装固定引擎并启动（macOS/Linux）：
 
 ```sh
-export DOTNET_ROOT="$HOME/.dotnet"
-export PATH="$DOTNET_ROOT:$PATH"
+GODOT_BIN="$(python3 tools/bootstrap_godot.py)"
+"$GODOT_BIN" --path .
 ```
 
-## 运行
-
-在 Godot Project Manager 中选择 **Import**，导入：
-
-```text
-/Users/jerryszz/Desktop/Projects/pokerGame/project.godot
-```
-
-主场景为 `res://scenes/main.tscn`。也可以在项目根目录运行：
+也可以在 Godot 4.7.2 中导入 `project.godot`，运行 `scenes/main.tscn`。
 
 ```sh
-/Applications/Godot_mono.app/Contents/MacOS/Godot --path .
+python3 tools/verify.py --godot "$GODOT_BIN"
 ```
 
-进入游戏后，选择 AI 数量和难度，再点击“开始牌局”。设置按钮可调整本地音效/音乐并查看或重置统计数据；牌局中还可暂停、继续或返回菜单。右上角记录按钮按需打开牌局日志。
-
-## 测试
-
-在项目根目录执行。若当前 shell 尚未加载 .NET 环境变量，请先按上节配置。
-
-```sh
-/Applications/Godot_mono.app/Contents/MacOS/Godot --headless --path . -s tests/test_runner.gd
-```
-
-预期输出：`All poker tests passed.`
-
-该测试覆盖牌组唯一性、牌型与踢脚比较、下注合法性、边池/分池、中文结果与事件记录、本地设置持久化、AI 人格和合法行动，以及 Monte Carlo 胜率边界。
-
-验证常见桌面分辨率下的主界面与设置弹窗布局：
-
-```sh
-/Applications/Godot_mono.app/Contents/MacOS/Godot --headless --path . -s tests/ui_layout_probe.gd
-```
-
-预期输出：`All UI layout probes passed.`
-
-运行完整 UI 点击流（窗口模式，会把验收截图写入 `/tmp/poker_audit/`）：
-
-```sh
-/Applications/Godot_mono.app/Contents/MacOS/Godot --path . -s tests/ui_playthrough_probe.gd
-```
-
-快速检查主场景能否启动：
-
-```sh
-/Applications/Godot_mono.app/Contents/MacOS/Godot --path . --quit-after 2
-```
-
-## 项目结构
-
-```text
-scenes/main.tscn        主场景
-scripts/game/           牌组、牌型评估、下注流程、边池、摊牌与本地配置
-scripts/ai/             起手牌评分、Monte Carlo、人格与 AI 决策
-scripts/ui/             Godot Control 界面与本地音效
-assets/art/generated/   当前接入的生成式 PNG 美术资源
-tests/                  规则回归与 UI 布局探针
-docs/                   架构、运行手册与后续规划
-```
-
-开发时请保持分层：UI 只能展示状态并提交玩家输入；人类与 AI 的所有行动都必须通过 `PokerRound.apply_action()`；摊牌比较必须通过 `HandEvaluator.evaluate()`。
-
-## 美术资源说明
-
-`assets/art/generated/` 保存当前美术资源及其来源图。无 `-source` 后缀的是选定或候选最终 PNG，实际运行时依赖以 `scripts/ui/main.gd` 中的 `preload()` 为准；`*-source.png` 用于保留原始生成结果。资源清单和后续清理事项见 [assets/art/generated/README.md](assets/art/generated/README.md)。
-
-## 文档
-
-- [架构说明](docs/architecture.md)：游戏规则、AI、UI 的职责和运行流程。
-- [运行手册](docs/runbook.md)：本机环境、手动冒烟检查与导出准备。
-- [规划文档](docs/planning/README.md)：现有原型的产品、技术与测试约束。
+构建、窗口检查、长测及平台验收见 [运行手册](docs/runbook.md)。模块职责见 [架构说明](docs/architecture.md)，需求和验收基线见 [规划入口](docs/planning/README.md)。
