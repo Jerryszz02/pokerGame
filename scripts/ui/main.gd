@@ -42,6 +42,7 @@ const MENU_TITLE_ANCHOR_X := 676.5
 const MENU_TITLE_REGION := Rect2(14, 260, 1325, 350)
 const ExportSelfTestScript := preload("res://scripts/game/export_self_test.gd")
 const LocalProfileScript := preload("res://scripts/game/local_profile.gd")
+const UI_FONT := preload("res://assets/fonts/UI-Regular.tres")
 const MENU_BACKGROUND_TEXTURE := preload("res://assets/art/generated/misc/menu-background.png")
 const MENU_NOTICE_BOARD_TEXTURE := preload("res://assets/art/generated/ui/menu-notice-board.png")
 const MENU_PREVIEW_TEXTURE := preload("res://assets/art/generated/misc/menu-table-preview.png")
@@ -106,6 +107,9 @@ var last_seen_event_fingerprint := ""
 var last_rendered_pot := -1
 
 func _ready() -> void:
+	# Apply after resource import; project-level custom fonts load before first import.
+	theme = Theme.new()
+	theme.default_font = UI_FONT
 	var self_test := OS.get_cmdline_user_args().has("--self-test")
 	if self_test:
 		if DisplayServer.get_name() != "headless":
@@ -309,6 +313,7 @@ func _settings_button() -> Button:
 func _show_settings_popup() -> void:
 	var in_match := _in_match()
 	var popup := PopupPanel.new()
+	popup.theme = theme
 	popup.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL, _edge_color(), 2, 2, Vector2(14, 12)))
 	add_child(popup)
 	popup.popup_hide.connect(func(): popup.queue_free())
@@ -1577,6 +1582,7 @@ func _show_help() -> void:
 
 func _show_text_popup(title_text: String, body: String, node_name: String) -> PopupPanel:
 	var popup := PopupPanel.new()
+	popup.theme = theme
 	popup.name = node_name
 	popup.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL_DARK, COLOR_BRASS.darkened(0.32), 2, 2, Vector2(22, 18)))
 	add_child(popup)

@@ -10,8 +10,8 @@ The game remains offline-only. It does not use APIs, LLMs, Steamworks, accounts,
 
 The main scene is `res://scenes/main.tscn`, backed by `scripts/ui/main.gd`.
 
-1. `_ready()` loads `user://poker_profile.cfg`, initializes local audio, and shows the main menu.
-2. The menu restores AI count and difficulty and exposes local sound, music, and statistics through a settings popup.
+1. `_ready()` loads `user://poker_profile.cfg`, applies the bundled regular font after resource import, initializes local audio, and shows the main menu.
+2. The menu restores AI count and difficulty and exposes local sound, action pace, help, and statistics through a settings popup.
 3. Starting a match saves the selected settings and calls `PokerRound.start_new_match()`.
 4. `PokerRound.start_next_hand()` shuffles, deals hole cards, posts blinds, records events, and sets the first actor.
 5. Human actions come from the UI and call `PokerRound.apply_action()`.
@@ -71,7 +71,7 @@ Key widgets carry stable node names (`TableStageRoot`, `TableFeltSafeZone`, `Flo
 The UI displays:
 
 - Chinese main menu with AI-count and difficulty controls.
-- A settings popup for local sound/music switches and aggregate statistics, including a two-step reset confirmation.
+- A settings popup for local sound/pace switches and aggregate statistics, including a two-step reset confirmation.
 - During a match, the settings popup also exposes pause; the full-screen pause overlay offers resume and return-to-menu.
 - A compact floating hand/street/status capsule, community cards, player seats, role markers, stacks, bets, and a physical pot display.
 - An on-demand right-side event-log drawer containing only actual game events.
@@ -93,7 +93,7 @@ The canonical visual constraints are documented in `docs/art-direction.md`. Asse
 
 - `tests/test_runner.gd` covers cards, hand evaluation, action legality, side/split pots, Chinese result text, event history, local profile round-trips, AI profiles/actions, AI sampling, and Monte Carlo bounds.
 - `tests/ui_layout_probe.gd` checks menu/settings and the table at 1280x720, 1440x900, and 1920x1080. It verifies the 78% table width, 1619:971 ratio, floating controls, portrait/felt safety, seat bindings, role markers, log pause/unread behavior, hard-edged `StyleBoxFlat` states, chip breakdowns, and visible-stack capacities.
-- `tests/ui_playthrough_probe.gd` scripts a full player click-through (menu, settings with reset confirmation, log drawer, pause/resume, collapsed/expanded actions, safe hand, next-hand all-in, result, restart, and quit-to-menu during an AI turn) at two window sizes. It saves per-state screenshots to `/tmp/poker_audit/` and asserts viewport bounds, text fit, seat-widget layering, control overlap, nearest filtering, and the AI pause/quit safety gates. Windowed, not part of the headless gate.
+- `tests/ui_playthrough_probe.gd` scripts a full player click-through (menu, settings with reset confirmation, log drawer, pause/resume, collapsed/expanded actions, safe hand, next-hand all-in, result, restart, and quit-to-menu during an AI turn) at three window sizes (1280x720, 1440x900, 1920x1080). It saves per-state screenshots to `/tmp/poker_audit/` and asserts viewport bounds, text fit, seat-widget layering, control overlap, nearest filtering, and the AI pause/quit safety gates. Windowed, not part of the headless gate.
 - `tests/ui_table_snapshot.gd` is a visual dev tool: it renders preflop tables with 1/3/5 AI plus rigged flop and showdown states and saves PNGs to `/tmp/poker_table_*.png` for manual layout review (opens a window briefly; not part of the headless test gate).
 
 ## Desktop release changes

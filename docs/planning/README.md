@@ -1,8 +1,8 @@
 # PokerGame 项目规划入口
 
-请求：稳定公开桌面首发，先定义验收再实施。工作模式：执行前准备与状态同步。更新日期：2026-09-07。项目根目录：`/Users/jerryszz/Desktop/Projects/pokerGame`；本轮 worktree：`/Users/jerryszz/Desktop/Projects/pokerGame-release`。
+请求：稳定公开桌面首发，先定义验收再实施。工作模式：实施与验收。更新日期：2026-09-07。项目根目录：`/Users/jerryszz/Desktop/Projects/pokerGame`；本轮 worktree：`/Users/jerryszz/Desktop/Projects/pokerGame-release`。
 
-项目是 Godot 4 + GDScript 中文离线单人德州扑克。首发目标、验收门和执行顺序以 [release-plan.md](release-plan.md) 为准。当前代码仍属于可玩原型，不因写入计划而成为可发布产品。
+项目是 Godot 4 + GDScript 中文离线单人德州扑克。首发目标、验收门和执行顺序以 [release-plan.md](release-plan.md) 为准。当前处于候选构建验收阶段，尚未满足公开发布门。
 
 ## 设计与验收文档
 
@@ -21,7 +21,7 @@
 - [运行手册](../runbook.md)：开发验证、构建和本地数据，随对应机制更新。
 - [美术规范](../art-direction.md)：美术方向和动态文本边界。
 
-规则入口：`Godot --headless --path . -s tests/test_runner.gd`；布局：`Godot --headless --path . -s tests/ui_layout_probe.gd`；窗口流程：`Godot --path . -s tests/ui_playthrough_probe.gd`。实际二进制目前为 `/Applications/Godot_mono.app/Contents/MacOS/Godot`。发布阶段须固定可重复获取的标准引擎与模板，未验证的新命令不记为通过。
+规则入口：`Godot --headless --path . -s tests/test_runner.gd`；布局：`Godot --headless --path . -s tests/ui_layout_probe.gd`；窗口流程：`Godot --path . -s tests/ui_playthrough_probe.gd`。发布验证已固定 Godot 4.7.2 标准版及匹配模板，由 `tools/bootstrap_godot.py` 获取并校验。本机旧 Mono 编辑器可继续开发使用；实际命令见运行手册，未验证的新命令不记为通过。
 
 设计目标由本目录维护，当前实现由代码和架构/runbook说明，单次证据进入 `docs/releases/`（产生报告时创建），CI 和公开 Release 是其各自状态的权威来源。
 

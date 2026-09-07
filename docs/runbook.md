@@ -19,7 +19,7 @@ $GodotBinary = python tools/bootstrap_godot.py --templates
 & $GodotBinary --path .
 ```
 
-本机历史 Mono 编辑器仍在 `/Applications/Godot_mono.app/Contents/MacOS/Godot`，需要本机 .NET 配置；发布构建不依赖它。新 worktree 必须先导入，`verify.py` 会执行该步骤。
+本机历史 Mono 编辑器仍在 `/Applications/Godot_mono.app/Contents/MacOS/Godot`，需要本机 .NET 配置；发布构建不依赖它。新 worktree 必须先导入，`verify.py` 和 `build_release.py` 都会执行该步骤。
 
 ## 自动检查
 
@@ -60,6 +60,6 @@ python3 tools/build_release.py --godot "$GODOT_BIN" --target windows
 
 `user://poker_profile.cfg` 仅包含偏好和聚合统计。字段会按类型规范化，写入采用同目录临时文件后替换，失败由 UI 提示。用设置中的两次点击确认重置统计，不用删除文件作为普通测试流程。
 
-美术修改先读 [art-direction.md](art-direction.md)；运行依赖由代码 `preload()` 和导出资源列表共同明确。Noto Sans SC 使用独立的 weight-400 `FontVariation`，许可位于 `assets/fonts/OFL.txt`；变量字体不能直接以最低字重作为默认界面字体。
+美术修改先读 [art-direction.md](art-direction.md)；运行依赖由代码 `preload()` 和导出资源列表共同明确。Noto Sans SC 使用独立的 weight-400 `FontVariation`，许可位于 `assets/fonts/OFL.txt`；变量字体不能直接以最低字重作为默认界面字体。字体在主场景初始化时应用，并显式传给弹窗；不设置项目级 `theme/custom_font`，避免干净 checkout 在首次导入前读取尚不存在的字体缓存。
 
 维护约定：修改上述命令、状态机制、导出边界或数据语义时，在同一 PR 更新本文及对应架构/验收说明。

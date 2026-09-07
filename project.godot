@@ -23,10 +23,6 @@ window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
-[gui]
-
-theme/custom_font="res://assets/fonts/UI-Regular.tres"
-
 [rendering]
 
 renderer/rendering_method="mobile"

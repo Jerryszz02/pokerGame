@@ -52,6 +52,7 @@ def main():
     windows = args.target == 'windows'
     preset = 'Windows Desktop' if windows else 'macOS'
     output = raw / ('PokerGame.exe' if windows else 'PokerGame.zip')
+    run([godot, '--headless', '--path', ROOT, '--import'], timeout=600, log_name='import-' + args.target)
     run([godot, '--headless', '--path', ROOT, '--export-release', preset, output], timeout=900, log_name='export-' + args.target)
     if not output.is_file() or output.stat().st_size < 1024 * 1024:
         raise RuntimeError('Export did not produce a complete binary package')
