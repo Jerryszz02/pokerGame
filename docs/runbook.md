@@ -59,11 +59,38 @@ python3 tools/build_release.py --godot "$GODOT_BIN" --target windows
 
 ## CI 与发布
 
-`.github/workflows/desktop.yml` 在 Linux 执行 headless 检查，在 Windows/macOS 分别导出并运行实际模板自检，上传包及日志。CI artifact 不等于公开 Release，也不能代替图形设备和真人试玩。
+`.github/workflows/desktop.yml` 在 Linux 执行 headless 检查，在 Windows/macOS 分别导出并运行实际模板自检，上传包及日志。CI artifact 不等于公开 Release，也不能代替 R7 目标设备图形验证。
 
-目标系统和真人试玩使用 [试玩记录模板](releases/playtest-template.md)，先记录包哈希，再执行并填写。
+目标系统技术验收按下节步骤记录包哈希和结果。另行收集产品体验反馈时可使用 [可选试玩记录模板](releases/playtest-template.md)；用户已将真人试玩移出 Goal。
 
-发布前核对 R1–R9 的逐项证据、对应提交的检查和审查、签名/目标系统结果及试玩反馈。通过后受控 squash 合并，生成与合并提交对应的版本包、校验和与发行说明，公开发布后重新下载验证。不要覆盖已发布版本的包；修复使用新版本。
+发布前核对 R1–R7、R9 的逐项证据、对应提交的检查和审查、所选分发路径的签名/目标系统结果；R8 已取消，不要求真人反馈。通过后受控 squash 合并，生成与合并提交对应的版本包、校验和与发行说明，公开发布后重新下载验证。不要覆盖已发布版本的包；修复使用新版本。
+
+## 目标设备与下载验证（待执行步骤）
+
+本节是 R7/R9 的执行方法，不是测试通过记录，也不要求额外招募真人试玩者。可由开发者在对应机器执行；已有设备上的自动 UI 操作也可提供技术证据。实际结果写入 `docs/releases/`，记录 OS/架构/GPU/驱动、屏幕分辨率与缩放、提交、包来源、SHA-256、截图、日志和复验结果。公开下载的最后一次检查使用最终发布文件。
+
+### Windows x64
+
+1. 使用已有或借用的 Windows x64 图形电脑，优先验证拟支持的 Windows 11 版本。使用干净测试账户保留原有战绩；不需要安装 Godot、Python 或 .NET。CI 的 Windows Server headless 检查不能证明消费级桌面图形可用。
+2. 在浏览器下载候选 ZIP，发布后再从公开链接下载一次；在 Downloads 内运行 `Get-FileHash .\PokerGame-1.0.0-windows-x64.zip -Algorithm SHA256`，与该版本校验和比较。用资源管理器解压到非源码目录，直接双击 EXE，记录下载、解压和首次启动提示。
+3. 检查默认最大化与最小窗口、中文/花色、鼠标和键盘操作、实际音效；在屏幕支持时检查 1280×720、1440×900、1920×1080 及 100%/150% 系统缩放。未覆盖的矩阵项保留待验证，不宣称通过。
+4. 按 R2/R7 检查人数/难度、完整手牌、结算/下一手、暂停和 AI 思考期间操作、返回菜单/重开、设置保存、退出再启动及离线运行；记录卡死、错误日志、设置丢失或不可达控件。可先用正式 EXE 的 `--headless -- --self-test` 辅助诊断，但它不替代可见窗口操作。
+5. 虚拟机只证明该虚拟环境；Apple Silicon 上 Windows ARM 的 x64 仿真不能作为原生 x64 GPU 验收。最低支持系统/硬件按实际覆盖范围声明。
+
+免费发布不保证零拦截：未签名 EXE 可能触发 SmartScreen，Smart App Control 或组织策略还可能直接阻止启动。记录机器上的实际防护状态和提示，不通过关闭全局防护来制造通过结果。首发前须据此决定支持范围和安装说明。[Microsoft 官方说明](https://learn.microsoft.com/en-us/windows/apps/package-and-deploy/smartscreen-reputation)
+
+### macOS
+
+零成本路径可保留现有 ad-hoc 签名，但它不等同于 Developer ID 或 Apple 公证。需要在目标系统验证 Apple 支持的“隐私与安全性 → 仍要打开”单应用流程及实际提示，再明确披露首次启动步骤；不把签名完整性通过当作 Gatekeeper 放行，不关闭 Gatekeeper 或删除 quarantine 来替代下载验收。是否接受这条首发路径仍待用户选择。[Godot 导出说明](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_macos.html)、[Apple 打开应用说明](https://support.apple.com/en-us/102445)
+
+若用户已有或选择购买 Apple Developer Program 会员，正式 Developer ID 路径如下（尚未配置/执行）：
+
+1. 在本机钥匙串准备 Developer ID Application 证书和私钥；按 Godot macOS 导出配置使用 Xcode codesign，启用 hardened runtime 所需设置，禁用 Debugging entitlement。凭据保存在钥匙串或获授权的 CI secret，不写入仓库。
+2. 对导出的应用完成签名并验证，封装 ZIP，使用 Xcode 的 `notarytool submit` 和已有钥匙串 profile 提交，等待 `Accepted`；失败先检查公证日志并修复。
+3. 对 `.app` 使用 `stapler staple` 和 `stapler validate`；不能把票据直接 staple 到 ZIP。重新封装最终 ZIP，重新生成校验和；签名/封装会改变文件，旧哈希不可沿用。
+4. 从最终公开链接用浏览器重新下载到没有该应用既有放行记录的测试环境，保留下载隔离属性，核对哈希和签名，执行 Gatekeeper 评估，再通过 Finder 正常打开。检查在线首次启动、离线启动和 R7 完整操作，记录系统提示。只通过终端启动本地导出包不算下载验证。
+
+Developer ID 需要开发者计划资格，常规会员价格为 99 USD/年（地区价格可能不同）；不是发布到 Mac App Store 才需要这项会员。[会员费用](https://developer.apple.com/programs/enroll/)、[Developer ID](https://developer.apple.com/developer-id/)、[公证与 stapling 流程](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow)。以上政策于 2026-09-07 核对，实际发布时复核。
 
 ## 本地数据与资源
 
