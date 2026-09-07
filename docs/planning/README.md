@@ -1,6 +1,6 @@
 # PokerGame 项目规划入口
 
-请求：稳定公开桌面首发，先定义验收再实施。工作模式：执行前准备与状态同步。更新日期：2026-09-06。项目根目录：`/Users/jerryszz/Desktop/Projects/pokerGame`；本轮 worktree：`/Users/jerryszz/Desktop/Projects/pokerGame-release`。
+请求：稳定公开桌面首发，先定义验收再实施。工作模式：执行前准备与状态同步。更新日期：2026-09-07。项目根目录：`/Users/jerryszz/Desktop/Projects/pokerGame`；本轮 worktree：`/Users/jerryszz/Desktop/Projects/pokerGame-release`。
 
 项目是 Godot 4 + GDScript 中文离线单人德州扑克。首发目标、验收门和执行顺序以 [release-plan.md](release-plan.md) 为准。当前代码仍属于可玩原型，不因写入计划而成为可发布产品。
 
@@ -30,3 +30,9 @@
 新增 release plan，撤销旧索引“无需发布计划”的决定。没有退役其他文档；不创建重复架构、项目简述、API、数据库、在线运维文档，相关边界仍为离线且已有文档足够。
 
 待确认：首发平台与渠道、Windows 图形测试设备、macOS 签名/公证条件、真人试玩反馈。工程阶段可先推进，不把这些未验证项记为完成。
+
+## 本轮实现位置
+
+首发分支已新增规则回归、后台 AI、输入与动画生命周期保护、帮助/离桌确认、独立字体、标准构建与 CI。实现中不等于发布完成；R7/R8/R9 仍须以目标设备、真人反馈和公开发行证据判定。
+
+新增玩家安装/玩法说明：[player-guide.md](../player-guide.md)。没有退役文档。最新验证命令见 [runbook.md](../runbook.md)，独立包与每次构建日志位于被 Git 忽略的 `export/`，最终验收记录将单独归档。

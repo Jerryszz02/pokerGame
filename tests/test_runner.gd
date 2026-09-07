@@ -12,6 +12,7 @@ func _run() -> void:
 	_test_deck_unique()
 	_test_hand_rankings()
 	_test_kickers()
+	_test_hand_reference()
 	_test_action_validation()
 	_test_all_in_requires_response()
 	_test_short_all_in_does_not_reopen_raise()
@@ -25,6 +26,10 @@ func _run() -> void:
 	_test_event_log()
 	_test_all_in_auto_deal_events()
 	_test_match_goal_states()
+	_test_release_rules()
+	_test_all_in_runout_boundaries()
+	_test_blind_rotation_after_elimination()
+	_test_profile_recovery()
 	_test_local_profile_roundtrip()
 	_test_ai_profiles_and_actions()
 	_test_current_ai_action_event()
@@ -154,7 +159,7 @@ func _test_short_opening_all_in_can_be_raised() -> void:
 	_assert(game.apply_action(TableState.ACTION_CHECK), "first player can check before an opening bet")
 	game.players[1].stack = 10
 	_assert(game.apply_action(TableState.ACTION_ALL_IN), "next player can make a short opening all-in")
-	_assert(game.apply_action(TableState.ACTION_FOLD), "third player can fold to the short opening all-in")
+	_assert(game.apply_action(TableState.ACTION_CALL), "third player can call the short opening all-in and still face a raise")
 	_assert(game.current_player_index == 0, "action should return to the player who checked")
 	_assert(game.get_legal_actions(0).actions.has(TableState.ACTION_RAISE), "a prior checker can raise a new opening wager")
 
@@ -364,3 +369,135 @@ func _test_ai_sampling_and_difficulty_profiles() -> void:
 		var legal := game.get_legal_actions(ai_index)
 		_assert(legal.actions.has(decision.action_type), "sampled AI action should be legal")
 		_assert(decision.has("decision_label"), "AI decision should include readable label")
+
+func _test_release_rules() -> void:
+	var short_raise := PokerRound.new()
+	short_raise.start_new_match(3, "simple")
+	short_raise.apply_action("raise", 100)
+	short_raise.apply_action("call")
+	short_raise.players[1].stack = 140
+	short_raise.apply_action("all_in")
+	short_raise.apply_action("call")
+	var before := short_raise.players.duplicate(true)
+	_assert(not short_raise.apply_action("all_in"), "short raise cannot be reraised through all-in")
+	_assert(short_raise.players == before, "rejected all-in must not mutate chips or state")
+	short_raise.players[3].stack = 25
+	_assert(short_raise.apply_action("all_in"), "closed raising must still allow an all-in call below the amount owed")
+
+	for count in [1, 2, 5]:
+		var short_blind := PokerRound.new()
+		short_blind.start_new_match(count, "simple")
+		short_blind.hand_number = 0
+		short_blind.button_index = 0
+		for player in short_blind.players:
+			player.stack = 1000
+		short_blind.players[1 if count == 1 else 2].stack = 5
+		short_blind.start_next_hand()
+		_assert(short_blind.current_bet == 20, "short big blind must preserve the full preflop call amount")
+		for action in range(12):
+			if short_blind.stage != TableState.STAGE_PREFLOP:
+				break
+			var kind := "call" if short_blind.get_to_call(short_blind.current_player_index) > 0 else "check"
+			_assert(short_blind.apply_action(kind), "short-blind call/check must be accepted")
+		_assert(short_blind.stage != TableState.STAGE_PREFLOP, "short-blind betting must progress without a forced raise")
+
+	var bust := PokerRound.new()
+	bust.start_new_match(2, "simple")
+	bust.players[0].stack = 0
+	bust.players[1].stack = 1500
+	bust.players[2].stack = 1500
+	bust._finish_hand()
+	_assert(bust.match_over and bust.match_result == "你已出局", "human bust ends a multiway match immediately")
+
+	var folded := PokerRound.new()
+	folded.start_new_match(1, "simple")
+	folded.apply_action("all_in")
+	folded.apply_action("fold")
+	_assert(folded.players[0].stack == 1020, "uncontested payout preserves actual net win")
+	_assert(folded.winners[0].amount == 40, "unmatched uncontested chips are a refund, not winnings")
+
+	var odd := PokerRound.new()
+	odd.start_new_match(2, "simple")
+	odd.button_index = 0
+	odd.community_cards = [c(14, "C"), c(13, "D"), c(12, "H"), c(11, "S"), c(10, "D")]
+	for player in odd.players:
+		player.stack = 0
+		player.total_bet = 21
+		player.status = TableState.STATUS_ALL_IN
+	odd.players[2].status = TableState.STATUS_FOLDED
+	odd._showdown()
+	_assert(odd.players[1].stack == 32 and odd.players[0].stack == 31, "odd chip goes to the first tied seat after the button")
+
+func _test_profile_recovery() -> void:
+	var path := "user://poker_recovery_test.cfg"
+	var config := ConfigFile.new()
+	config.set_value("settings", "ai_count", [99])
+	config.set_value("settings", "difficulty", {"bad": "hard"})
+	config.set_value("settings", "sound_enabled", "false")
+	config.set_value("settings", "fast_mode", true)
+	config.set_value("stats", "total_hands", -5)
+	config.set_value("stats", "total_win_hands", [])
+	config.save(path)
+	var recovered := LocalProfileScript.load_profile(path)
+	_assert(recovered.settings.ai_count == 3 and recovered.settings.difficulty == "medium", "malformed profile fields use defaults without conversion errors")
+	_assert(recovered.settings.sound_enabled and recovered.settings.fast_mode, "invalid boolean defaults; valid pace preference persists")
+	_assert(recovered.stats.total_hands == 0 and recovered.stats.total_win_hands == 0, "malformed statistics normalize safely")
+	_assert(LocalProfileScript.save_profile(recovered, path), "atomic save replaces the old profile")
+	_assert(LocalProfileScript.load_profile(path) == recovered, "replacement profile round trips")
+	_assert(not LocalProfileScript.save_profile(recovered, "user://missing-release-test-parent/profile.cfg"), "unwritable profile returns failure without crashing")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+func _test_blind_rotation_after_elimination() -> void:
+	for eliminated in [1, 2, 3]:
+		var game := PokerRound.new()
+		game.start_new_match(3, "simple")
+		game.players[eliminated].stack = 0
+		game.start_next_hand()
+		_assert(game.big_blind_player_index == (0 if eliminated == 3 else 3), "elimination cannot skip the next surviving big blind")
+		if eliminated == 1:
+			_assert(game.button_index == 1 and game.small_blind_player_index == 2, "eliminated small blind leaves a dead button next hand")
+		else:
+			_assert(game.small_blind_player_index == -1, "eliminated seat before the next big blind leaves a dead small blind")
+	var heads_up := PokerRound.new()
+	heads_up.start_new_match(2, "simple")
+	heads_up.button_index = 2
+	heads_up.small_blind_player_index = 0
+	heads_up.big_blind_player_index = 1
+	heads_up.players[2].stack = 0
+	heads_up.start_next_hand()
+	_assert(heads_up.big_blind_player_index == 0 and heads_up.button_index == 1, "entering heads-up cannot charge the previous big blind twice")
+	_assert(heads_up.current_player_index == 1, "heads-up button acts first preflop")
+	heads_up.apply_action("call")
+	heads_up.apply_action("check")
+	_assert(heads_up.current_player_index == 0, "heads-up big blind acts first postflop")
+
+func _test_hand_reference() -> void:
+	var cases: Array = JSON.parse_string(FileAccess.get_file_as_string("res://tests/fixtures/hand_reference.json"))
+	_assert(cases.size() == 1504, "independent hand reference fixture must be complete")
+	for index in range(cases.size()):
+		var cards := []
+		for card in cases[index].cards:
+			cards.append(c(int(card[0]), str(card[1])))
+		var actual := HandEvaluator.evaluate(cards)
+		_assert(actual.rank_value == int(cases[index].rank) and actual.tiebreakers == cases[index].kickers.map(func(value): return int(value)), "independent hand reference %d disagrees" % index)
+
+func _test_all_in_runout_boundaries() -> void:
+	var covered := PokerRound.new()
+	covered.start_new_match(1, "simple")
+	covered.hand_number = 0
+	covered.button_index = 0
+	covered.players[0].stack = 1000
+	covered.players[1].stack = 5
+	covered.start_next_hand()
+	_assert(covered.stage == TableState.STAGE_HAND_OVER, "a small blind already covering the only short all-in runs out without another bet")
+	_assert(covered.players[0].stack + covered.players[1].stack == 1005, "automatic covered-blind runout conserves chips")
+	var dry := PokerRound.new()
+	dry.start_new_match(2, "simple")
+	for i in range(1, 3):
+		dry.players[i].status = TableState.STATUS_ALL_IN
+		dry.players[i].current_bet = 7
+		dry.players[i].stack = 0
+	dry.current_player_index = 0
+	var legal := dry.get_legal_actions(0)
+	_assert(dry.get_to_call(0) == 7, "only match the outstanding all-in when no opponent can bet")
+	_assert(legal.actions.has("call") and not legal.actions.has("raise") and not legal.actions.has("all_in"), "no extra bets into a dry side pot")

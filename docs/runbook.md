@@ -1,133 +1,65 @@
-# PokerGame Runbook
+# 开发、验证与桌面构建
 
-## Local Environment
+本文描述现行命令和运行机制；首发完成定义以 [release-plan.md](planning/release-plan.md) 为准。玩家安装与操作见 [player-guide.md](player-guide.md)。
 
-Verified local state on 2026-07-16:
+## 固定引擎
 
-- Godot app: `/Applications/Godot_mono.app`
-- Godot version: `4.7.stable.mono.official.5b4e0cb0f`
-- `dotnet`: `8.0.422`, installed at `~/.dotnet`
-- Xcode developer directory: `/Applications/Xcode.app/Contents/Developer`
-- Godot export templates: no matching installed templates were found
-
-The project uses GDScript only. The installed editor is the Mono app, so .NET must remain available for editor and headless startup even though the project does not use C# scripts.
-
-In a fresh shell, configure the local .NET runtime if necessary:
+标准 GDScript 构建使用 Godot 4.7.2 与同版本官方导出模板。安装脚本下载官方资源并校验 SHA-512，不替换系统已安装的编辑器。
 
 ```sh
-export DOTNET_ROOT="$HOME/.dotnet"
-export PATH="$DOTNET_ROOT:$PATH"
+GODOT_BIN="$(python3 tools/bootstrap_godot.py --templates)"
+"$GODOT_BIN" --version
+"$GODOT_BIN" --path .
 ```
 
-## Run The Game
+Windows PowerShell：
 
-From the Godot Project Manager, import:
-
-```text
-/Users/jerryszz/Desktop/Projects/pokerGame/project.godot
+```powershell
+$GodotBinary = python tools/bootstrap_godot.py --templates
+& $GodotBinary --path .
 ```
 
-Then run `res://scenes/main.tscn`, or launch from the repository root:
+本机历史 Mono 编辑器仍在 `/Applications/Godot_mono.app/Contents/MacOS/Godot`，需要本机 .NET 配置；发布构建不依赖它。新 worktree 必须先导入，`verify.py` 会执行该步骤。
+
+## 自动检查
 
 ```sh
-/Applications/Godot_mono.app/Contents/MacOS/Godot --path .
+python3 tools/verify.py --godot "$GODOT_BIN"
+python3 tools/verify.py --godot "$GODOT_BIN" --windowed
+python3 tools/soak.py --godot "$GODOT_BIN"
 ```
 
-## Fast Verification
+`verify.py` 包含规则、10,000 手固定种子检查、后台 AI 生命周期、材质动画清理及布局检查。`--windowed` 额外执行 1280×720、1440×900、1920×1080 的菜单、帮助、设置、日志、暂停、下注、全下、结算、离桌确认和多人出局总结流程，截图写入 `/tmp/poker_audit/`。
 
-Run the rules, AI, localization, event-log, and local-profile test suite:
+长测默认运行 30 分钟，包装器记录提交、dirty 状态和运行资源指纹，并把日志和报告保存在 `export/evidence/`（引擎原始报告仍写入 `user://poker_stability_report.json`）；必须同时确认成功标记、退出码、帧延迟和资源曲线。`-- --seconds=15 --min-ai=1` 只用于检查脚本能否运行，不满足首发长测门。所有 UI 探针使用各自独立 profile，不能修改真实玩家战绩。
+
+检查日志在 `export/logs/`。Godot 某些脚本错误可能返回 0，所以不能只凭退出码认定成功；包装器会检查 `ERROR`/`SCRIPT ERROR` 和成功标记。历史窗口探针曾有 1 个 ObjectDB 退出告警；新增或持续增长的对象/动画不能按历史告警放行。
+
+## 构建候选包
 
 ```sh
-/Applications/Godot_mono.app/Contents/MacOS/Godot --headless --path . -s tests/test_runner.gd
+python3 tools/build_release.py --godot "$GODOT_BIN" --target macos
+python3 tools/build_release.py --godot "$GODOT_BIN" --target windows
 ```
 
-Expected output:
+正式构建要求干净 checkout。开发中的本地包可显式加 `--candidate`，manifest 会标记 dirty，不能作为不可变提交的发布证据。
 
-```text
-All poker tests passed.
-```
+输出：`export/packages/` 内的版本 ZIP、平台 manifest 和 SHA256SUMS；原始导出在 `export/macos/` 或 `export/windows/`。manifest 记录提交、引擎、主机、平台、哈希和原生包自检结果。构建本身不会公开发布，也不自动将 `public_release_ready` 设为 true。
 
-Run the menu, settings popup, generated-art integration, and responsive table probes:
+原生系统上，构建脚本会把包放进独立临时目录，并使用其中的实际程序运行 `--headless -- --self-test`。这个固定内置诊断检查场景、字体、9 组人数/难度和统计幂等，使用缓存目录里的测试 profile。官方模板不开放外部脚本和路径覆盖，测试不修改这一设置。
 
-```sh
-/Applications/Godot_mono.app/Contents/MacOS/Godot --headless --path . -s tests/ui_layout_probe.gd
-```
+`export_presets.cfg` 明确列出运行资源，避免仅选场景时漏掉全局 GDScript 类或动态资源。macOS 使用官方 Universal 模板；测试范围仍按实际设备声明。当前 macOS 候选包只有 ad-hoc 签名，公证/下载隔离体验未完成验证。签名配置与凭据只能在用户授权的具体发布步骤使用，不写入仓库。
 
-Expected output:
+## CI 与发布
 
-```text
-All UI layout probes passed.
-```
+`.github/workflows/desktop.yml` 在 Linux 执行 headless 检查，在 Windows/macOS 分别导出并运行实际模板自检，上传包及日志。CI artifact 不等于公开 Release，也不能代替图形设备和真人试玩。
 
-Render visual table snapshots (preflop with 1/3/5 AI, rigged flop and showdown) to `/tmp/poker_table_*.png` for manual layout review; this opens a window briefly and is not part of the headless gate:
+发布前核对 R1–R9 的逐项证据、对应提交的检查和审查、签名/目标系统结果及试玩反馈。通过后受控 squash 合并，生成与合并提交对应的版本包、校验和与发行说明，公开发布后重新下载验证。不要覆盖已发布版本的包；修复使用新版本。
 
-```sh
-/Applications/Godot_mono.app/Contents/MacOS/Godot --path . -s tests/ui_table_snapshot.gd
-```
+## 本地数据与资源
 
-Run the scripted player playthrough (menu, settings, log drawer, pause/resume, two hands with raise/all-in, result, restart, and quit-to-menu during an AI turn). It screenshots every state to `/tmp/poker_audit/` and asserts the UI acceptance metrics in `docs/planning/ui-acceptance.md`; this opens a window and needs OS focus for the settings popup:
+`user://poker_profile.cfg` 仅包含偏好和聚合统计。字段会按类型规范化，写入采用同目录临时文件后替换，失败由 UI 提示。用设置中的两次点击确认重置统计，不用删除文件作为普通测试流程。
 
-```sh
-/Applications/Godot_mono.app/Contents/MacOS/Godot --path . -s tests/ui_playthrough_probe.gd
-```
+美术修改先读 [art-direction.md](art-direction.md)；运行依赖由代码 `preload()` 和导出资源列表共同明确。Noto Sans SC 使用独立的 weight-400 `FontVariation`，许可位于 `assets/fonts/OFL.txt`；变量字体不能直接以最低字重作为默认界面字体。
 
-The current probe can also print `WARNING: 1 ObjectDB instance was leaked at exit` after the success line. With exit code 0 and the expected success line, this is a known cleanup warning rather than a failed layout assertion. Reinvestigate if the count grows, the success line disappears, or the command exits non-zero.
-
-Check that the main scene and all referenced resources load:
-
-```sh
-/Applications/Godot_mono.app/Contents/MacOS/Godot --path . --quit-after 2
-```
-
-If a fresh shell fails with `dotnet: command not found`, verify `DOTNET_ROOT` and `PATH` using the commands in the environment section.
-
-## Manual Smoke Check
-
-- Confirm the main menu shows the generated background, title, notice board and table preview; runtime-drawn selection controls and buttons must have crisp hard edges and whole-control hover states.
-- Open settings, toggle local sound/music settings, close and reopen the popup, and confirm the state persists.
-- Click `重置统计` once and confirm the popup stays open with `再次点击确认`; click again only when intentionally testing reset.
-- Start games with 1, 3, and 5 AI and try simple, medium, and hard difficulty.
-- Confirm the full-screen table shows characters outside the felt, seat information inside the rail, cards, modular chips, durable dealer/SB/BB markers, the physical pot display, and real event-log entries.
-- Open and close the log drawer; confirm it overlays the right side without relayout and AI does not advance while it is open.
-- During a match, pause from settings, resume from the overlay, then pause again and return to the menu; confirm no queued AI action restores the abandoned table.
-- Confirm the player can fold, check, call, raise, and all-in only when legal.
-- Play until an uncontested result or showdown and confirm Chinese winner, payout, and hand-rank text.
-- Confirm the next hand/restart flow works and completed-hand statistics update only once.
-- On hard difficulty, confirm AI actions are staggered rather than applied in one burst.
-
-## Local Data
-
-Godot writes the local profile to:
-
-```text
-user://poker_profile.cfg
-```
-
-It contains only local AI-count/difficulty preferences, sound/music switches, and aggregate hand statistics. Use the in-game two-step reset control for statistics. Do not delete or edit the file as part of routine UI testing unless the test explicitly targets profile recovery.
-
-## Art Asset Maintenance
-
-- Runtime assets and source renders live under `assets/art/generated/`.
-- Read `docs/art-direction.md` before creating or replacing visible art.
-- Read `assets/art/generated/README.md` for source/final filename conventions and known cleanup requirements.
-- Keep card ranks, suits, action labels, amounts, and other dynamic values out of bitmap assets.
-- Preserve nearest-neighbor filtering and verify atlas cell sizes after replacing sprites or button skins.
-
-## Export Readiness
-
-Desktop export:
-
-- Install Godot export templates matching the editor version.
-- Add export presets for macOS, Windows, and Linux.
-- Validate a local exported build before preparing a Steam package.
-
-iOS export:
-
-- Full Xcode is installed, but Godot export templates and an iOS export preset are still required.
-- Add Apple signing settings only when iOS becomes a confirmed target.
-- Recheck touch layout and safe-area behavior before TestFlight.
-
-Steam:
-
-- Steam upload can start with desktop builds only after an export target is confirmed.
-- Do not add GodotSteam unless achievements, overlay, cloud saves, or other Steam-specific APIs are explicitly required.
+维护约定：修改上述命令、状态机制、导出边界或数据语义时，在同一 PR 更新本文及对应架构/验收说明。

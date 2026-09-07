@@ -20,6 +20,7 @@ func _probe_table_layout(viewport_size: Vector2i) -> void:
 	root.size = viewport_size
 	await process_frame
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
+	scene.profile_path = "user://poker_ui_layout_probe.cfg"
 	root.add_child(scene)
 	var main_control := scene as Control
 	main_control.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -99,6 +100,7 @@ func _probe_menu_and_styles(viewport_size: Vector2i) -> void:
 	root.size = viewport_size
 	await process_frame
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
+	scene.profile_path = "user://poker_ui_layout_probe.cfg"
 	root.add_child(scene)
 	var main_control := scene as Control
 	main_control.set_anchors_preset(Control.PRESET_FULL_RECT)

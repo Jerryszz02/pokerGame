@@ -13,7 +13,7 @@ func _init() -> void:
 
 func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(shot_dir)
-	for viewport_size in [Vector2i(1280, 720), Vector2i(1440, 900)]:
+	for viewport_size in [Vector2i(1280, 720), Vector2i(1440, 900), Vector2i(1920, 1080)]:
 		await _playthrough(viewport_size)
 	if failures == 0:
 		print("UI playthrough probe passed.")
@@ -31,7 +31,9 @@ func _playthrough(viewport_size: Vector2i) -> void:
 			break
 		await process_frame
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
+	scene.profile_path = "user://poker_ui_playthrough_probe.cfg"
 	root.add_child(scene)
+	scene.set_process(false)
 	scene.set_anchors_preset(Control.PRESET_FULL_RECT)
 	scene.ai_pending = true # the probe drives AI turns itself, without UI delays
 	await process_frame
@@ -39,6 +41,15 @@ func _playthrough(viewport_size: Vector2i) -> void:
 	var tag := "%dx%d" % [viewport_size.x, viewport_size.y]
 
 	await _state(scene, tag + "_01_menu")
+	scene._show_help()
+	await process_frame
+	await process_frame
+	await _state(scene, tag + "_01b_help")
+	var help_popup: PopupPanel = scene.find_child("HelpPopup", true, false)
+	_assert(help_popup != null, "menu exposes rules and exit semantics")
+	if help_popup != null:
+		help_popup.hide()
+	await process_frame
 
 	var settings_button := _find_button_with_text(scene, "设置")
 	_assert(settings_button != null, "%s menu should expose a settings button" % tag)
@@ -164,11 +175,30 @@ func _playthrough(viewport_size: Vector2i) -> void:
 					quit_button.emit_signal("pressed")
 					await process_frame
 					await process_frame
+					await _state(scene, tag + "_10b_leave_confirm")
+					var confirm_leave: Button = scene.find_child("ConfirmLeaveButton", true, false)
+					_assert(confirm_leave != null, "leaving an unfinished match needs clear confirmation")
+					if confirm_leave != null:
+						confirm_leave.emit_signal("pressed")
+					await process_frame
+					await process_frame
 					_assert(scene.find_child("MenuStartButton", true, false) != null, "%s quit-to-menu should return to the menu" % tag)
 					_assert(not scene.paused, "%s quit-to-menu should clear the paused state" % tag)
 					_assert(not scene._ai_can_advance(), "%s menu after quitting mid-AI-turn should block AI advancement" % tag)
 					_assert(not scene._execute_ai_turn_if_allowed(), "%s a pending AI callback should stop after quitting to the menu" % tag)
 					await _state(scene, tag + "_11_menu_after_quit")
+
+	# Deterministic multiway human bust: the result must remain readable.
+	scene.game.start_new_match(5, "simple")
+	scene.game.players[0].stack = 0
+	scene.game._finish_hand()
+	scene.game.stage = TableState.STAGE_HAND_OVER
+	scene._render_table()
+	await process_frame
+	await process_frame
+	_assert(scene.game.match_over, "multiway bust must show a match result")
+	_assert(_find_button_with_text(scene, "下一手") == null, "busted human cannot start another hand")
+	await _state(scene, tag + "_12_bust_summary")
 
 	if scene.sound_player:
 		scene.sound_player.stop()

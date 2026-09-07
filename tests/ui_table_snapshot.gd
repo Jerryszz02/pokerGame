@@ -21,6 +21,7 @@ func _run() -> void:
 
 func _snapshot_showdown() -> void:
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
+	scene.profile_path = "user://poker_ui_table_snapshot.cfg"
 	root.add_child(scene)
 	var main_control: Control = scene
 	main_control.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -50,6 +51,7 @@ func _snapshot_showdown() -> void:
 
 func _snapshot_flop() -> void:
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
+	scene.profile_path = "user://poker_ui_table_snapshot.cfg"
 	root.add_child(scene)
 	var main_control: Control = scene
 	main_control.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -78,6 +80,7 @@ func _snapshot_flop() -> void:
 
 func _snapshot_table(ai_count: int) -> void:
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
+	scene.profile_path = "user://poker_ui_table_snapshot.cfg"
 	root.add_child(scene)
 	var main_control: Control = scene
 	main_control.set_anchors_preset(Control.PRESET_FULL_RECT)

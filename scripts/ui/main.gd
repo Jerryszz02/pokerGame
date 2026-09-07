@@ -40,6 +40,7 @@ const MENU_BOARD_SIZE := Vector2(600, 540)
 const MENU_START_BUTTON_SIZE := Vector2(360, 48)
 const MENU_TITLE_ANCHOR_X := 676.5
 const MENU_TITLE_REGION := Rect2(14, 260, 1325, 350)
+const ExportSelfTestScript := preload("res://scripts/game/export_self_test.gd")
 const LocalProfileScript := preload("res://scripts/game/local_profile.gd")
 const MENU_BACKGROUND_TEXTURE := preload("res://assets/art/generated/misc/menu-background.png")
 const MENU_NOTICE_BOARD_TEXTURE := preload("res://assets/art/generated/ui/menu-notice-board.png")
@@ -78,11 +79,18 @@ const SEAT_LAYOUTS := {
 }
 
 var game := PokerRound.new()
+var profile_path := LocalProfileScript.PROFILE_PATH
+var _ai_worker := AiTurnWorker.new()
+var _ai_epoch := 0
+var _ai_request := {}
+var _ai_result := {}
+var _ai_wait := 0.0
+var _save_notice_pending := false
 var profile := LocalProfileScript.default_profile()
 var ai_count_spin: SpinBox
 var difficulty_options: OptionButton
 var sound_toggle: CheckBox
-var music_toggle: CheckBox
+var pace_toggle: CheckBox
 var raise_slider: HSlider
 var raise_button: Button
 var sound_player: AudioStreamPlayer
@@ -98,15 +106,50 @@ var last_seen_event_fingerprint := ""
 var last_rendered_pot := -1
 
 func _ready() -> void:
+	var self_test := OS.get_cmdline_user_args().has("--self-test")
+	if self_test:
+		if DisplayServer.get_name() != "headless":
+			push_error("Run the package self-test with --headless -- --self-test")
+			get_tree().quit(1)
+			return
+		profile_path = OS.get_cache_dir().path_join("poker_export_self_test.cfg")
 	randomize()
-	profile = LocalProfileScript.load_profile()
+	profile = LocalProfileScript.load_profile(profile_path)
+	get_window().min_size = Vector2i(1280, 720)
+	get_tree().auto_accept_quit = false
 	_setup_audio()
 	_show_menu()
+	if self_test:
+		call_deferred("_run_package_self_test")
 
-func _process(_delta: float) -> void:
-	if _ai_can_advance() and game.is_ai_turn() and not ai_pending:
-		ai_pending = true
+func _process(delta: float) -> void:
+	if _ai_worker.is_ready():
+		var result := _ai_worker.take_result()
+		if _ai_request_is_current():
+			_ai_result = result
+		else:
+			ai_pending = false
+	if not _ai_can_advance() or not game.is_ai_turn():
+		return
+	if ai_pending:
+		_ai_wait = maxf(0.0, _ai_wait - delta)
+		if _ai_wait == 0.0 and _execute_ai_turn_if_allowed():
+			ai_pending = false
+			_ai_result = {}
+			_render_table()
+	elif not _ai_worker.is_started():
 		_run_ai_turn()
+
+func _exit_tree() -> void:
+	_ai_worker.finish()
+
+func _invalidate_ai_turn() -> void:
+	_ai_epoch += 1
+	ai_pending = false
+	_ai_result = {}
+
+func _ai_request_is_current() -> bool:
+	return not _ai_request.is_empty() and _ai_request.epoch == _ai_epoch and _ai_request.hand == game.hand_number and _ai_request.actor == game.current_player_index and _ai_request.stage == game.stage
 
 func _clear() -> void:
 	raise_slider = null
@@ -118,6 +161,7 @@ func _clear() -> void:
 		child.queue_free()
 
 func _show_menu(reset_pending: bool = true) -> void:
+	_invalidate_ai_turn()
 	if reset_pending:
 		stats_reset_pending = false
 	paused = false
@@ -194,6 +238,12 @@ func _menu_controls_panel() -> Control:
 	start_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	start_button.pressed.connect(_on_start_pressed)
 	box.add_child(start_button)
+	var help_button := _command_button("玩法说明", COLOR_ACTION, _white_color())
+	help_button.name = "MenuHelpButton"
+	help_button.custom_minimum_size = Vector2(180, 36)
+	help_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	help_button.pressed.connect(_show_help)
+	box.add_child(help_button)
 	return panel
 
 func _build_ai_spin() -> SpinBox:
@@ -233,14 +283,14 @@ func _build_sound_toggle() -> Control:
 	sound_toggle.toggled.connect(_on_sound_toggled)
 	return sound_toggle
 
-func _build_music_toggle() -> Control:
-	music_toggle = CheckBox.new()
-	music_toggle.text = "开启本地音乐"
-	music_toggle.button_pressed = bool(profile.settings.music_enabled)
-	music_toggle.add_theme_color_override("font_color", _white_color())
-	music_toggle.add_theme_font_size_override("font_size", FONT_BODY)
-	music_toggle.toggled.connect(_on_music_toggled)
-	return music_toggle
+func _build_pace_toggle() -> Control:
+	pace_toggle = CheckBox.new()
+	pace_toggle.text = "快速行动"
+	pace_toggle.button_pressed = bool(profile.settings.fast_mode)
+	pace_toggle.add_theme_color_override("font_color", _white_color())
+	pace_toggle.add_theme_font_size_override("font_size", FONT_BODY)
+	pace_toggle.toggled.connect(_on_pace_toggled)
+	return pace_toggle
 
 func _settings_button() -> Button:
 	var button := _command_button("设置", COLOR_ACTION, _white_color())
@@ -263,7 +313,7 @@ func _show_settings_popup() -> void:
 	add_child(popup)
 	popup.popup_hide.connect(func(): popup.queue_free())
 	popup.add_child(_settings_panel(popup, in_match))
-	popup.popup_centered(Vector2i(390, 384) if in_match else Vector2i(390, 330))
+	popup.popup_centered(Vector2i(390, 430) if in_match else Vector2i(390, 376))
 
 func _settings_panel(popup: PopupPanel, in_match: bool) -> Control:
 	var panel := PanelContainer.new()
@@ -278,8 +328,14 @@ func _settings_panel(popup: PopupPanel, in_match: bool) -> Control:
 	title.add_theme_font_size_override("font_size", FONT_LABEL)
 	box.add_child(title)
 	box.add_child(_menu_row("音效", _build_sound_toggle()))
-	box.add_child(_menu_row("音乐", _build_music_toggle()))
+	box.add_child(_menu_row("节奏", _build_pace_toggle()))
 	box.add_child(_stats_panel())
+	var help_button := _command_button("玩法说明", COLOR_ACTION, _white_color())
+	help_button.pressed.connect(func():
+		popup.hide()
+		_show_help()
+	)
+	box.add_child(help_button)
 	if in_match:
 		var pause_button := _command_button("继续游戏" if paused else "暂停游戏", COLOR_ACTION, _white_color())
 		pause_button.name = "PauseToggleButton"
@@ -362,6 +418,7 @@ func _apply_field_style(field: Control) -> void:
 		_apply_command_button_style(field, COLOR_ACTION)
 
 func _on_start_pressed() -> void:
+	_invalidate_ai_turn()
 	var difficulty := "medium"
 	match difficulty_options.get_selected_id():
 		0:
@@ -372,7 +429,7 @@ func _on_start_pressed() -> void:
 			difficulty = "hard"
 	profile.settings.ai_count = int(ai_count_spin.value)
 	profile.settings.difficulty = difficulty
-	LocalProfileScript.save_profile(profile)
+	_save_profile()
 	last_recorded_hand_number = 0
 	last_seen_event_fingerprint = ""
 	last_rendered_pot = -1
@@ -578,7 +635,7 @@ func _build_pause_overlay() -> Control:
 	var quit_button := _command_button("返回菜单", COLOR_ACTION, _white_color())
 	quit_button.name = "PauseQuitButton"
 	quit_button.custom_minimum_size = Vector2(160, 40)
-	quit_button.pressed.connect(func(): _show_menu())
+	quit_button.pressed.connect(func(): _confirm_leave(false))
 	box.add_child(quit_button)
 	return overlay
 
@@ -689,7 +746,7 @@ func _seat_portrait(player_index: int, layout: Dictionary) -> Control:
 		material.set_shader_parameter("outline_alpha", 0.9)
 		sprite.material = material
 		if bool(outline_state.current):
-			var tween := create_tween().set_loops()
+			var tween := create_tween().bind_node(sprite).set_loops()
 			tween.tween_method(func(alpha: float): material.set_shader_parameter("outline_alpha", alpha), 0.58, 1.0, 0.75)
 			tween.tween_method(func(alpha: float): material.set_shader_parameter("outline_alpha", alpha), 1.0, 0.58, 0.75)
 	match str(player.status):
@@ -947,7 +1004,7 @@ func _build_pot_instrument() -> Control:
 	if last_rendered_pot >= 0 and last_rendered_pot != game.total_pot():
 		_pulse_control(amount_plate, COLOR_BRASS)
 		chips.scale = Vector2(0.92, 0.92)
-		create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).tween_property(chips, "scale", Vector2.ONE, 0.22)
+		create_tween().bind_node(chips).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).tween_property(chips, "scale", Vector2.ONE, 0.22)
 	last_rendered_pot = game.total_pot()
 	return panel
 
@@ -1009,7 +1066,7 @@ func _build_action_dock() -> Control:
 
 	_add_action_button(actions_row, "弃牌", TableState.ACTION_FOLD, legal, COLOR_DANGER)
 	_add_action_button(actions_row, "让牌", TableState.ACTION_CHECK, legal, COLOR_ACTION)
-	_add_action_button(actions_row, "跟注 %d" % game.get_to_call(0), TableState.ACTION_CALL, legal, COLOR_ACTION)
+	_add_action_button(actions_row, "跟注 %d" % mini(game.get_to_call(0), int(game.players[0].stack)), TableState.ACTION_CALL, legal, COLOR_ACTION)
 	_add_action_button(actions_row, "全下", TableState.ACTION_ALL_IN, legal, COLOR_DANGER)
 
 	if legal.actions.has(TableState.ACTION_RAISE):
@@ -1182,11 +1239,11 @@ func _on_raise_slider_changed(value: float) -> void:
 
 func _on_sound_toggled(enabled: bool) -> void:
 	profile.settings.sound_enabled = enabled
-	LocalProfileScript.save_profile(profile)
+	_save_profile()
 
-func _on_music_toggled(enabled: bool) -> void:
-	profile.settings.music_enabled = enabled
-	LocalProfileScript.save_profile(profile)
+func _on_pace_toggled(enabled: bool) -> void:
+	profile.settings.fast_mode = enabled
+	_save_profile()
 
 func _on_reset_stats_pressed() -> void:
 	if not stats_reset_pending:
@@ -1194,34 +1251,40 @@ func _on_reset_stats_pressed() -> void:
 		_refresh_stats_panel()
 		return
 	profile = LocalProfileScript.reset_stats(profile)
-	LocalProfileScript.save_profile(profile)
+	_save_profile()
 	stats_reset_pending = false
 	_refresh_stats_panel()
 
 func _on_action(action: String, amount: int) -> void:
-	if paused:
+	if not _ai_can_advance() or not game.is_human_turn():
+		return
+	if not game.apply_action(action, amount):
 		return
 	raise_expanded = false
-	game.apply_action(action, amount)
 	_play_action_sound(action)
 	_render_table()
 
 func _run_ai_turn() -> void:
-	var delay := _ai_action_delay(game.players[game.current_player_index])
-	await get_tree().create_timer(delay).timeout
-	if not _execute_ai_turn_if_allowed():
-		ai_pending = false
+	_ai_request = {"epoch": _ai_epoch, "hand": game.hand_number, "actor": game.current_player_index, "stage": game.stage}
+	_ai_wait = _ai_action_delay(game.players[game.current_player_index])
+	_ai_result = {}
+	var error := _ai_worker.start(game, game.current_player_index)
+	if error != OK:
+		paused = true
+		_render_table()
+		_show_text_popup("AI 暂停", "AI 计算未能启动。关闭提示后，点击继续游戏重试。", "AiErrorPopup")
 		return
-	ai_pending = false
-	_render_table()
+	ai_pending = true
 
 func _execute_ai_turn_if_allowed() -> bool:
-	if not _ai_can_advance() or not game.is_ai_turn():
+	if not _ai_can_advance() or not game.is_ai_turn() or not _ai_request_is_current() or _ai_result.is_empty():
 		return false
-	var idx := game.current_player_index
-	var decision := AiDecision.decide(game, idx)
-	game.apply_action(decision.action_type, int(decision.get("amount", 0)), str(decision.get("decision_label", "")))
-	_play_action_sound(str(decision.action_type))
+	var action := str(_ai_result.get("action_type", ""))
+	if not game.apply_action(action, int(_ai_result.get("amount", 0)), str(_ai_result.get("decision_label", ""))):
+		_ai_result = {}
+		ai_pending = false
+		return false
+	_play_action_sound(action)
 	return true
 
 func _ai_can_advance() -> bool:
@@ -1246,6 +1309,8 @@ func _has_unread_log() -> bool:
 	return not log_open and not current.is_empty() and current != last_seen_event_fingerprint
 
 func _ai_action_delay(player: Dictionary) -> float:
+	if bool(profile.settings.fast_mode):
+		return randf_range(0.25, 0.55)
 	if str(player.get("difficulty", "medium")) != "hard":
 		return randf_range(3.0, 5.0)
 	var personality: Variant = player.get("personality", {})
@@ -1277,7 +1342,7 @@ func _record_completed_hand_if_needed() -> void:
 		profile.stats.total_win_hands += 1
 	if game.last_hand_human_delta > profile.stats.max_single_hand_win:
 		profile.stats.max_single_hand_win = game.last_hand_human_delta
-	LocalProfileScript.save_profile(profile)
+	_save_profile()
 
 func _setup_audio() -> void:
 	if DisplayServer.get_name() == "headless":
@@ -1318,14 +1383,14 @@ func _fade_in(control: CanvasItem, duration: float) -> void:
 	if control == null:
 		return
 	control.modulate.a = 0.0
-	var tween := create_tween()
+	var tween := create_tween().bind_node(control)
 	tween.tween_property(control, "modulate:a", 1.0, clampf(duration, 0.08, 0.35))
 
 func _pulse_control(control: CanvasItem, color: Color) -> void:
 	if control == null:
 		return
 	control.modulate = color.lightened(0.10)
-	var tween := create_tween()
+	var tween := create_tween().bind_node(control)
 	tween.tween_property(control, "modulate", Color.WHITE, 0.18)
 
 func _last_event_type() -> String:
@@ -1471,3 +1536,75 @@ func _action_label(action: String) -> String:
 		"All-in":
 			return "全下"
 	return action
+
+func _save_profile() -> void:
+	if not LocalProfileScript.save_profile(profile, profile_path) and not _save_notice_pending:
+		_save_notice_pending = true
+		call_deferred("_show_save_notice")
+
+func _show_save_notice() -> void:
+	_save_notice_pending = false
+	_show_text_popup("未能保存", "设置和战绩本次仍然有效，但未能写入本地文件。请检查磁盘空间和存档目录权限；退出后本次更新可能丢失。", "SaveErrorPopup")
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_confirm_leave(true)
+
+func _confirm_leave(quit_app: bool) -> void:
+	if not _in_match() or game.match_over:
+		if quit_app:
+			get_tree().quit()
+		else:
+			_show_menu()
+		return
+	if find_child("LeavePopup", true, false) != null:
+		return
+	var popup := _show_text_popup("离开牌桌？", "当前对局不保存，剩余筹码不会带入新对局。已结算的手牌战绩和设置会保留。", "LeavePopup")
+	var box := popup.get_child(0) as VBoxContainer
+	var leave := _command_button("确认退出" if quit_app else "确认返回菜单", COLOR_DANGER, _white_color())
+	leave.name = "ConfirmLeaveButton"
+	leave.pressed.connect(func():
+		popup.hide()
+		if quit_app:
+			get_tree().quit()
+		else:
+			_show_menu()
+	)
+	box.add_child(leave)
+
+func _show_help() -> void:
+	_show_text_popup("玩法说明", "目标：每人从 1000 筹码开始，赢得所有筹码获胜；你的筹码归零时本局结束。大小盲固定为 10 / 20。\n\n每手有两张底牌和最多五张公共牌，取其中最强的五张。牌型由强到弱：同花顺、四条、葫芦、同花、顺子、三条、两对、一对、高牌；同牌型比较点数，完全相同则分池。\n\n让牌：无人下注时免费继续。跟注：补足本轮下注，筹码不足时只投入剩余筹码。加注到：本轮累计投入到显示金额。全下：投入全部剩余筹码；没有再加注权时不能用全下提高下注。\n\n你只能赢取自己投入对应的底池，多余投入构成边池；未被跟注的筹码退回。结算的 +金额是底池返还，净盈利还要扣除本手投入。\n\n设置中可调整音效和行动节奏，打开设置、帮助、记录或暂停时 AI 会等待。当前对局不保存；离开后只保留已结算战绩和设置。", "HelpPopup")
+
+func _show_text_popup(title_text: String, body: String, node_name: String) -> PopupPanel:
+	var popup := PopupPanel.new()
+	popup.name = node_name
+	popup.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL_DARK, COLOR_BRASS.darkened(0.32), 2, 2, Vector2(22, 18)))
+	add_child(popup)
+	popup.popup_hide.connect(func(): popup.queue_free())
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 12)
+	box.custom_minimum_size.x = 540
+	popup.add_child(box)
+	var title := Label.new()
+	title.text = title_text
+	title.add_theme_font_size_override("font_size", FONT_DISPLAY)
+	title.add_theme_color_override("font_color", COLOR_BRASS)
+	box.add_child(title)
+	var content := Label.new()
+	content.text = body
+	content.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.custom_minimum_size.x = 540
+	content.add_theme_font_size_override("font_size", FONT_BODY)
+	content.add_theme_color_override("font_color", _white_color())
+	box.add_child(content)
+	var close := _command_button("关闭", COLOR_ACTION, _white_color())
+	close.name = "PopupCloseButton"
+	close.pressed.connect(func(): popup.hide())
+	box.add_child(close)
+	popup.popup_centered(Vector2i(584, 0))
+	return popup
+
+func _run_package_self_test() -> void:
+	var diagnostic := ExportSelfTestScript.new()
+	var failures: int = await diagnostic.run(self)
+	get_tree().quit(failures)

@@ -15,7 +15,7 @@ The main scene is `res://scenes/main.tscn`, backed by `scripts/ui/main.gd`.
 3. Starting a match saves the selected settings and calls `PokerRound.start_new_match()`.
 4. `PokerRound.start_next_hand()` shuffles, deals hole cards, posts blinds, records events, and sets the first actor.
 5. Human actions come from the UI and call `PokerRound.apply_action()`.
-6. AI turns wait for a randomized difficulty/personality-dependent delay, call `AiDecision.decide()`, and pass the returned action through `PokerRound.apply_action()`.
+6. AI turns compute `AiDecision.decide()` in an `AiTurnWorker` thread over a deep snapshot while the UI tracks a randomized delay. Only a result with the current match generation, hand, actor and street can pass through `PokerRound.apply_action()`. Other players' hole cards are removed from the snapshot.
 7. The rules engine advances streets, resolves uncontested pots, or runs showdown through `HandEvaluator`.
 8. The UI renders the full-screen table. The event log is a normally closed overlay drawer; opening it blocks UI-driven AI advancement and closing it resumes play.
 9. During a match, the settings popup can pause play. The pause overlay blocks player input and AI advancement, and offers resume or return-to-menu. Both scheduled and pending AI callbacks re-check that the table is still active before applying an action.
@@ -51,7 +51,7 @@ Difficulty behavior:
 - Medium: preflop starting-hand score, postflop rule equity, moderate pot-odds tolerance.
 - Hard: preflop starting-hand score plus position and pressure; postflop Monte Carlo equity with the assigned personality profile.
 
-The visible wait before an AI action belongs to the UI layer and does not change decision strength. Simple and medium use a randomized 3-5 second delay; hard uses personality-specific ranges defined in `scripts/ui/main.gd`.
+The visible wait before an AI action belongs to the UI layer and does not change decision strength. Normal pace uses randomized 3-5 second delays for simple/medium and personality-specific ranges for hard. Fast pace uses 0.25-0.55 seconds. Computation overlaps the delay; pausing freezes the remaining delay and defers completed results.
 
 ## UI And Art Layer
 
@@ -82,11 +82,12 @@ The canonical visual constraints are documented in `docs/art-direction.md`. Asse
 
 ## Local Persistence And Audio
 
-- `LocalProfile` stores AI count, difficulty, sound enabled, music enabled, total hands, wins, net profit, and maximum single-hand win.
+- `LocalProfile` stores AI count, difficulty, sound enabled, fast pace enabled, total hands, wins, net profit, and maximum single-hand win.
 - Values are normalized when loaded; missing or invalid values fall back to defaults.
 - Statistics are aggregate local records, not hand histories, accounts, or cloud saves.
 - Action sounds are generated locally with `AudioStreamGenerator`; there are no downloaded audio assets or network calls.
-- `music_enabled` is persisted and exposed in settings, but the current code does not provide a music track.
+- No music toggle or music track is shipped. The old unused preference is ignored on load.
+- Saves write to a temporary file and then replace the profile; failure returns false and the UI shows an error popup. Tests and package self-test use separate profile paths.
 
 ## Tests
 
@@ -94,3 +95,15 @@ The canonical visual constraints are documented in `docs/art-direction.md`. Asse
 - `tests/ui_layout_probe.gd` checks menu/settings and the table at 1280x720, 1440x900, and 1920x1080. It verifies the 78% table width, 1619:971 ratio, floating controls, portrait/felt safety, seat bindings, role markers, log pause/unread behavior, hard-edged `StyleBoxFlat` states, chip breakdowns, and visible-stack capacities.
 - `tests/ui_playthrough_probe.gd` scripts a full player click-through (menu, settings with reset confirmation, log drawer, pause/resume, collapsed/expanded actions, safe hand, next-hand all-in, result, restart, and quit-to-menu during an AI turn) at two window sizes. It saves per-state screenshots to `/tmp/poker_audit/` and asserts viewport bounds, text fit, seat-widget layering, control overlap, nearest filtering, and the AI pause/quit safety gates. Windowed, not part of the headless gate.
 - `tests/ui_table_snapshot.gd` is a visual dev tool: it renders preflop tables with 1/3/5 AI plus rigged flop and showdown states and saves PNGs to `/tmp/poker_table_*.png` for manual layout review (opens a window briefly; not part of the headless test gate).
+
+## Desktop release changes
+
+The release branch adds exact full-big-blind call amounts for short blinds, all-in raise-right checks, no betting into a dry side pot, refunds for uncontested pots, button-relative odd chips, dead button/small blind handling after elimination, and immediate human-bust match completion. Shuffles use a per-round RNG whose seed tests can fix; production randomizes it.
+
+`AiTurnWorker` never touches the active scene tree or live poker state. `_show_menu()` and `_on_start_pressed()` invalidate the generation; completed stale results are discarded. Closing the scene joins the worker. Queued human input checks that the table is interactive and it is still the human turn before applying an action. Infinite portrait tweens bind to their sprite node, so redraws free the material and animation together.
+
+The default UI font is the bundled Noto Sans SC with an explicit weight-400 `FontVariation`. Help explains the goal, betting and settlement, and leaving a match asks for confirmation. The game intentionally retains aggregate completed-hand statistics, not an unfinished match.
+
+`export_presets.cfg` explicitly lists script and asset roots, including global classes that selected-scene export does not reliably discover. `tools/bootstrap_godot.py` verifies the official Godot 4.7.2 standard editor/templates against SHA-512; `tools/build_release.py` builds versioned ZIPs, hashes them, and runs a native package self-test outside the source checkout. The self-test is a fixed internal diagnostic (`--headless -- --self-test`), not support for arbitrary external scripts. It uses a separate cache profile and does not run in a graphical game.
+
+Release requirements live in [planning/release-plan.md](planning/release-plan.md); build logs, manifests, CI and actual packaged runs establish implementation and verification state. Update this document with changes to these mechanisms.
