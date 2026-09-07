@@ -63,6 +63,20 @@ func _playthrough(viewport_size: Vector2i) -> void:
 				break
 		_assert(popup != null, "%s settings popup should open from menu" % tag)
 		await process_frame
+		# Exercise the visible settings through their actual signals and save path.
+		scene.sound_toggle.button_pressed = false
+		scene.sound_player.stop()
+		scene._play_sound(300.0, 0.02)
+		_assert(not scene.sound_player.playing, "disabled sound does not start the generator")
+		scene.sound_toggle.button_pressed = true
+		scene._play_sound(300.0, 0.02)
+		_assert(scene.sound_player.playing, "enabled sound starts the generator")
+		scene.pace_toggle.button_pressed = true
+		_assert(scene._ai_action_delay({"difficulty": "simple"}) < 1.0, "fast setting changes actual scheduled delay")
+		var saved: Dictionary = scene.LocalProfileScript.load_profile(scene.profile_path)
+		_assert(saved.settings.sound_enabled and saved.settings.fast_mode, "visible settings persist together")
+		scene.pace_toggle.button_pressed = false
+		_assert(scene._ai_action_delay({"difficulty": "simple"}) >= 3.0, "normal setting restores normal delay")
 		await _state(scene, tag + "_02_settings")
 		var reset_button := _find_button_with_text(popup, "重置统计") if popup != null else null
 		_assert(reset_button != null, "%s settings popup should expose reset stats button" % tag)
@@ -200,6 +214,33 @@ func _playthrough(viewport_size: Vector2i) -> void:
 	_assert(scene.game.match_over, "multiway bust must show a match result")
 	_assert(_find_button_with_text(scene, "下一手") == null, "busted human cannot start another hand")
 	await _state(scene, tag + "_12_bust_summary")
+	scene.game.start_new_match(5, "simple")
+	for player in scene.game.players:
+		player.stack = 0
+		player.current_bet = 0
+		player.total_bet = 0
+	scene.game.players[0].stack = TableState.INITIAL_STACK * 6
+	scene.game.start_next_hand()
+	scene._render_table()
+	await process_frame
+	await process_frame
+	_assert(scene.game.match_result == "你赢得牌局", "human owning all chips reaches the victory summary")
+	_assert(_find_button_with_text(scene, "下一手") == null, "completed match does not offer another hand")
+	var restart := _find_button_with_text(scene, "重新开始")
+	_assert(restart != null, "victory summary offers a restart")
+	await _state(scene, tag + "_13_win_summary")
+	if restart != null:
+		restart.emit_signal("pressed")
+		await process_frame
+		_assert(scene.find_child("MenuStartButton", true, false) != null, "victory restart returns to the menu")
+	var original_profile_path: String = scene.profile_path
+	scene.profile_path = "user://missing-ui-save-probe-parent/profile.cfg"
+	scene._save_profile()
+	await process_frame
+	await process_frame
+	_assert(scene.find_child("SaveErrorPopup", true, false) != null, "save failure is visible to the player")
+	await _state(scene, tag + "_14_save_error")
+	scene.profile_path = original_profile_path
 
 	if scene.sound_player:
 		scene.sound_player.stop()

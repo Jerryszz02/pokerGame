@@ -30,9 +30,9 @@ python3 tools/soak.py --godot "$GODOT_BIN"
 "$GODOT_BIN" --headless --path . -s tests/ai_benchmark.gd
 ```
 
-`verify.py` 包含规则、10,000 手固定种子检查、后台 AI 生命周期、材质动画清理及布局检查。`--windowed` 额外执行 1280×720、1440×900、1920×1080 的菜单、帮助、设置、日志、暂停、下注、全下、结算、离桌确认和多人出局总结流程，截图写入 `/tmp/poker_audit/`。
+`verify.py` 包含规则、10,000 手固定种子检查、后台 AI 生命周期、材质动画清理及布局检查。`--windowed` 额外执行 1280×720、1440×900、1920×1080 的菜单、帮助、设置、日志、暂停、下注、全下、结算、离桌确认、多人出局/胜利总结、设置生效与保存失败提示流程，截图写入 `/tmp/poker_audit/`。
 
-长测默认运行 30 分钟，包装器记录提交、dirty 状态和运行资源指纹，并把日志和报告保存在 `export/evidence/`（引擎原始报告仍写入 `user://poker_stability_report.json`）；必须同时确认成功标记、退出码、帧延迟和资源曲线。`-- --seconds=15 --min-ai=1` 只用于检查脚本能否运行，不满足首发长测门。所有 UI 探针使用各自独立 profile，不能修改真实玩家战绩。
+长测默认运行 30 分钟，包装器记录提交、dirty 状态和运行资源指纹，并把日志和报告保存在 `export/evidence/`（引擎原始报告仍写入 `user://poker_stability_report.json`）；必须同时确认成功标记、退出码、帧延迟和资源曲线。`python3 tools/soak.py --godot "$GODOT_BIN" -- --seconds=15 --min-ai=1` 只用于检查脚本能否运行，不满足首发长测门。所有 UI 探针使用各自独立 profile，不能修改真实玩家战绩。
 
 `ai_benchmark.gd` 对 1/5 个对手的翻牌、转牌、河牌固定场景各记录 5 次后台工作耗时，结果写入 `export/evidence/ai-benchmark.json`；其中包含快照与轮询开销，不用于替代窗口帧延迟。
 
@@ -47,7 +47,7 @@ python3 tools/build_release.py --godot "$GODOT_BIN" --target windows
 
 正式构建要求干净 checkout。开发中的本地包可显式加 `--candidate`，manifest 会标记 dirty，不能作为不可变提交的发布证据。
 
-输出：`export/packages/` 内的版本 ZIP、平台 manifest 和 SHA256SUMS；原始导出在 `export/macos/` 或 `export/windows/`。manifest 记录提交、引擎、主机、平台、哈希和原生包自检结果。`.gitattributes` 固定文本 LF，避免 Windows checkout 换行转换使同一提交的资源指纹不同；构建前后会检查运行资源和 checkout 未被导入器修改。构建本身不会公开发布，也不自动将 `public_release_ready` 设为 true。
+输出：`export/packages/` 内的版本 ZIP、平台 manifest 和 SHA256SUMS；每次使用独立临时目录导出，完成后清理本次临时目录；不会读取或删除旧 `export/macos/`、`export/windows/` 内容。manifest 记录提交、引擎、主机、平台、哈希和原生包自检结果。`.gitattributes` 固定文本 LF，避免 Windows checkout 换行转换使同一提交的资源指纹不同；构建前后会检查运行资源和 checkout 未被导入器修改。构建本身不会公开发布，也不自动将 `public_release_ready` 设为 true。
 
 原生系统上，构建脚本会把包放进独立临时目录，并使用其中的实际程序运行 `--headless -- --self-test`。这个固定内置诊断检查场景、字体、9 组人数/难度和统计幂等，使用缓存目录里的测试 profile。官方模板不开放外部脚本和路径覆盖，测试不修改这一设置。
 
