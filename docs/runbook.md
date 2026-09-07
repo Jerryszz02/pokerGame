@@ -55,6 +55,8 @@ python3 tools/build_release.py --godot "$GODOT_BIN" --target windows
 
 `export_presets.cfg` 明确列出运行资源，避免仅选场景时漏掉全局 GDScript 类或动态资源。macOS 使用官方 Universal 模板；测试范围仍按实际设备声明。当前 macOS 候选包只有 ad-hoc 签名，公证/下载隔离体验未完成验证。签名配置与凭据只能在用户授权的具体发布步骤使用，不写入仓库。
 
+`docs/.gdignore` 将验收截图和文档排除在 Godot 资源导入之外，避免干净构建为文档图片生成未跟踪的 `.import` 文件；随包 README 仍由构建脚本显式复制。
+
 ## CI 与发布
 
 `.github/workflows/desktop.yml` 在 Linux 执行 headless 检查，在 Windows/macOS 分别导出并运行实际模板自检，上传包及日志。CI artifact 不等于公开 Release，也不能代替图形设备和真人试玩。
