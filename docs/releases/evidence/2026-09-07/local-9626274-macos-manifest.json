@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "commit": "962627490470527b84c70af57db19b335016053d",
+  "dirty": false,
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "source_sha256": "bfd26046cbc70b15288fcd688b9ebf53329f37fcc1c6861c8b110a88bcd02116",
+  "target": "macos-universal",
+  "host_os": "macOS-26.5.1-arm64-arm-64bit",
+  "package_self_test_passed": true,
+  "graphical_platform_validation": "not established by this script",
+  "macos_signing": "ad-hoc; not notarized",
+  "filename": "PokerGame-1.0.0-macos-universal.zip",
+  "sha256": "65f25d88087e5cc91451eb6a8f7bcc7a5f8e7d150ad96bf4e8462812253d36eb",
+  "bytes": 88392018,
+  "public_release_ready": false
+}

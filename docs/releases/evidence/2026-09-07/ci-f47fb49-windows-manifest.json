@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "commit": "f47fb49e9cec34f6fe8c21cf3bfb4910fc29953a",
+  "dirty": false,
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "source_sha256": "bfd26046cbc70b15288fcd688b9ebf53329f37fcc1c6861c8b110a88bcd02116",
+  "target": "windows-x64",
+  "host_os": "Windows-2025Server-10.0.26100-SP0",
+  "package_self_test_passed": true,
+  "graphical_platform_validation": "not established by this script",
+  "macos_signing": null,
+  "filename": "PokerGame-1.0.0-windows-x64.zip",
+  "sha256": "070a63a8f3e96a80d5d4029f7dde2e58c8d8a58610e2043821d9715156ad7f00",
+  "bytes": 64537322,
+  "public_release_ready": false
+}

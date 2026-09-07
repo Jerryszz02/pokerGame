@@ -1,0 +1,75 @@
+{
+	"engine": "4.7.2-stable (official)",
+	"failures": 0,
+	"os": "macOS",
+	"processor": "Apple M5 Max",
+	"scenarios": [
+		{
+			"opponents": 1,
+			"samples_ms": [
+				578.982,
+				579.642,
+				579.981,
+				580.491,
+				580.702
+			],
+			"street": "flop"
+		},
+		{
+			"opponents": 1,
+			"samples_ms": [
+				572.49,
+				572.649,
+				572.756,
+				572.82,
+				586.066
+			],
+			"street": "turn"
+		},
+		{
+			"opponents": 1,
+			"samples_ms": [
+				579.413,
+				579.476,
+				579.782,
+				579.807,
+				613.503
+			],
+			"street": "river"
+		},
+		{
+			"opponents": 5,
+			"samples_ms": [
+				703.935,
+				703.996,
+				710.246,
+				717.604,
+				731.605
+			],
+			"street": "flop"
+		},
+		{
+			"opponents": 5,
+			"samples_ms": [
+				648.337,
+				655.421,
+				662.335,
+				669.421,
+				676.237
+			],
+			"street": "turn"
+		},
+		{
+			"opponents": 5,
+			"samples_ms": [
+				620.961,
+				629.182,
+				634.616,
+				640.486,
+				640.511
+			],
+			"street": "river"
+		}
+	],
+	"seed": 20260907
+}

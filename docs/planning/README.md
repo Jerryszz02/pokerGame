@@ -35,4 +35,6 @@
 
 首发分支已新增规则回归、后台 AI、输入与动画生命周期保护、帮助/离桌确认、独立字体、标准构建与 CI。实现中不等于发布完成；R7/R8/R9 仍须以目标设备、真人反馈和公开发行证据判定。
 
-新增玩家安装/玩法说明：[player-guide.md](../player-guide.md)。没有退役文档。最新验证命令见 [runbook.md](../runbook.md)，独立包与每次构建日志位于被 Git 忽略的 `export/`，最终验收记录将单独归档。
+新增玩家安装/玩法说明：[player-guide.md](../player-guide.md)。没有退役文档。最新验证命令见 [runbook.md](../runbook.md)，独立包与每次构建日志位于被 Git 忽略的 `export/`，逐门验收证据已在 `docs/releases/` 归档。
+
+当前逐门证据与剩余阻塞见 [2026-09-07 桌面验收记录](../releases/2026-09-07-desktop-acceptance.md)，真人反馈使用 [试玩记录模板](../releases/playtest-template.md)。该记录包含未通过项，不是首发放行声明。

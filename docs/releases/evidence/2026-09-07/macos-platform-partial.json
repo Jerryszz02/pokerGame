@@ -1,0 +1,20 @@
+{
+  "signature": {
+    "exit_code": 0,
+    "output": ""
+  },
+  "gatekeeper": {
+    "exit_code": 3,
+    "output": "PokerGame.app: rejected"
+  },
+  "commit": "f47fb49e9cec34f6fe8c21cf3bfb4910fc29953a",
+  "local_package_sha256": "5a859630bc84e91be1591d99892083fa13bee392910720aff352c1f02fda94c2",
+  "executable_sha256": "ca749291bd964b1fbce5517f9391926e403e5f3a009996972d979bd09d576c77",
+  "os": "macOS 26.5.1 arm64",
+  "observed_graphical_states": [
+    "maximized startup menu"
+  ],
+  "offline_package_self_test": "passed with deny network* process sandbox",
+  "download_quarantine_flow": "not validated",
+  "full_graphical_playthrough": "not established by these menu observations"
+}

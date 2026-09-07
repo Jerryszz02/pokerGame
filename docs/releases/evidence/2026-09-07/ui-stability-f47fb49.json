@@ -1,0 +1,334 @@
+{
+  "ai_actions": 2214,
+  "busy_frame_p99_ms": 9.192,
+  "busy_frames": 159726,
+  "checkpoints": [
+    {
+      "ai_actions": 82,
+      "elapsed_s": 60,
+      "hands": 5,
+      "memory_bytes": 154490363.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 159,
+      "elapsed_s": 120,
+      "hands": 10,
+      "memory_bytes": 154623251.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 240,
+      "elapsed_s": 180,
+      "hands": 18,
+      "memory_bytes": 154763055.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 314,
+      "elapsed_s": 240,
+      "hands": 24,
+      "memory_bytes": 154950403.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 380,
+      "elapsed_s": 300,
+      "hands": 28,
+      "memory_bytes": 154952059.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 451,
+      "elapsed_s": 360,
+      "hands": 32,
+      "memory_bytes": 155224367.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 524,
+      "elapsed_s": 421,
+      "hands": 36,
+      "memory_bytes": 155225415.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 595,
+      "elapsed_s": 480,
+      "hands": 41,
+      "memory_bytes": 155392499.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 664,
+      "elapsed_s": 540,
+      "hands": 45,
+      "memory_bytes": 155638899.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 746,
+      "elapsed_s": 600,
+      "hands": 50,
+      "memory_bytes": 155622383.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 824,
+      "elapsed_s": 660,
+      "hands": 55,
+      "memory_bytes": 155646471.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 897,
+      "elapsed_s": 720,
+      "hands": 59,
+      "memory_bytes": 155891739.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 978,
+      "elapsed_s": 780,
+      "hands": 65,
+      "memory_bytes": 156261531.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 1053,
+      "elapsed_s": 840,
+      "hands": 70,
+      "memory_bytes": 156260147.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 1130,
+      "elapsed_s": 900,
+      "hands": 76,
+      "memory_bytes": 156260471.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 1198,
+      "elapsed_s": 960,
+      "hands": 81,
+      "memory_bytes": 156261567.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 1265,
+      "elapsed_s": 1020,
+      "hands": 92,
+      "memory_bytes": 156263683.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 1345,
+      "elapsed_s": 1080,
+      "hands": 98,
+      "memory_bytes": 156636747.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 1424,
+      "elapsed_s": 1140,
+      "hands": 113,
+      "memory_bytes": 157188999.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 1493,
+      "elapsed_s": 1200,
+      "hands": 122,
+      "memory_bytes": 157175671.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 1566,
+      "elapsed_s": 1260,
+      "hands": 132,
+      "memory_bytes": 157172959.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 1641,
+      "elapsed_s": 1320,
+      "hands": 137,
+      "memory_bytes": 157192219.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 1716,
+      "elapsed_s": 1380,
+      "hands": 141,
+      "memory_bytes": 157183271.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 1788,
+      "elapsed_s": 1440,
+      "hands": 146,
+      "memory_bytes": 157193763.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 1860,
+      "elapsed_s": 1500,
+      "hands": 151,
+      "memory_bytes": 157194643.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 1936,
+      "elapsed_s": 1560,
+      "hands": 157,
+      "memory_bytes": 157197827.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 2002,
+      "elapsed_s": 1620,
+      "hands": 163,
+      "memory_bytes": 157749559.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 2075,
+      "elapsed_s": 1680,
+      "hands": 168,
+      "memory_bytes": 157732127.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 2148,
+      "elapsed_s": 1740,
+      "hands": 175,
+      "memory_bytes": 158583547.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 2214,
+      "elapsed_s": 1800,
+      "hands": 178,
+      "memory_bytes": 158582279.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    },
+    {
+      "ai_actions": 2214,
+      "elapsed_s": 1800,
+      "hands": 178,
+      "memory_bytes": 158558543.0,
+      "nodes": 41,
+      "objects": 1675.0,
+      "orphans": 0.0,
+      "tweens": 0
+    }
+  ],
+  "commit": "f47fb49e9cec34f6fe8c21cf3bfb4910fc29953a",
+  "dirty": false,
+  "duration_seconds": 1800,
+  "engine": "4.7.2-stable (official)",
+  "failures": 0,
+  "frame_max_ms": 1003.267,
+  "frame_p95_ms": 8.655,
+  "frame_p99_ms": 9.592,
+  "frames": 216945,
+  "full_release_duration": true,
+  "gpu": "Apple M5 Max (Apple9)",
+  "hands": 178,
+  "os": "macOS",
+  "probe_sha256": "548072b95fb8787e4c1e599a191881022fde957de0062c694252106a79a74a63",
+  "processor": "Apple M5 Max",
+  "rendering_method": "mobile",
+  "source_sha256": "bfd26046cbc70b15288fcd688b9ebf53329f37fcc1c6861c8b110a88bcd02116"
+}
