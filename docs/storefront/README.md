@@ -63,7 +63,7 @@ The probe writes to `/tmp/poker_audit/`; inspect timestamps before choosing capt
 - Language metadata: Chinese (Simplified); English describes the page copy only.
 - Preserve current price, release files, visibility, and AI-art disclosure.
 
-Upload the four screenshots, cover and banner to itch.io itself. Replace `../media/...` image sources in `description.html` with the corresponding itch.io-hosted image URLs before pasting the HTML into the product editor. Do not publish relative local image paths. Keep a single content column with embedded gameplay screenshots if supported; otherwise keep the screenshots sidebar visible.
+Upload the four screenshots, cover and banner to itch.io itself. `description.html` now contains the uploaded itch.io CDN URLs and can be pasted directly into the HTML editor. When replacing screenshots, update these absolute URLs after uploading. After saving, verify the public HTML retains all image `src` attributes and each image URL returns an image response. Do not publish relative local image paths. Keep a single content column with embedded gameplay screenshots if supported; otherwise keep the screenshots sidebar visible.
 
 Theme editor values: background `#07120F`, content background `#10251F`, text `#F2E7CD`, links/buttons `#D3AC59`. Background image: centered, cover, no repeat. Use readable, opaque content backing. Banner: `pokergame-banner.png`. Check desktop and narrow viewport rendering before saving.
 
