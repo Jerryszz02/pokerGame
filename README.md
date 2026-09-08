@@ -26,9 +26,9 @@ The game’s menus, action buttons, and help are currently in **Simplified Chine
 
 ## From the first bet to the showdown
 
-![The raise controls let you choose your total bet](docs/media/raise-the-stakes.png)
+![The action log shows the current hand’s betting history](docs/media/action-log.png)
 
-*Pick your raise, call the bet, or step away from the hand.*
+*Check who acted and how much they put in with the current hand’s action log.*
 
 ![Cards are revealed and the pot is awarded at showdown](docs/media/showdown.png)
 
