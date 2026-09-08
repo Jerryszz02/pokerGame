@@ -36,7 +36,7 @@ All files are in `../media/`. Screenshots were captured on 2026-09-08 from commi
 | `pokergame-cover.png` | AI-generated compact catalog composition based on the banner; use for the itch.io cover. |
 | `poker-room-background.png` | Unmodified copy of `assets/art/generated/misc/menu-background.png`; use as the page background. |
 | `river-decision.png` | UI probe: `1280x720_05_human4_river.png`; primary gameplay image. |
-| `raise-the-stakes.png` | UI probe: `1280x720_05b_raise_expanded.png`; betting controls. |
+| `action-log.png` | UI probe: `1280x720_03b_log_drawer.png`; current-hand action history. Replaces the near-duplicate river capture formerly named `raise-the-stakes.png`. |
 | `showdown.png` | UI probe: `1280x720_09_result.png`; cards revealed and pot awarded. |
 | `choose-your-table.png` | UI probe: `1280x720_01_menu.png`; opponents and difficulty. |
 

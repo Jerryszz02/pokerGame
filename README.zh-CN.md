@@ -1,68 +1,67 @@
 [English](README.md) · **简体中文**
 
-![PokerGame — 离线德州扑克](docs/media/pokergame-banner.png)
+![PokerGame 离线德州扑克](docs/media/pokergame-banner.png)
 
-# 牌桌的座位永远为你留着。
+# 来一手？
 
-一款免费、离线的德州扑克游戏，支持 Windows 和 macOS。与最多五名 AI 对手同桌，读懂牌桌，决定何时弃牌、跟注，或是把全部筹码压上。
+不想等人凑桌，就和电脑打几手。**深夜德州扑克（PokerGame）**是一款免费的单机德州扑克游戏，支持 Windows 和 macOS，下载解压就能玩。
 
-**[在 itch.io 下载](https://jerryszz02.itch.io/poker-game)** · **[从 GitHub 下载](https://github.com/Jerryszz02/pokerGame/releases/latest)**
+桌上最多坐五名 AI 对手。你可以稳一点，等好牌再出手；也可以加注施压，看看谁愿意跟到底。至于全下之后会发生什么，得等牌翻开才知道。
 
-**单人游戏 · 1–5 名 AI 对手 · 三个难度等级 · 简体中文界面**
+**[去 itch.io 下载](https://jerryszz02.itch.io/poker-game)** · **[去 GitHub 下载](https://github.com/Jerryszz02/pokerGame/releases/latest)**
 
-游戏菜单、操作按钮和帮助目前均为 **简体中文**。
+**单人离线 · 1 至 5 名 AI 对手 · 三档难度 · 简体中文界面**
 
-![面对五名 AI 对手的河牌决策，可选择弃牌、跟注或全下](docs/media/river-decision.png)
+![河牌圈轮到你行动，可以弃牌、跟注或全下](docs/media/river-decision.png)
 
-*河牌已发出，下一步由你决定。实际游戏画面。*
+*河牌已经发完。对面又下了一注，这手还跟吗？*
 
-## 按你的方式打牌
+## 这桌怎么玩
 
-- **选择你的对手。** 可以单挑，也可以凑满五名 AI 对手；开局前选择简单、普通或困难。
-- **观察他们的下注方式。** 困难难度下，对手各有不同的下注倾向——从谨慎型玩家，到激进的加注者，再到一直跟注的玩家。
-- **赢下最后一枚筹码。** 每人从 1,000 筹码开始，盲注固定为 10/20。一直打下去，直到赢下整桌——或是筹码耗尽。
-- **按自己的节奏来。** 在普通和快速动作之间切换，需要休息时暂停，并随时查看当前牌局的行动记录。
-- **全程本地。** 无需游戏账号、网络连接、真钱下注，也不做后台数据收集。你的设置和已完成牌局的统计都保存在本机。
+开局每人 1,000 筹码，大小盲注固定为 10/20。一手接一手地打，直到你赢下整桌，或者筹码归零。没有真钱下注，也不用注册账号或保持联网。
 
-## 从第一注到摊牌
+- **想单挑，还是坐满一桌？** 对手数量自己选，难度有简单、普通和困难三档。
+- **别指望每个对手都一样。** 困难模式里，有的谨慎，有的爱加注，也有的喜欢跟。留意他们怎么下注，再决定这一手怎么打。
+- **节奏由你定。** 动作速度可以选普通或快速，需要离开一会儿就暂停。没看清刚才谁下了多少，打开牌局记录就能查。
+- **算账交给游戏。** 全下之后的边池、摊牌比大小、平局分池，都会自动处理。你只管决定下一步。
 
-![加注控件让你选择总下注额](docs/media/raise-the-stakes.png)
+![打开牌局记录，查看这一手的行动经过](docs/media/action-log.png)
 
-*选择加注、跟注，或是退出这手牌。*
+*这一手谁先下了注，记录里都能找到。*
 
-![摊牌时亮牌并分配底池](docs/media/showdown.png)
+![摊牌后亮出手牌，显示底池归属](docs/media/showdown.png)
 
-*从盲注到亮牌，跟随每一手牌，包括全下、边池和分池。*
+*亮牌，收筹码。没赢也没关系，下一手还在等你。*
 
-![主菜单让你选择对手数量和难度](docs/media/choose-your-table.png)
+![主菜单中的对手数量和难度选项](docs/media/choose-your-table.png)
 
-*安静、灯光柔和的扑克房间。选择对手，落座开打。*
+*选好人数和难度，点「开始牌局」就能入座。*
 
-## 下载并落座
+## 下载后就能开桌
 
-从 [itch.io](https://jerryszz02.itch.io/poker-game) 或 [GitHub Releases](https://github.com/Jerryszz02/pokerGame/releases/latest) 获取适合你系统的桌面 ZIP 包。游玩无需 Godot 编辑器、.NET 或本源码仓库。
+在 [itch.io](https://jerryszz02.itch.io/poker-game) 或 [GitHub Releases](https://github.com/Jerryszz02/pokerGame/releases/latest) 下载对应系统的 ZIP 压缩包。玩游戏不需要安装 Godot、.NET，也不用下载源码。
 
-| 系统 | 下载 | 开始游戏 |
+| 系统 | 下载文件 | 怎么打开 |
 | --- | --- | --- |
-| Windows x64 | `PokerGame-1.0.0-windows-x64.zip` | 解压整个 ZIP，然后打开 `PokerGame.exe`。 |
-| macOS | `PokerGame-1.0.0-macos-universal.zip` | 解压 ZIP，然后打开 `PokerGame.app`。 |
+| Windows x64 | `PokerGame-1.0.0-windows-x64.zip` | 完整解压后，双击 `PokerGame.exe`。 |
+| macOS | `PokerGame-1.0.0-macos-universal.zip` | 解压后，打开 `PokerGame.app`。 |
 
-请使用至少 **1280 × 720** 的显示区域和鼠标。macOS 包同时包含 Apple Silicon 和 Intel 二进制文件；Intel Mac 尚未单独验证。Windows 构建未签名，macOS 构建未经 Apple 公证，因此系统在首次启动时可能会弹出安全提示。打开下载文件前，请先查看[发布说明与校验和](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.0.0)。
+用鼠标操作，显示区域至少需要 **1280 × 720**。macOS 安装包包含 Apple Silicon 和 Intel 两个版本，其中 Intel Mac 尚未单独验证。
 
-游戏内主要按钮：开始牌局、玩法说明、弃牌、让牌、跟注、加注到、全下、下一手、设置、记录。
+Windows 版本未签名，macOS 版本未经 Apple 公证，第一次打开时可能遇到系统安全提示。请先阅读[发布说明和文件校验信息](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.0.0)，再决定是否运行。
 
-**离开牌局前请注意：** 设置和已完成的牌局统计会被保存，未完成的牌局不会。游戏打开时可以暂停；返回菜单或退出则会放弃当前牌局。
+**打到一半要走？先暂停。** 设置和打完的手牌统计会保存在本机，但当前这场对局不能存档续玩。返回主菜单或退出游戏，就要重新开桌。
 
-## 把你的游戏体验告诉我们
+## 有一手没看懂，或者发现了问题？
 
-遇到令人困惑的一手牌或 bug？[提交 issue](https://github.com/Jerryszz02/pokerGame/issues)，附上游戏版本、操作系统、对手数量、难度，以及截图或复现步骤。你也可以在 [itch.io](https://jerryszz02.itch.io/poker-game) 上留言反馈。
+欢迎在 [itch.io](https://jerryszz02.itch.io/poker-game) 留言，也可以[到 GitHub 提 issue](https://github.com/Jerryszz02/pokerGame/issues)。告诉我们游戏版本、系统、对手人数和难度；如果是规则或结算问题，附一张截图或操作经过，会更容易查清楚。
 
-游戏和本页面包含 AI 生成的美术素材。游戏截图展示的是实际游戏画面；标题横幅为宣传美术。详见[第三方声明](THIRD_PARTY_NOTICES.md)和[页面素材来源](docs/storefront/README.md)。
+游戏及宣传页面使用了部分 AI 生成的美术素材。上面的实机截图来自游戏，标题横幅是宣传图。素材来源见[第三方声明](THIRD_PARTY_NOTICES.md)和[页面素材说明](docs/storefront/README.md)。
 
 <details>
-<summary><strong>致开发者：从源码运行</strong></summary>
+<summary><strong>想改点东西？从源码运行</strong></summary>
 
-使用 Godot 4 和 GDScript 构建。发布版本使用 **Godot 4.7.2 standard**，无需 .NET。在 macOS/Linux 上：
+使用 Godot 4 和 GDScript 构建。发布版本使用 **Godot 4.7.2 standard**，无需 .NET。在 macOS/Linux 上运行以下命令。
 
 ```sh
 GODOT_BIN="$(python3 tools/bootstrap_godot.py)"
