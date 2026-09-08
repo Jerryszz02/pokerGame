@@ -1,3 +1,5 @@
+**English** · [简体中文](README.zh-CN.md)
+
 ![PokerGame — Offline Texas Hold’em](docs/media/pokergame-banner.png)
 
 # Your seat at the table is always open.
