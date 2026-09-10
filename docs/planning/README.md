@@ -1,15 +1,18 @@
 # PokerGame 项目规划入口
 
-项目为 Godot 4 + GDScript 中文离线单人德州扑克，当前按免费练习游戏定位实施产品升级。用户于 2026-09-10 确认执行 P1～P5 非算法功能；教练、难度/性格新算法和画像评分仍待独立讨论。
+项目为 Godot 4 + GDScript 中文离线单人德州扑克，当前按免费练习游戏定位实施产品升级。用户于 2026-09-10 确认执行 P1～P5 非算法功能；起手范围、公开行动推断和有限行动收益评估已实现；教练和画像评分仍待独立讨论。
 
 ## 当前工作
 
 实现分支 `agent/practice-product-implementation` 从已更新的 `origin/main`（`7d27d18`）建立，并带入原规划提交。具体实施选择、验收命令与结果统一维护在 [实施记录](practice-implementation.md)。未通过验收的项目不得标记完成；本地测试、PR、公开发布分别陈述。
 
+算法设计与验证边界见 [ai-strategy-plan.md](ai-strategy-plan.md)。规则与合法性检查不证明实战强度，Git 合并不代表公开发布。
+
 ## 文档索引
 
 | 文档 | 职责 |
 | --- | --- |
+| [ai-strategy-plan.md](ai-strategy-plan.md) | 起手范围、公开行动推断、行动收益模型及性能与训练边界。 |
 | [practice-product-plan.md](practice-product-plan.md) | P1～P5 产品要求、非目标、数据口径、N1～N10 验收与后续算法依赖。 |
 | [practice-implementation.md](practice-implementation.md) | 已确认的默认方案、本轮实现边界及实际验收证据。 |
 | [prd.md](prd.md) | 原型/首发基线；逐手历史、成就等旧非目标被练习产品规划替代。 |

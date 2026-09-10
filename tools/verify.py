@@ -30,8 +30,11 @@ def main():
     checks = [
         ('test_runner.gd', 'All poker tests passed.'),
         ('practice_data_test.gd', 'Practice data tests passed.'),
+        ('practice_save_retry_test.gd', 'Practice save retry tests passed.'),
         ('tutorial_test.gd', 'Tutorial tests passed.'),
         ('practice_ui_probe.gd', 'Practice UI probes passed.'),
+        ('test_ai_strategy.gd', 'AI strategy tests passed.'),
+        ('test_ai_observations.gd', 'AI observation tests passed.'),
         ('rules_soak.gd', 'Rules soak passed:'),
         ('ai_runtime_probe.gd', 'AI runtime probe passed:'),
         ('ui_lifecycle_probe.gd', 'UI lifecycle probe passed.'),

@@ -15,7 +15,7 @@ The main scene is `res://scenes/main.tscn`, backed by `scripts/ui/main.gd`.
 3. Starting a match saves the selected settings and calls `PokerRound.start_new_match()`.
 4. `PokerRound.start_next_hand()` shuffles, deals hole cards, posts blinds, records events, and sets the first actor.
 5. Human actions come from the UI and call `PokerRound.apply_action()`.
-6. AI turns compute `AiDecision.decide()` in an `AiTurnWorker` thread over a deep snapshot while the UI tracks a randomized delay. Only a result with the current match generation, hand, actor and street can pass through `PokerRound.apply_action()`. Other players' hole cards are removed from the snapshot.
+6. AI turns compute `AiDecision.decide()` in an `AiTurnWorker` thread over a deep snapshot while the UI tracks a randomized delay. Only a result with the current match generation, hand, actor and street can pass through `PokerRound.apply_action()`. The snapshot contains only the actor's own cards/profile, public player/betting fields, the board and public action history. Opponents' cards, profiles, private notes/results and the real remaining deck are excluded.
 7. The rules engine advances streets, resolves uncontested pots, or runs showdown through `HandEvaluator`.
 8. The UI renders the full-screen table. The event log is a normally closed overlay drawer; opening it blocks UI-driven AI advancement and closing it resumes play.
 9. During a match, the settings popup can pause play. The pause overlay blocks player input and AI advancement, and offers resume or return-to-menu. Both scheduled and pending AI callbacks re-check that the table is still active before applying an action.
@@ -36,24 +36,32 @@ The main scene is `res://scenes/main.tscn`, backed by `scripts/ui/main.gd`.
 - `tutorial_controller.gd` prepares independent deterministic teaching games. Actions use `PokerRound.apply_action()`; settlement checkpoints use the normal evaluator and pot resolver. No tutorial record enters ordinary statistics.
 - `poker_reference.gd` supplies Chinese rules and nine hand-rank examples verified with `HandEvaluator`.
 
+`public_action_history` records successful voluntary actions with the before-action board, pot, price, stacks and actual payment. It resets each hand and does not inherit the text event log's 40-entry truncation or private decision labels. It is in-memory strategy input, not a persistent replay system.
+
 Important invariant: all human and AI poker actions must pass through `PokerRound.apply_action()`. UI and AI must not directly change stacks, bets, player status, or street progression.
 
 Betting invariant: a short all-in below the minimum raise changes the amount to call but does not reopen raising for players who already called or raised. A prior checker may still raise an opening wager, and cumulative short all-ins reopen raising once their increase reaches a full minimum raise.
 
 ## AI Layer
 
-`scripts/ai/` contains local, rules-based AI only.
+`scripts/ai/` contains local heuristic strategies and bounded simulations. There is no trained neural network, CFR solver or cross-session opponent learning. Design and acceptance boundaries are in [ai-strategy-plan.md](planning/ai-strategy-plan.md).
 
-- `starting_hand_table.gd` scores preflop hole cards from 1-100 using rank, pairs, suitedness, gaps, and high-card value.
-- `monte_carlo.gd` estimates postflop equity by simulating unknown opponent cards and remaining board cards.
-- `personalities.gd` defines five hard-AI profiles: `TightAggressive`, `LooseAggressive`, `CallingStation`, `Rock`, and `Balanced`.
-- `ai_decision.gd` combines equity, pot odds, current action cost, legal actions, and profile parameters into `fold/check/call/raise/all_in`.
+- `starting_hand_table.gd` represents all 169 preflop classes and supplies heuristic opening, continuing and reraising frequencies conditioned on position, players, prior raises, price in big blinds, effective stack and own style. The old `score()`/`label()` API remains compatible; neither the score nor the strength ordering is calibrated equity.
+- `opponent_range.gd` estimates weighted possible holdings from public actions in the current hand. It uses the board as it appeared at each observation and excludes known cards. A neutral prior and nonzero bluff support prevent an observed raise from being treated as knowledge of a specific hand.
+- `monte_carlo.gd` estimates equity with weighted possible opponent holdings and remaining public cards, counting ties by their pot share. It accepts an independent seeded RNG for tests and does not consume the game's dealing RNG. Worlds are shared across candidate actions.
+- `action_ev.gd` compares legal fold/check/call, pot-fraction raises and all-in. The model permits one round of opponent fold/call responses and then checks down to showdown. Responses use current information; sampled future boards are only used for settlement. Each contribution layer has its own eligible winners, including dead money, capped all-ins, split pots and unmatched-chip returns. EV is expected eligible payout minus NEW chips invested; already committed chips are sunk.
+- `personalities.gd` keeps five presets: `TightAggressive`, `LooseAggressive`, `CallingStation`, `Rock`, and `Balanced`. `get_profile(name, overrides)` and `normalize_profile()` validate custom style fields; `apply_difficulty()` controls bounded effort and decision noise separately.
+- `ai_decision.gd` returns compatible `action_type`, `amount`, and `decision_label` plus `analysis` diagnostics. Postflop personality preferences choose between sufficiently close candidate EVs. The main thread still submits every action through the rules engine.
 
 Difficulty behavior:
 
-- Simple: rough equity rules and low aggression.
-- Medium: preflop starting-hand score, postflop rule equity, moderate pot-odds tolerance.
-- Hard: preflop starting-hand score plus position and pressure; postflop Monte Carlo equity with the assigned personality profile.
+- Simple: preflop ranges and cheap postflop rules.
+- Medium: preflop ranges and bounded postflop range/EV comparison.
+- Hard: preflop ranges and more postflop simulation/history detail with less choice noise.
+
+Medium/hard accept a supplied personality through the seat's `personality` field. Existing menu behavior remains compatible: only hard assigns random presets automatically; custom profile selectors belong to the separate product-mode work. The four style fields are `aggression`, `looseness`, `bluff_rate`, and `call_tolerance`; mathematical parameter combinations do not establish distinct or stronger opponents.
+
+The model does not search future betting streets or opponent reraises. Its `analysis` describes estimates under stated assumptions, not a proven best move or GTO advice. Passing mathematical/behavior tests does not establish expert-level playing strength.
 
 The visible wait before an AI action belongs to the UI layer and does not change decision strength. Normal pace uses randomized 3-5 second delays for simple/medium and personality-specific ranges for hard. Fast pace uses 0.25-0.55 seconds. Computation overlaps the delay; pausing freezes the remaining delay and defers completed results.
 
@@ -94,14 +102,20 @@ The canonical visual constraints are documented in `docs/art-direction.md`. Asse
 - The UI retains unsaved hand and match submissions in memory and warns on exit. This does not provide unfinished-match resume. Replay is a deep copy; hero-time view hides unrevealed opponents and future board cards, while all-knowing view is restricted to completed hands. A replay achievement requires visiting every frame.
 - Test scenes derive an isolated practice directory from their injected profile path; tests and the fixed source/package self-test do not use player data.
 - Action sounds use a local `AudioStreamGenerator`; scene teardown stops and detaches the stream. There is no downloaded audio, telemetry, account or cloud save.
-- The existing AI decision algorithms are unchanged. New personalities, coach evaluation, radar dimensions and cross-stack AI quality remain separate work. Opening the unavailable coach panel does not count as actually viewing assistance.
+- Opponent decisions use the range and action-EV model described above. Coach evaluation, radar dimensions and cross-stack AI quality remain separate work. Opening the unavailable coach panel does not count as actually viewing assistance.
+
+Hand records retain only the peak observed within that hand. The double-stack achievement requires crossing the threshold during that hand, so an inherited starting stack cannot reattribute an earlier achievement. Match persistence waits until every pending hand of that match has been committed.
 
 ## Tests
+
+- `tests/practice_save_retry_test.gd` checks match persistence ordering during capacity failure and recovery.
 
 - `tests/practice_data_test.gd` covers all 80 count/stake/blind combinations, record fidelity and isolation, multi-pot classification, atomic retry, migration, corrupt/future files, filtering, milestones and retained statistics after deletion.
 - `tests/tutorial_test.gd` covers seven lessons, wrong-answer recovery, deterministic restart, real payouts and legal self-test branches.
 - `tests/practice_ui_probe.gd` drives mode/configuration, references, tutorial completion, real replay traversal, filter controls, isolation and practice auto-advance at three sizes. Its windowed run captures `/tmp/poker_practice_audit/`.
 
+- `tests/test_ai_strategy.gd` checks all 169 preflop classes, position/stack/price scaling, concrete suit-aware posteriors, blocker-weighted and joint sampling frequencies, analytic side-pot/action EVs, response information timing, bounded profiles and personality/category behavior.
+- `tests/test_ai_observations.gd` checks successful-action history, resets and deep copies, private-data exclusion from snapshots, and seeded decision invariance when hidden opponent information changes.
 - `tests/test_runner.gd` covers cards, hand evaluation, action legality, side/split pots, Chinese result text, event history, local profile round-trips, AI profiles/actions, AI sampling, and Monte Carlo bounds.
 - `tests/ui_layout_probe.gd` checks menu/settings and the table at 1280x720, 1440x900, and 1920x1080. It verifies the 78% table width, 1619:971 ratio, floating controls, portrait/felt safety, seat bindings, role markers, log pause/unread behavior, hard-edged `StyleBoxFlat` states, chip breakdowns, and visible-stack capacities.
 - `tests/ui_playthrough_probe.gd` scripts a full player click-through (menu, settings with reset confirmation, log drawer, pause/resume, collapsed/expanded actions, safe hand, next-hand all-in, result, restart, and quit-to-menu during an AI turn) at three window sizes (1280x720, 1440x900, 1920x1080). It saves per-state screenshots to `/tmp/poker_audit/` and asserts viewport bounds, text fit, seat-widget layering, control overlap, nearest filtering, and the AI pause/quit safety gates. Windowed, not part of the headless gate.
