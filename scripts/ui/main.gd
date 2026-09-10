@@ -1598,11 +1598,19 @@ func _retry_practice_saves() -> void:
 		else:
 			_practice_save_error = practice_store.notice
 	for id in _pending_matches.keys():
+		if _pending_match_has_records(id):
+			continue
 		var entry: Dictionary = _pending_matches[id]
 		if practice_store.finish_match(id,entry.outcome,entry.config):
 			_pending_matches.erase(id)
 		else:
 			_practice_save_error = practice_store.notice
+
+func _pending_match_has_records(match_id: String) -> bool:
+	for record in _pending_records.values():
+		if str(record.get("match_id", "")) == match_id:
+			return true
+	return false
 
 func _record_match_outcome() -> void:
 	if game.match_id.is_empty(): return

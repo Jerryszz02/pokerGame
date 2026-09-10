@@ -38,7 +38,7 @@ var _hand_id := ""
 var _assistance_viewed := false
 var _hand_created_at := ""
 var _completed_record: Dictionary = {}
-var _match_peak_stack := 0
+var _hand_peak_stack := 0
 
 func _init() -> void:
 	shuffle_rng.randomize()
@@ -53,7 +53,6 @@ func start_new_match(ai_count: int, selected_difficulty: String, options: Dictio
 	small_blind = match_config.small_blind
 	big_blind = match_config.big_blind
 	match_id = _new_id("match")
-	_match_peak_stack = initial_stack
 	players = []
 	players.append(_make_player(0, "你", true, "human", {}))
 	for i in range(int(match_config.ai_count)):
@@ -86,6 +85,7 @@ func start_next_hand() -> void:
 	_human_stack_at_hand_start = players[0].stack
 	_hand_starting_stacks = []
 	for p in players: _hand_starting_stacks.append(int(p.stack))
+	_hand_peak_stack = int(players[0].stack)
 	_hand_frames = []
 	_refunds = []
 	_hand_id = _new_id("hand")
@@ -625,7 +625,7 @@ func _finish_hand() -> void:
 	last_hand_human_won = last_hand_human_delta > 0
 	if last_hand_human_delta > max_single_hand_win:
 		max_single_hand_win = last_hand_human_delta
-	_match_peak_stack = maxi(_match_peak_stack, int(players[0].stack))
+	_hand_peak_stack = maxi(_hand_peak_stack, int(players[0].stack))
 	if players[0].stack <= 0 or _players_with_chips().size() < 2:
 		_finish_match()
 	if not _hand_id.is_empty() and _hand_starting_stacks.size() == players.size():
@@ -662,11 +662,13 @@ func _build_completed_record() -> Dictionary:
 		"showdown_win": showdown and (exclusive or split),
 		"uncontested_win": not showdown and exclusive,
 		"rank_value": rank_value, "rank_name": players[0].hand_result.get("rank_name", ""),
-		"net_change": net.get("0", 0), "peak_stack": _match_peak_stack,
+		"net_change": net.get("0", 0), "peak_stack": _hand_peak_stack,
 		"match_over": match_over, "summary": match_summary.duplicate(true)
 	}
 
 func _append_frame(frame_type: String, label: String, action: Dictionary) -> void:
+	if not players.is_empty():
+		_hand_peak_stack = maxi(_hand_peak_stack, int(players[0].stack))
 	var snapshots := []
 	for p in players:
 		snapshots.append({

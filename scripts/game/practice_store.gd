@@ -207,7 +207,8 @@ func _ledger_entry(record: Dictionary) -> Dictionary:
 		"assistance_viewed": record.assistance_viewed, "net_change": record.net_change,
 		"split": record.split, "exclusive_win": record.exclusive_win,
 		"showdown_win": record.showdown_win, "uncontested_win": record.uncontested_win,
-		"rank_value": record.rank_value, "rank_name": record.rank_name, "peak_stack": record.peak_stack}
+		"rank_value": record.rank_value, "rank_name": record.rank_name, "peak_stack": record.peak_stack,
+		"hand_start_stack": int(record.starting_stacks[0])}
 
 func _unlock_hand(next: Dictionary, entry: Dictionary) -> void:
 	var source := "辅助练习" if entry.assistance_viewed else "独立对局"
@@ -218,7 +219,11 @@ func _unlock_hand(next: Dictionary, entry: Dictionary) -> void:
 	if rank_awards.has(entry.rank_value):
 		var award: Array = rank_awards[entry.rank_value]
 		next.achievements[award[0] + suffix] = {"name": award[1], "source": source}
-	if int(entry.peak_stack) >= 2 * int(entry.config.initial_stack):
+	# A hand that starts above the threshold inherited that stack from an earlier
+	# hand. Only crossing the threshold during this hand can unlock the award.
+	var threshold := 2 * int(entry.config.initial_stack)
+	var hand_start_stack := int(entry.get("hand_start_stack", 0))
+	if hand_start_stack < threshold and int(entry.peak_stack) >= threshold:
 		next.achievements["stack_double" + suffix] = {"name": "筹码达到入场两倍", "source": source}
 
 func _matches_filters(config: Dictionary, assisted: bool, filters: Dictionary, created_at: String = "") -> bool:
@@ -339,6 +344,8 @@ func _valid_ledger(value: Variant) -> bool:
 	for key in ["net_change", "rank_value", "peak_stack"]:
 		if not value.get(key) is int:
 			return false
+	if value.has("hand_start_stack") and not value.hand_start_stack is int:
+		return false
 	return value.get("rank_name") is String
 
 func _valid_record(value: Variant) -> bool:
