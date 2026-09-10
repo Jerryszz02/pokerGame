@@ -30,11 +30,13 @@ python3 tools/soak.py --godot "$GODOT_BIN"
 "$GODOT_BIN" --headless --path . -s tests/ai_benchmark.gd
 ```
 
-`verify.py` 包含规则、10,000 手固定种子检查、后台 AI 生命周期、材质动画清理及布局检查。`--windowed` 额外执行 1280×720、1440×900、1920×1080 的菜单、帮助、设置、日志、暂停、下注、全下、结算、离桌确认、多人出局/胜利总结、设置生效与保存失败提示流程，截图写入 `/tmp/poker_audit/`。
+`verify.py` 包含规则、起手范围/对手范围/收益数学与信息边界测试、10,000 手固定种子检查、后台 AI 生命周期、材质动画清理及布局检查。`--windowed` 额外执行 1280×720、1440×900、1920×1080 的菜单、帮助、设置、日志、暂停、下注、全下、结算、离桌确认、多人出局/胜利总结、设置生效与保存失败提示流程，截图写入 `/tmp/poker_audit/`。
 
 长测默认运行 30 分钟，包装器记录提交、dirty 状态和运行资源指纹，并把日志和报告保存在 `export/evidence/`（引擎原始报告仍写入 `user://poker_stability_report.json`）；必须同时确认成功标记、退出码、帧延迟和资源曲线。`python3 tools/soak.py --godot "$GODOT_BIN" -- --seconds=15 --min-ai=1` 只用于检查脚本能否运行，不满足首发长测门。所有 UI 探针使用各自独立 profile，不能修改真实玩家战绩。
 
 `ai_benchmark.gd` 对 1/5 个对手的翻牌、转牌、河牌固定场景各记录 5 次后台工作耗时，结果写入 `export/evidence/ai-benchmark.json`；其中包含快照与轮询开销，不用于替代窗口帧延迟。
+
+算法专项可分别运行 `tests/test_ai_strategy.gd` 和 `tests/test_ai_observations.gd`（与上面的 Godot headless 脚本命令同形）。前者覆盖 169 类起手范围、加权抽样、收益/边池、参数边界与风格差异；后者覆盖公开行动记录、快照隔离及隐藏信息不影响固定种子决策。通过标准同时包含退出码、无脚本错误及 `AI strategy tests passed.` / `AI observation tests passed.`。模型接口和局限见 [architecture.md](architecture.md)，这些检查不证明职业级棋力。
 
 检查日志在 `export/logs/`。Godot 某些脚本错误可能返回 0，所以不能只凭退出码认定成功；包装器会检查 `ERROR`/`SCRIPT ERROR` 和成功标记。历史窗口探针曾有 1 个 ObjectDB 退出告警；新增或持续增长的对象/动画不能按历史告警放行。
 

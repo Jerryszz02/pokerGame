@@ -11,7 +11,7 @@
 适用：
 
 - `scripts/game/` 内的牌、牌组、手牌评估、下注、边池和牌局生命周期。
-- `scripts/ai/` 内的起手牌评分、Monte Carlo、个性配置和行动选择。
+- `scripts/ai/` 内的起手范围、公开行动推断、Monte Carlo、有限行动收益评估、个性配置和行动选择；新增算法边界与验收见 [ai-strategy-plan.md](ai-strategy-plan.md)。
 - `scripts/ui/main.gd` 内的菜单、设置弹窗、生成式美术组合、牌桌渲染、事件日志、玩家输入和结果面板。
 - `scripts/game/local_profile.gd` 内的本地偏好与聚合统计持久化。
 - `tests/test_runner.gd`、`tests/ui_layout_probe.gd` 和 `tests/ui_playthrough_probe.gd` 内的当前自动化回归方式。

@@ -1,11 +1,16 @@
 # PokerGame 项目规划入口
 
-请求：稳定公开桌面首发，先定义验收再实施。工作模式：实施与验收。更新日期：2026-09-07。项目根目录：`/Users/jerryszz/Desktop/Projects/pokerGame`；本轮 worktree：`/Users/jerryszz/Desktop/Projects/pokerGame-release`。
+本轮请求：补全起手范围、对手范围估计和行动收益评估。工作模式：实施与验收。更新日期：2026-09-10。项目根目录：`/Users/jerryszz/Desktop/Projects/pokerGame`；算法 worktree：`/Users/jerryszz/Desktop/Projects/pokerGame-ai-range-ev`。设计与验收以 [ai-strategy-plan.md](ai-strategy-plan.md) 为准，当前机制见 [架构说明](../architecture.md)，验证入口见 [运行手册](../runbook.md)。本轮不包含模式与教学 UI。
+
+以下首发阶段描述保留为 2026-09-07 的历史规划记录；不代表当前公开发布状态，当前状态应查对应提交的 GitHub CI 和 Release。
+
+本轮算法已实现并于 2026-09-10 通过 `tools/verify.py --windowed`：包括新增算法/信息边界测试、规则与万手 soak、后台生命周期、布局和三种分辨率窗口流程。设计文档新增 `ai-strategy-plan.md`，架构、运行手册及既有技术/测试计划同步链接；无文档退役。当前无实现所需的待确认项；实战强度和专业训练效果仍未验证。
 
 项目是 Godot 4 + GDScript 中文离线单人德州扑克。首发目标、验收门和执行顺序以 [release-plan.md](release-plan.md) 为准。当前处于候选构建验收阶段，尚未满足公开发布门。
 
 ## 设计与验收文档
 
+- [ai-strategy-plan.md](ai-strategy-plan.md)：2026-09-10 起手范围、公开行动推断和有限行动收益模型的实现范围与验收边界；不包含产品模式 UI 或 CFR。
 - [release-plan.md](release-plan.md)：新增，R1–R9 定义稳定公开桌面首发，含真实发行包、目标平台与公开下载门；用户于 2026-09-07 取消 R8 真人试玩门并要求零成本首发。
 - [prd.md](prd.md)：已有产品需求和离线边界；首发新增要求见 release plan，旧原型描述不覆盖首发目标。
 - [technical-design.md](technical-design.md)：已有架构与实现约束，随对应阶段更新。

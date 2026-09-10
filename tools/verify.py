@@ -29,6 +29,8 @@ def main():
     run([args.godot, '--headless', '--path', ROOT, '--import'], timeout=600, log_name='import')
     checks = [
         ('test_runner.gd', 'All poker tests passed.'),
+        ('test_ai_strategy.gd', 'AI strategy tests passed.'),
+        ('test_ai_observations.gd', 'AI observation tests passed.'),
         ('rules_soak.gd', 'Rules soak passed:'),
         ('ai_runtime_probe.gd', 'AI runtime probe passed:'),
         ('ui_lifecycle_probe.gd', 'UI lifecycle probe passed.'),
