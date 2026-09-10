@@ -53,6 +53,7 @@
 - 有窗口的 `localization_ui_probe.gd`、原有 `ui_playthrough_probe.gd`、`practice_ui_probe.gd` 通过；实际查看 1280×720 菜单、教程、牌桌和统计截图。窄盲注标记在英文中使用 SB/BB。
 - 额外本地音频 UI 检查验证音乐播放、音乐暂停/恢复、音效独立开关与滑块；清理后无资源泄漏错误。音效技术播放检查不是主观听感验收，长时间循环听感仍可由玩家试听反馈。
 
+- 全新 Git 检出（无 `.godot` 缓存）的完整验证和 `tools/build_release.py --target macos` 均通过，构建后工作区仍干净。两份启动必需的 `.translation` 资源已跟踪，避免首次导入缺失。
 - macOS 候选导出包的实际可执行程序通过 `--headless -- --self-test`，确认 `template=true`、中英文翻译和全部音频资源可用，9 种配置及统计幂等检查通过。Windows 包由 PR CI 验证。
 
 截图与临时日志：`/tmp/poker-language-screens/`、`/tmp/poker-audio-settings.png`、`/tmp/poker-audio-ui.log`。完整验证日志在忽略跟踪的 `export/logs/`。本轮尚未更新 GitHub Release 或 itch.io 页面，也未导出/验收 Web 版本。
