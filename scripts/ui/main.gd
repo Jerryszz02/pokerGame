@@ -105,6 +105,19 @@ var paused := false
 var raise_expanded := false
 var last_seen_event_fingerprint := ""
 var last_rendered_pot := -1
+var current_mode := "free"
+var pending_match_config: Dictionary = MatchConfig.DEFAULTS.duplicate(true)
+var mode_config_panel: Control
+var mode_config_notice: Label
+var practice_store: PracticeStore
+var tutorial_controller: TutorialController
+var practice_views: PracticeViews
+var _pending_records: Dictionary = {}
+var _pending_matches: Dictionary = {}
+var _submitted_hands: Dictionary = {}
+var _practice_save_error := ""
+var _auto_next_elapsed := 0.0
+var _match_open := false
 
 func _ready() -> void:
 	# Apply after resource import; project-level custom fonts load before first import.
@@ -119,14 +132,27 @@ func _ready() -> void:
 		profile_path = OS.get_cache_dir().path_join("poker_export_self_test.cfg")
 	randomize()
 	profile = LocalProfileScript.load_profile(profile_path)
+	practice_store = PracticeStore.new("user://poker_practice" if profile_path == LocalProfileScript.PROFILE_PATH else profile_path + ".practice")
+	practice_store.migrate_legacy(profile)
+	pending_match_config = MatchConfig.normalize(profile.settings)
+	practice_views = PracticeViews.new(self)
 	get_window().min_size = Vector2i(1280, 720)
 	get_tree().auto_accept_quit = false
 	_setup_audio()
 	_show_menu()
+	if not str(profile.get("notice", "")).is_empty():
+		_show_text_popup("配置恢复", profile.notice, "ProfileNoticePopup")
+	if not practice_store.notice.is_empty():
+		_show_text_popup("本地资料", practice_store.notice, "PracticeNoticePopup")
 	if self_test:
 		call_deferred("_run_package_self_test")
 
 func _process(delta: float) -> void:
+	practice_views.tick(delta)
+	if _ai_can_advance() and game.stage == TableState.STAGE_HAND_OVER and not game.match_over and game.match_config.mode == "practice" and not game.match_config.pause_each_hand and _pending_records.is_empty():
+		_auto_next_elapsed += delta
+		if _auto_next_elapsed >= 3.0:
+			_next_hand()
 	if _ai_worker.is_ready():
 		var result := _ai_worker.take_result()
 		if _ai_request_is_current():
@@ -146,6 +172,9 @@ func _process(delta: float) -> void:
 
 func _exit_tree() -> void:
 	_ai_worker.finish()
+	if is_instance_valid(sound_player):
+		sound_player.stop()
+		sound_player.stream = null
 
 func _invalidate_ai_turn() -> void:
 	_ai_epoch += 1
@@ -165,6 +194,9 @@ func _clear() -> void:
 		child.queue_free()
 
 func _show_menu(reset_pending: bool = true) -> void:
+	if _match_open:
+		_record_match_outcome()
+		_match_open = false
 	_invalidate_ai_turn()
 	if reset_pending:
 		stats_reset_pending = false
@@ -233,15 +265,30 @@ func _menu_controls_panel() -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 10)
 	panel.add_child(box)
-	box.add_child(_menu_row("AI 对手", _build_ai_spin(), true))
-	box.add_child(_menu_row("难度", _build_difficulty_options(), true))
-
-	var start_button := _command_button("开始牌局", COLOR_BRASS, _ink_color())
-	start_button.name = "MenuStartButton"
-	start_button.custom_minimum_size = MENU_START_BUTTON_SIZE
-	start_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	start_button.pressed.connect(_on_start_pressed)
-	box.add_child(start_button)
+	var primary := GridContainer.new()
+	primary.name = "PrimaryModeEntries"
+	primary.columns = 1
+	primary.add_theme_constant_override("h_separation", 6)
+	primary.add_theme_constant_override("v_separation", 6)
+	for entry in [{"name":"新手教程", "id":"tutorial", "node":"HomeTutorialButton"}, {"name":"自由对战", "id":"free", "node":"HomeFreePlayButton"}, {"name":"练习对局 · 基础流程", "id":"practice", "node":"HomePracticeButton"}]:
+		var mode_button := _command_button(str(entry.name), COLOR_ACTION, _white_color())
+		mode_button.name = str(entry.node)
+		mode_button.custom_minimum_size = Vector2(0, 42)
+		mode_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		mode_button.pressed.connect(func(): _open_mode(str(entry.id)))
+		primary.add_child(mode_button)
+	box.add_child(primary)
+	var secondary := HBoxContainer.new()
+	secondary.name = "SecondaryHomeEntries"
+	secondary.alignment = BoxContainer.ALIGNMENT_CENTER
+	secondary.add_theme_constant_override("separation", 6)
+	for entry in [{"name":"牌局记录", "id":"history"}, {"name":"统计与成就", "id":"stats"}]:
+		var secondary_button := _command_button(str(entry.name), COLOR_PANEL_DARK, _muted_color())
+		secondary_button.name = "Home%sButton" % str(entry.id).capitalize()
+		secondary_button.custom_minimum_size = Vector2(132, 34)
+		secondary_button.pressed.connect(func(): _open_home_secondary(str(entry.id)))
+		secondary.add_child(secondary_button)
+	box.add_child(secondary)
 	var help_button := _command_button("玩法说明", COLOR_ACTION, _white_color())
 	help_button.name = "MenuHelpButton"
 	help_button.custom_minimum_size = Vector2(180, 36)
@@ -255,7 +302,7 @@ func _build_ai_spin() -> SpinBox:
 	ai_count_spin.min_value = 1
 	ai_count_spin.max_value = 5
 	ai_count_spin.step = 1
-	ai_count_spin.value = int(profile.settings.ai_count)
+	ai_count_spin.value = int(pending_match_config.ai_count)
 	ai_count_spin.custom_minimum_size = MENU_SELECTION_SIZE
 	_apply_field_style(ai_count_spin)
 	return ai_count_spin
@@ -263,9 +310,9 @@ func _build_ai_spin() -> SpinBox:
 func _build_difficulty_options() -> OptionButton:
 	difficulty_options = OptionButton.new()
 	difficulty_options.add_item("简单", 0)
-	difficulty_options.add_item("中等", 1)
+	difficulty_options.add_item("普通", 1)
 	difficulty_options.add_item("困难", 2)
-	match str(profile.settings.difficulty):
+	match str(pending_match_config.difficulty):
 		"simple":
 			difficulty_options.select(0)
 		"medium":
@@ -318,7 +365,7 @@ func _show_settings_popup() -> void:
 	add_child(popup)
 	popup.popup_hide.connect(func(): popup.queue_free())
 	popup.add_child(_settings_panel(popup, in_match))
-	popup.popup_centered(Vector2i(390, 430) if in_match else Vector2i(390, 376))
+	popup.popup_centered(Vector2i(470, 610) if in_match else Vector2i(470, 500))
 
 func _settings_panel(popup: PopupPanel, in_match: bool) -> Control:
 	var panel := PanelContainer.new()
@@ -335,12 +382,23 @@ func _settings_panel(popup: PopupPanel, in_match: bool) -> Control:
 	box.add_child(_menu_row("音效", _build_sound_toggle()))
 	box.add_child(_menu_row("节奏", _build_pace_toggle()))
 	box.add_child(_stats_panel())
-	var help_button := _command_button("玩法说明", COLOR_ACTION, _white_color())
+	var help_button := _command_button("规则速览", COLOR_ACTION, _white_color())
+	help_button.name = "RulesReferenceButton"
 	help_button.pressed.connect(func():
 		popup.hide()
 		_show_help()
 	)
 	box.add_child(help_button)
+	var hands_button := _command_button("牌型速览", COLOR_ACTION, _white_color())
+	hands_button.name = "HandsReferenceButton"
+	hands_button.pressed.connect(func(): popup.hide(); _show_hand_reference())
+	box.add_child(hands_button)
+	if in_match and current_mode == "practice":
+		var hints := CheckBox.new()
+		hints.text = "显示提示入口（尚无分析结果）"
+		hints.button_pressed = pending_match_config.show_hints
+		hints.toggled.connect(func(value: bool): pending_match_config.show_hints = value; profile.settings.show_hints = value; _save_profile())
+		box.add_child(hints)
 	if in_match:
 		var pause_button := _command_button("继续游戏" if paused else "暂停游戏", COLOR_ACTION, _white_color())
 		pause_button.name = "PauseToggleButton"
@@ -352,7 +410,9 @@ func _settings_panel(popup: PopupPanel, in_match: bool) -> Control:
 		box.add_child(pause_button)
 	var close_button := _command_button("关闭", COLOR_ACTION, _white_color())
 	close_button.custom_minimum_size = Vector2(0, 36)
-	close_button.pressed.connect(func(): popup.hide())
+	close_button.pressed.connect(func():
+		popup.hide()
+		if in_match: _render_table())
 	box.add_child(close_button)
 	return panel
 
@@ -360,7 +420,7 @@ func _stats_panel() -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)
 	var title := Label.new()
-	title.text = "本地记录"
+	title.text = "旧版历史汇总（无法追溯）"
 	title.add_theme_color_override("font_color", COLOR_BRASS)
 	title.add_theme_font_size_override("font_size", FONT_LABEL)
 	box.add_child(title)
@@ -385,7 +445,7 @@ func _refresh_stats_panel() -> void:
 		]
 	if stats_reset_button:
 		var color := COLOR_DANGER if stats_reset_pending else COLOR_ACTION
-		stats_reset_button.text = "再次点击确认" if stats_reset_pending else "重置统计"
+		stats_reset_button.text = "再次点击确认" if stats_reset_pending else "重置历史汇总"
 		_apply_command_button_style(stats_reset_button, color)
 
 func _menu_row(label_text: String, field: Control, centered: bool = false) -> Control:
@@ -434,16 +494,166 @@ func _on_start_pressed() -> void:
 			difficulty = "hard"
 	profile.settings.ai_count = int(ai_count_spin.value)
 	profile.settings.difficulty = difficulty
-	_save_profile()
 	last_recorded_hand_number = 0
 	last_seen_event_fingerprint = ""
 	last_rendered_pot = -1
 	log_open = false
 	paused = false
 	raise_expanded = false
-	game.start_new_match(int(ai_count_spin.value), difficulty)
+	pending_match_config.ai_count = int(ai_count_spin.value)
+	pending_match_config.difficulty = difficulty
+	pending_match_config.mode = current_mode
+	pending_match_config = MatchConfig.normalize(pending_match_config)
+	for key in pending_match_config:
+		profile.settings[key] = pending_match_config[key]
+	_save_profile()
+	_match_open = true
+	_auto_next_elapsed = 0.0
+	_start_game_with_config(pending_match_config)
 	_play_sound(420.0, 0.08)
 	_render_table()
+
+func _start_game_with_config(options: Dictionary) -> void:
+	game.start_new_match(int(options.get("ai_count", 3)), str(options.get("difficulty", "medium")), options.duplicate(true))
+
+func _open_mode(mode: String) -> void:
+	if mode == "tutorial":
+		_show_tutorial_home()
+		return
+	_show_mode_config(mode)
+
+func _show_mode_config(mode: String) -> void:
+	current_mode = mode
+	pending_match_config.mode = mode
+	pending_match_config = MatchConfig.normalize(pending_match_config)
+	_clear()
+	add_child(_background(MENU_BACKGROUND_TEXTURE, Color(0.008, 0.018, 0.016, 0.48)))
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(center)
+	var panel := PanelContainer.new()
+	panel.name = "ModeConfigPanel"
+	panel.custom_minimum_size = Vector2(620, 500)
+	panel.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL_DARK, COLOR_BRASS.darkened(0.3), 2, 2, Vector2(24, 18)))
+	center.add_child(panel)
+	mode_config_panel = panel
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(570, 460)
+	panel.add_child(scroll)
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 9)
+	scroll.add_child(box)
+	var title := Label.new()
+	title.text = "新手教程" if mode == "tutorial" else ("练习对局配置" if mode == "practice" else "自由对战配置")
+	title.add_theme_font_size_override("font_size", FONT_DISPLAY)
+	title.add_theme_color_override("font_color", COLOR_BRASS)
+	box.add_child(title)
+	box.add_child(_config_row("AI 对手", _build_ai_spin()))
+	box.add_child(_config_row("难度", _build_difficulty_options()))
+	var stack := OptionButton.new()
+	stack.name = "InitialStackOptions"
+	for stack_value in MatchConfig.STACKS:
+		stack.add_item("%d 筹码" % int(stack_value), int(stack_value))
+		if int(pending_match_config.get("initial_stack", 1000)) == int(stack_value): stack.select(stack.item_count - 1)
+	_apply_field_style(stack)
+	box.add_child(_config_row("初始筹码", stack))
+	var blind := OptionButton.new()
+	blind.name = "BlindOptions"
+	for item in [[5,10],[10,20],[25,50],[50,100]]:
+		blind.add_item("%d / %d" % item, item[1])
+		if int(pending_match_config.get("big_blind", 20)) == item[1]: blind.select(blind.item_count - 1)
+	_apply_field_style(blind)
+	box.add_child(_config_row("大小盲", blind))
+	if mode == "practice":
+		var hints := CheckBox.new()
+		hints.name = "ShowHintsToggle"
+		hints.text = "显示提示入口（本地教练尚不可用）"
+		hints.button_pressed = bool(pending_match_config.get("show_hints", false))
+		hints.add_theme_color_override("font_color", _white_color())
+		hints.toggled.connect(func(value): pending_match_config.show_hints = value)
+		box.add_child(hints)
+		var pause_hand := CheckBox.new()
+		pause_hand.name = "PauseEachHandToggle"
+		pause_hand.text = "每手结束时暂停复盘"
+		pause_hand.button_pressed = bool(pending_match_config.get("pause_each_hand", true))
+		pause_hand.add_theme_color_override("font_color", _white_color())
+		pause_hand.toggled.connect(func(value): pending_match_config.pause_each_hand = value)
+		box.add_child(pause_hand)
+	mode_config_notice = Label.new()
+	mode_config_notice.name = "ModeConfigNotice"
+	mode_config_notice.add_theme_color_override("font_color", _muted_color())
+	mode_config_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	box.add_child(mode_config_notice)
+	_update_config_notice()
+	var actions := HBoxContainer.new()
+	actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	var start := _command_button("开始", COLOR_BRASS, _ink_color())
+	start.name = "ConfigStartButton"
+	start.custom_minimum_size = Vector2(180, 42)
+	start.pressed.connect(func():
+		pending_match_config.initial_stack = stack.get_selected_id()
+		var blind_index := blind.get_selected_id()
+		pending_match_config.big_blind = blind_index
+		pending_match_config.small_blind = 5 if blind_index == 10 else (10 if blind_index == 20 else (25 if blind_index == 50 else 50))
+		if _validate_match_config(pending_match_config):
+			_on_start_pressed()
+	)
+	stack.item_selected.connect(func(index):
+		pending_match_config.initial_stack = stack.get_item_id(index)
+		_update_config_notice())
+	blind.item_selected.connect(func(index):
+		var selected_pair: Array = MatchConfig.BLINDS[index]
+		pending_match_config.small_blind = selected_pair[0]
+		pending_match_config.big_blind = selected_pair[1]
+		_update_config_notice()
+	)
+	ai_count_spin.value_changed.connect(func(value): pending_match_config.ai_count = int(value))
+	difficulty_options.item_selected.connect(func(index): pending_match_config.difficulty = ["simple", "medium", "hard"][index])
+	actions.add_child(start)
+	var cancel := _command_button("取消", COLOR_ACTION, _white_color())
+	cancel.name = "ConfigCancelButton"
+	cancel.custom_minimum_size = Vector2(140, 42)
+	cancel.pressed.connect(_show_menu)
+	actions.add_child(cancel)
+	box.add_child(actions)
+
+func _config_row(label_text: String, field: Control) -> Control:
+	return _menu_row(label_text, field)
+
+func _validate_match_config(config: Dictionary) -> bool:
+	if not MatchConfig.validate(config):
+		if mode_config_notice:
+			mode_config_notice.text = "配置无效：请选择支持的 AI 数量、筹码和大小盲。"
+		return false
+	var valid := int(config.get("ai_count", 0)) >= 1 and int(config.get("ai_count", 0)) <= 5
+	valid = valid and int(config.get("initial_stack", 0)) >= 1000
+	valid = valid and int(config.get("small_blind", 0)) > 0 and int(config.get("small_blind", 0)) < int(config.get("big_blind", 0))
+	if not valid and mode_config_notice:
+		mode_config_notice.text = "配置无效：请选择 1–5 名 AI、合法筹码和大小盲。"
+	return valid
+
+func _update_config_notice() -> void:
+	if not is_instance_valid(mode_config_notice): return
+	mode_config_notice.text = "%d 筹码 · %d/%d 盲注 · %.0f BB\nBB 是大盲单位。本场盲注固定，可免费重开。不同筹码尺度的 AI 表现仍待专项验证。" % [pending_match_config.initial_stack,pending_match_config.small_blind,pending_match_config.big_blind,float(pending_match_config.initial_stack)/pending_match_config.big_blind]
+
+func _show_tutorial_home() -> void:
+	practice_views.tutorial_home()
+
+func _open_tutorial_lesson(lesson_id: String) -> void:
+	practice_views.open_lesson(lesson_id)
+
+func _open_home_secondary(section: String) -> void:
+	if section == "history": _show_history_view()
+	else: _show_stats_view()
+
+func _show_history_view() -> void:
+	practice_views.history()
+
+func _show_stats_view() -> void:
+	practice_views.stats()
+
+func _show_replay_view(record: Dictionary) -> void:
+	practice_views.open_replay(record,_in_match())
 
 func _render_table() -> void:
 	_record_completed_hand_if_needed()
@@ -543,7 +753,29 @@ func _build_utility_buttons() -> Control:
 	settings.custom_minimum_size = Vector2(96, 40)
 	settings.pressed.connect(_show_settings_popup)
 	row.add_child(settings)
+	if current_mode == "practice" and bool(pending_match_config.show_hints):
+		row.offset_left = -328
+		var hint := _command_button("提示", COLOR_ACTION, _white_color())
+		hint.name = "PracticeHintsButton"
+		hint.custom_minimum_size = Vector2(96, 40)
+		hint.pressed.connect(_show_analysis_unavailable)
+		row.add_child(hint)
 	return row
+
+func _show_analysis_unavailable() -> void:
+	var popup := _show_text_popup("实时提示暂不可用", "本地教练尚未接入，当前没有建议或胜率。打开此面板不会计作使用实时辅助，也不改变发牌或对手行为。", "AnalysisUnavailablePanel")
+	var retry := _command_button("重试", COLOR_ACTION, _white_color())
+	retry.name = "AnalysisRetryButton"
+	retry.pressed.connect(func(): popup.hide(); _show_analysis_unavailable())
+	popup.get_child(0).add_child(retry)
+	var toggle := _command_button("隐藏提示入口", COLOR_ACTION, _white_color())
+	toggle.pressed.connect(func():
+		pending_match_config.show_hints = false
+		profile.settings.show_hints = false
+		_save_profile()
+		popup.hide()
+		_render_table())
+	popup.get_child(0).add_child(toggle)
 
 func _toggle_log() -> void:
 	log_open = not log_open
@@ -1118,7 +1350,7 @@ func _result_dock_height() -> int:
 	var row_count := payout_players.size()
 	if game.match_over and not game.match_summary.is_empty():
 		row_count += 1
-	return maxi(120, 96 + row_count * 22)
+	return maxi(148, 120 + row_count * 22) + (44 if not _pending_records.is_empty() or not _pending_matches.is_empty() else 0)
 
 func _result_panel() -> Control:
 	# Vertical stacking keeps every line within the fixed 580px dock width,
@@ -1163,18 +1395,29 @@ func _result_panel() -> Control:
 	var buttons := HBoxContainer.new()
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	buttons.add_theme_constant_override("separation", 10)
+	if current_mode == "practice" or current_mode == "free":
+		var replay := _command_button("复盘本手", COLOR_ACTION, _white_color())
+		replay.name = "ReplayCurrentHandButton"
+		replay.pressed.connect(func(): _show_replay_view(game.completed_hand_record()))
+		buttons.add_child(replay)
 	if game.players[0].stack > 0 and not game.match_over:
 		var next_button := _command_button("下一手", COLOR_BRASS, _ink_color())
-		next_button.pressed.connect(func():
-			game.start_next_hand()
-			_play_sound(360.0, 0.06)
-			_render_table()
-		)
+		next_button.pressed.connect(_next_hand)
 		buttons.add_child(next_button)
 	var restart_button := _command_button("重新开始", COLOR_ACTION, _white_color())
-	restart_button.pressed.connect(_show_menu)
+	restart_button.pressed.connect(func(): _confirm_leave(false))
 	buttons.add_child(restart_button)
 	column.add_child(buttons)
+	var save_label := Label.new()
+	save_label.text = "本手牌谱已保存" if _pending_records.is_empty() else "牌谱未保存，可重试或清理旧牌谱"
+	save_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	save_label.add_theme_font_size_override("font_size", FONT_SMALL)
+	column.add_child(save_label)
+	if not _pending_records.is_empty() or not _pending_matches.is_empty():
+		var retry := _command_button("重试保存", COLOR_ACTION, _white_color())
+		retry.name = "PracticeSaveRetry"
+		retry.pressed.connect(func(): _retry_practice_saves(); _render_table())
+		column.add_child(retry)
 	return column
 
 func _card_view(card: Dictionary, face_up: bool, compact: bool = false) -> Control:
@@ -1254,6 +1497,9 @@ func _on_reset_stats_pressed() -> void:
 	if not stats_reset_pending:
 		stats_reset_pending = true
 		_refresh_stats_panel()
+		return
+	if not practice_store.reset_legacy():
+		_show_text_popup("未能重置",practice_store.notice,"ResetLegacyError")
 		return
 	profile = LocalProfileScript.reset_stats(profile)
 	_save_profile()
@@ -1335,19 +1581,50 @@ func _ai_action_delay(player: Dictionary) -> float:
 			return randf_range(2.8, 4.6)
 
 func _record_completed_hand_if_needed() -> void:
-	if game.stage != TableState.STAGE_HAND_OVER:
-		return
-	if game.hand_number <= 0 or game.hand_number == last_recorded_hand_number:
-		return
+	var record := game.completed_hand_record()
+	if record.is_empty() or _submitted_hands.has(record.id): return
+	_submitted_hands[record.id] = true
 	last_recorded_hand_number = game.hand_number
-	profile = LocalProfileScript.normalize_profile(profile)
-	profile.stats.total_hands += 1
-	profile.stats.total_net_profit += game.last_hand_human_delta
-	if game.last_hand_human_won:
-		profile.stats.total_win_hands += 1
-	if game.last_hand_human_delta > profile.stats.max_single_hand_win:
-		profile.stats.max_single_hand_win = game.last_hand_human_delta
-	_save_profile()
+	_pending_records[record.id] = record
+	_auto_next_elapsed = 0.0
+	_retry_practice_saves()
+	if game.match_over: _record_match_outcome()
+
+func _retry_practice_saves() -> void:
+	_practice_save_error = ""
+	for id in _pending_records.keys():
+		if practice_store.commit_hand(_pending_records[id]):
+			_pending_records.erase(id)
+		else:
+			_practice_save_error = practice_store.notice
+	for id in _pending_matches.keys():
+		if _pending_match_has_records(id):
+			continue
+		var entry: Dictionary = _pending_matches[id]
+		if practice_store.finish_match(id,entry.outcome,entry.config):
+			_pending_matches.erase(id)
+		else:
+			_practice_save_error = practice_store.notice
+
+func _pending_match_has_records(match_id: String) -> bool:
+	for record in _pending_records.values():
+		if str(record.get("match_id", "")) == match_id:
+			return true
+	return false
+
+func _record_match_outcome() -> void:
+	if game.match_id.is_empty(): return
+	var outcome := "left"
+	if game.match_over: outcome = "lost" if game.players[0].stack == 0 else "won"
+	_pending_matches[game.match_id] = {"outcome":outcome,"config":game.match_config.duplicate(true)}
+	_retry_practice_saves()
+
+func _next_hand() -> void:
+	if not _ai_can_advance() or game.stage != TableState.STAGE_HAND_OVER: return
+	_auto_next_elapsed = 0.0
+	game.start_next_hand()
+	_play_sound(360.0, 0.06)
+	_render_table()
 
 func _setup_audio() -> void:
 	if DisplayServer.get_name() == "headless":
@@ -1549,36 +1826,38 @@ func _save_profile() -> void:
 
 func _show_save_notice() -> void:
 	_save_notice_pending = false
-	_show_text_popup("未能保存", "设置和战绩本次仍然有效，但未能写入本地文件。请检查磁盘空间和存档目录权限；退出后本次更新可能丢失。", "SaveErrorPopup")
+	_show_text_popup("未能保存", "设置本次仍然有效，但未能写入本地文件。请检查磁盘空间和存档目录权限；退出后本次更新可能丢失。", "SaveErrorPopup")
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		_confirm_leave(true)
 
 func _confirm_leave(quit_app: bool) -> void:
-	if not _in_match() or game.match_over:
-		if quit_app:
-			get_tree().quit()
-		else:
-			_show_menu()
+	if (not _match_open or game.match_over) and _pending_records.is_empty() and _pending_matches.is_empty():
+		if quit_app: get_tree().quit()
+		else: _show_menu()
 		return
-	if find_child("LeavePopup", true, false) != null:
-		return
-	var popup := _show_text_popup("离开牌桌？", "当前对局不保存，剩余筹码不会带入新对局。已结算的手牌战绩和设置会保留。", "LeavePopup")
+	if find_child("LeavePopup", true, false) != null: return
+	var message := "已成功保存的手牌、教程进度和设置保留。当前整场不支持续玩；离开会放弃未结算手牌，提前离桌单列。重新开桌免费。"
+	if not _pending_records.is_empty() or not _pending_matches.is_empty():
+		message += "\n还有未保存资料，退出应用会丢失这部分更新，请先重试保存。"
+	var popup := _show_text_popup("离开牌桌？",message,"LeavePopup")
 	var box := popup.get_child(0) as VBoxContainer
 	var leave := _command_button("确认退出" if quit_app else "确认返回菜单", COLOR_DANGER, _white_color())
 	leave.name = "ConfirmLeaveButton"
 	leave.pressed.connect(func():
 		popup.hide()
-		if quit_app:
-			get_tree().quit()
-		else:
-			_show_menu()
-	)
+		if _match_open: _record_match_outcome()
+		_match_open = false
+		if quit_app: get_tree().quit()
+		else: _show_menu())
 	box.add_child(leave)
 
 func _show_help() -> void:
-	_show_text_popup("玩法说明", "目标：每人从 1000 筹码开始，赢得所有筹码获胜；你的筹码归零时本局结束。大小盲固定为 10 / 20。\n\n每手有两张底牌和最多五张公共牌，取其中最强的五张。牌型由强到弱：同花顺、四条、葫芦、同花、顺子、三条、两对、一对、高牌；同牌型比较点数，完全相同则分池。\n\n让牌：无人下注时免费继续。跟注：补足本轮下注，筹码不足时只投入剩余筹码。加注到：本轮累计投入到显示金额。全下：投入全部剩余筹码；没有再加注权时不能用全下提高下注。\n\n你只能赢取自己投入对应的底池，多余投入构成边池；未被跟注的筹码退回。结算的 +金额是底池返还，净盈利还要扣除本手投入。\n\n设置中可调整音效和行动节奏，打开设置、帮助、记录或暂停时 AI 会等待。当前对局不保存；离开后只保留已结算战绩和设置。", "HelpPopup")
+	_show_text_popup("规则速览", PokerReference.rules_text(), "HelpPopup")
+
+func _show_hand_reference() -> void:
+	_show_text_popup("牌型速览", PokerReference.hands_text(), "HandReferencePopup")
 
 func _show_text_popup(title_text: String, body: String, node_name: String) -> PopupPanel:
 	var popup := PopupPanel.new()
@@ -1602,12 +1881,17 @@ func _show_text_popup(title_text: String, body: String, node_name: String) -> Po
 	content.custom_minimum_size.x = 540
 	content.add_theme_font_size_override("font_size", FONT_BODY)
 	content.add_theme_color_override("font_color", _white_color())
-	box.add_child(content)
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(540, 250)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	box.add_child(scroll)
+	scroll.add_child(content)
 	var close := _command_button("关闭", COLOR_ACTION, _white_color())
 	close.name = "PopupCloseButton"
 	close.pressed.connect(func(): popup.hide())
 	box.add_child(close)
-	popup.popup_centered(Vector2i(584, 0))
+	popup.popup_centered(Vector2i(584, 440))
 	return popup
 
 func _run_package_self_test() -> void:

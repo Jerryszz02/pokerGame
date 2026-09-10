@@ -44,6 +44,7 @@ func _run() -> void:
 	scene._run_ai_turn()
 	var epoch: int = scene._ai_epoch
 	scene._show_menu()
+	scene._show_mode_config("free")
 	scene.ai_count_spin.value = 3
 	scene._on_start_pressed()
 	_check(scene._ai_epoch > epoch, "new match invalidates the old request")

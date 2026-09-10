@@ -113,6 +113,7 @@ func _run() -> void:
 
 func _start_match() -> void:
 	scene._show_menu()
+	scene._show_mode_config("free")
 	scene.ai_count_spin.value = 5
 	scene.difficulty_options.select(2)
 	scene._on_start_pressed()

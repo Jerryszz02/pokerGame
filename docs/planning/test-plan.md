@@ -178,3 +178,7 @@
 - 构建包 `--headless -- --self-test`：从独立目录验证模板、场景/字体、9 组人数/难度及统计幂等。该检查不替代 R7 目标系统图形测试。真人试玩已按用户要求移出首发 Goal，见 release plan 的 R8。
 
 Windows/macOS 构建和自检进入 `.github/workflows/desktop.yml`；CI 是否通过必须查对应提交的实际运行。新的验收结果放在发行报告，不在这里预填成功状态。
+
+## 练习产品回归（2026-09-10）
+
+新增 `tests/practice_data_test.gd`、`tests/tutorial_test.gd`、`tests/practice_ui_probe.gd`，已接入 `tools/verify.py`；`--windowed` 同时执行新旧点击流。覆盖口径和实际结果见 [实施记录](practice-implementation.md)。

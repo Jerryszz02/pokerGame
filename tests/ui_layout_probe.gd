@@ -121,14 +121,13 @@ func _probe_menu_and_styles(viewport_size: Vector2i) -> void:
 	_assert(_find_label_with_text(scene, "本地单机牌局") == null, "menu should not show the local-game kicker")
 	_assert(_find_label_with_text(scene, "规则清晰、信息优先的战术牌桌") == null, "menu should not show the tactical-table subtitle")
 	_assert(_find_label_with_text(scene, "离线运行，不接 API，不使用 LLM。") == null, "menu should not show the offline note")
-	_assert(scene.ai_count_spin.size.x >= 176.0 and scene.difficulty_options.size.x >= 176.0, "menu selection controls should have a comfortable width")
 	var notice_board := scene.find_child("MenuNoticeBoard", true, false) as PanelContainer
 	var notice_texture := scene.find_child("MenuNoticeBoardTexture", true, false) as TextureRect
 	var title_logo := scene.find_child("MenuTitleLogo", true, false) as TextureRect
 	var table_preview := scene.find_child("MenuTablePreview", true, false) as PanelContainer
 	var preview_texture := scene.find_child("MenuTablePreviewTexture", true, false) as TextureRect
 	var controls_panel := scene.find_child("MenuControlsPanel", true, false) as PanelContainer
-	var start_button := scene.find_child("MenuStartButton", true, false) as Button
+	var start_button := scene.find_child("HomeFreePlayButton", true, false) as Button
 	var settings_button := _find_button_with_text(scene, "设置")
 	_assert(notice_board != null and notice_board.custom_minimum_size.x > notice_board.custom_minimum_size.y, "menu notice board should use the adjusted landscape proportion")
 	_assert(notice_texture != null and notice_texture.texture.resource_path.ends_with("menu-notice-board.png"), "menu should use the generated wooden notice-board asset")
@@ -139,12 +138,10 @@ func _probe_menu_and_styles(viewport_size: Vector2i) -> void:
 	_assert(table_preview != null and table_preview.get_theme_stylebox("panel") is StyleBoxEmpty, "menu table preview should render without a green frame")
 	_assert(preview_texture != null and preview_texture.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_CENTERED, "menu table preview should keep the complete artwork visible")
 	_assert(controls_panel != null and controls_panel.get_theme_stylebox("panel") is StyleBoxEmpty, "menu controls should sit directly on the notice board")
-	_assert(start_button != null and start_button.custom_minimum_size == scene.MENU_START_BUTTON_SIZE, "menu start button should keep its compact width")
-	_assert(start_button != null and start_button.size_flags_horizontal == Control.SIZE_SHRINK_CENTER, "menu start button should stay centered")
+	_assert(start_button != null and scene.find_child("HomeTutorialButton", true, false) != null and scene.find_child("HomePracticeButton", true, false) != null, "home exposes three primary modes")
+	_assert(scene.find_child("MenuStartButton", true, false) == null, "home routes through configuration instead of a duplicate start action")
 	_assert(start_button != null and start_button.get_theme_stylebox("normal") is StyleBoxFlat, "menu start button should use a crisp code-drawn style")
 	_assert(settings_button != null and settings_button.get_theme_stylebox("normal") is StyleBoxFlat, "menu settings button should use a crisp code-drawn style")
-	_assert(scene.difficulty_options.get_theme_stylebox("normal") is StyleBoxFlat, "difficulty selector should use a code-drawn field")
-	_assert(scene.ai_count_spin.get_line_edit().get_theme_stylebox("normal") is StyleBoxFlat, "opponent selector should use a code-drawn field")
 	for color in [scene.COLOR_BRASS, scene.COLOR_ACTION, scene.COLOR_DANGER]:
 		var button: Button = scene._command_button("状态", color, scene._white_color())
 		button.visible = false
@@ -173,7 +170,7 @@ func _probe_menu_and_styles(viewport_size: Vector2i) -> void:
 	seat_stack.free()
 	pot_stack.free()
 	if popup != null:
-		var reset_button := _find_button_with_text(popup, "重置统计")
+		var reset_button := _find_button_with_text(popup, "重置历史汇总")
 		_assert(reset_button != null, "settings popup should expose reset statistics")
 		if reset_button != null:
 			reset_button.emit_signal("pressed")
@@ -181,6 +178,13 @@ func _probe_menu_and_styles(viewport_size: Vector2i) -> void:
 			_assert(_find_button_with_text(popup, "再次点击确认") != null, "statistics reset should require an in-place second confirmation")
 		popup.hide()
 		await process_frame
+	scene._show_mode_config("free")
+	await process_frame
+	await process_frame
+	_assert(scene.ai_count_spin.size.x >= 176.0 and scene.difficulty_options.size.x >= 176.0, "configuration fields have a comfortable width")
+	_assert(scene.difficulty_options.get_theme_stylebox("normal") is StyleBoxFlat, "difficulty selector should use a code-drawn field")
+	_assert(scene.ai_count_spin.get_line_edit().get_theme_stylebox("normal") is StyleBoxFlat, "opponent selector should use a code-drawn field")
+	_assert(_controls_fit(scene, frame), "configuration fits minimum viewport")
 	if scene.sound_player:
 		scene.sound_player.stop()
 	scene.queue_free()

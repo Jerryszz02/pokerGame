@@ -20,6 +20,7 @@ func run(scene: Node) -> int:
 	for opponents in [1, 3, 5]:
 		for difficulty in range(3):
 			scene._show_menu()
+			scene._show_mode_config("free")
 			scene.ai_count_spin.value = opponents
 			scene.difficulty_options.select(difficulty)
 			scene._on_start_pressed()
@@ -31,9 +32,9 @@ func run(scene: Node) -> int:
 				steps += 1
 			_check(scene.game.stage == TableState.STAGE_HAND_OVER, "exported hand finishes for %d opponents/difficulty %d" % [opponents, difficulty])
 			scene._render_table()
-			var before: int = scene.profile.stats.total_hands
+			var before: int = scene.practice_store.statistics().hands
 			scene._render_table()
-			_check(scene.profile.stats.total_hands == before, "render cannot double-count statistics")
+			_check(scene.practice_store.statistics().hands == before, "render cannot double-count statistics")
 			await scene.get_tree().process_frame
 			await scene.get_tree().process_frame
 	if failures == 0:

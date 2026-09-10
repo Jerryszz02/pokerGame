@@ -29,6 +29,10 @@ def main():
     run([args.godot, '--headless', '--path', ROOT, '--import'], timeout=600, log_name='import')
     checks = [
         ('test_runner.gd', 'All poker tests passed.'),
+        ('practice_data_test.gd', 'Practice data tests passed.'),
+        ('practice_save_retry_test.gd', 'Practice save retry tests passed.'),
+        ('tutorial_test.gd', 'Tutorial tests passed.'),
+        ('practice_ui_probe.gd', 'Practice UI probes passed.'),
         ('test_ai_strategy.gd', 'AI strategy tests passed.'),
         ('test_ai_observations.gd', 'AI observation tests passed.'),
         ('rules_soak.gd', 'Rules soak passed:'),
@@ -42,6 +46,8 @@ def main():
     if args.windowed:
         run([args.godot, '--path', ROOT, '-s', 'tests/ui_playthrough_probe.gd'],
             'UI playthrough probe passed.', timeout=600, log_name='ui_playthrough_probe')
+        run([args.godot, '--path', ROOT, '-s', 'tests/practice_ui_probe.gd'],
+            'Practice UI probes passed.', timeout=600, log_name='practice_ui_windowed')
     print('Verification passed. Long-window and target-platform gates remain separate.')
 
 

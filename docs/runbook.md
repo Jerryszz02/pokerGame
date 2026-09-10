@@ -30,7 +30,7 @@ python3 tools/soak.py --godot "$GODOT_BIN"
 "$GODOT_BIN" --headless --path . -s tests/ai_benchmark.gd
 ```
 
-`verify.py` 包含规则、起手范围/对手范围/收益数学与信息边界测试、10,000 手固定种子检查、后台 AI 生命周期、材质动画清理及布局检查。`--windowed` 额外执行 1280×720、1440×900、1920×1080 的菜单、帮助、设置、日志、暂停、下注、全下、结算、离桌确认、多人出局/胜利总结、设置生效与保存失败提示流程，截图写入 `/tmp/poker_audit/`。
+`verify.py` 包含规则、起手范围/对手范围/收益数学与信息边界测试、练习数据/迁移及保存失败恢复、七课教程、新模式 UI、10,000 手固定种子检查、后台 AI 生命周期、材质动画清理及布局检查。`--windowed` 额外执行 1280×720、1440×900、1920×1080 的菜单、帮助、设置、日志、暂停、下注、全下、结算、离桌确认、多人出局/胜利总结、设置生效与保存失败提示流程，截图写入 `/tmp/poker_audit/`；练习产品页面另存 `/tmp/poker_practice_audit/`。
 
 长测默认运行 30 分钟，包装器记录提交、dirty 状态和运行资源指纹，并把日志和报告保存在 `export/evidence/`（引擎原始报告仍写入 `user://poker_stability_report.json`）；必须同时确认成功标记、退出码、帧延迟和资源曲线。`python3 tools/soak.py --godot "$GODOT_BIN" -- --seconds=15 --min-ai=1` 只用于检查脚本能否运行，不满足首发长测门。所有 UI 探针使用各自独立 profile，不能修改真实玩家战绩。
 
@@ -96,7 +96,22 @@ Developer ID 需要开发者计划资格，常规会员价格为 99 USD/年（�
 
 ## 本地数据与资源
 
-`user://poker_profile.cfg` 仅包含偏好和聚合统计。字段会按类型规范化，写入采用同目录临时文件后替换，失败由 UI 提示。用设置中的两次点击确认重置统计，不用删除文件作为普通测试流程。
+`user://poker_profile.cfg` 保存版本 2 偏好和旧版历史汇总。`user://poker_practice/profile.json` 保存版本 1 进度、成就、整场结果和紧凑累计账目，`hand_<id>.json` 保存完整牌谱。旧汇总首次导入后独立显示，不反推牌谱或成就。
+
+最多保留 1000 手完整牌谱。到达容量后，进入“牌局记录”选择一手并确认删除，再重试保存；删除完整牌谱不减累计统计或成就。紧凑账目保留去重键和筛选所需数据，随手数增长，不含逐动作帧。设置中的“重置历史汇总”仅清空旧版汇总，需二次确认，不清空新账目。
+
+写入使用同目录临时文件后替换；手牌文件和元数据分步落盘，元数据失败可从已写入手牌恢复。保存失败保留内存中的待提交记录，并在结算/记录页提供重试。离开未完成牌桌会确认并单列提前离桌；退出程序会丢失尚未成功保存的内存更新。新版本元数据禁止旧格式覆盖；单条损坏牌谱会跳过并提示，其余仍可读取。不要用真实玩家目录进行故障注入。
+
+新增专项检查（完整检查仍推荐 `verify.py`）：
+
+```sh
+"$GODOT_BIN" --headless --path . -s tests/practice_data_test.gd
+"$GODOT_BIN" --headless --path . -s tests/tutorial_test.gd
+"$GODOT_BIN" --headless --path . -s tests/practice_ui_probe.gd
+"$GODOT_BIN" --path . -s tests/practice_ui_probe.gd
+```
+
+数据和 UI 专项测试使用系统缓存目录下带唯一后缀的隔离目录。测试日志需同时检查成功标记、退出码及 `SCRIPT ERROR`；不能只看退出码。
 
 美术修改先读 [art-direction.md](art-direction.md)；运行依赖由代码 `preload()` 和导出资源列表共同明确。Noto Sans SC 使用独立的 weight-400 `FontVariation`，许可位于 `assets/fonts/OFL.txt`；变量字体不能直接以最低字重作为默认界面字体。字体在主场景初始化时应用，并显式传给弹窗；不设置项目级 `theme/custom_font`，避免干净 checkout 在首次导入前读取尚不存在的字体缓存。
 

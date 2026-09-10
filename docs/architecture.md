@@ -2,7 +2,7 @@
 
 ## Overview
 
-PokerGame is a local single-player Texas Hold'em prototype built with Godot 4 and GDScript. The player faces 1-5 local AI opponents. Poker rules, AI decisions, local profile persistence, and UI rendering are kept separate so visual work does not become a second source of poker state.
+PokerGame is an offline Texas Hold'em practice game built with Godot 4 and GDScript. The player faces 1-5 local AI opponents. Poker rules, AI decisions, local profile persistence, and UI rendering are kept separate so visual work does not become a second source of poker state.
 
 The game remains offline-only. It does not use APIs, LLMs, Steamworks, accounts, real money, networking, telemetry, or third-party poker libraries.
 
@@ -11,7 +11,7 @@ The game remains offline-only. It does not use APIs, LLMs, Steamworks, accounts,
 The main scene is `res://scenes/main.tscn`, backed by `scripts/ui/main.gd`.
 
 1. `_ready()` loads `user://poker_profile.cfg`, applies the bundled regular font after resource import, initializes local audio, and shows the main menu.
-2. The menu restores AI count and difficulty and exposes local sound, action pace, help, and statistics through a settings popup.
+2. The home page routes to tutorials, free play, or the basic practice flow. Configuration keeps an unsubmitted draft; a new match receives a copy of the selected opponent count, difficulty, stack and fixed blinds.
 3. Starting a match saves the selected settings and calls `PokerRound.start_new_match()`.
 4. `PokerRound.start_next_hand()` shuffles, deals hole cards, posts blinds, records events, and sets the first actor.
 5. Human actions come from the UI and call `PokerRound.apply_action()`.
@@ -19,7 +19,7 @@ The main scene is `res://scenes/main.tscn`, backed by `scripts/ui/main.gd`.
 7. The rules engine advances streets, resolves uncontested pots, or runs showdown through `HandEvaluator`.
 8. The UI renders the full-screen table. The event log is a normally closed overlay drawer; opening it blocks UI-driven AI advancement and closing it resumes play.
 9. During a match, the settings popup can pause play. The pause overlay blocks player input and AI advancement, and offers resume or return-to-menu. Both scheduled and pending AI callbacks re-check that the table is still active before applying an action.
-10. Completed hands update local statistics once. The floating result dock shows payouts and offers the next hand or a restart.
+10. Completed hands expose an immutable structured record. The UI submits it to `PracticeStore`, retains failed submissions for retry, and offers replay or the next hand. Practice can pause each hand or advance after three active seconds; overlays freeze that timer.
 
 ## Game Layer
 
@@ -30,7 +30,11 @@ The main scene is `res://scenes/main.tscn`, backed by `scripts/ui/main.gd`.
 - `hand_evaluator.gd` evaluates the best 5-card hand from 5-7 cards, compares results, and supplies Chinese rank names.
 - `table_state.gd` stores shared stage, player-status, blind, stack, and action constants.
 - `poker_round.gd` owns table state, legal-action checks, betting flow, durable blind positions, event history, side pots, showdown, split pots, and hand lifecycle.
-- `local_profile.gd` normalizes and persists local menu settings and aggregate statistics through Godot `ConfigFile` at `user://poker_profile.cfg`.
+- `match_config.gd` validates the supported integer stack/blind presets and normalizes old preferences.
+- `local_profile.gd` stores versioned preferences and legacy aggregate statistics at `user://poker_profile.cfg`, guarding newer-format files against overwrite.
+- `practice_store.gd` owns atomic completed-hand files, a compact cumulative ledger, match outcomes, tutorial progress, achievements, and the one-time legacy summary import.
+- `tutorial_controller.gd` prepares independent deterministic teaching games. Actions use `PokerRound.apply_action()`; settlement checkpoints use the normal evaluator and pot resolver. No tutorial record enters ordinary statistics.
+- `poker_reference.gd` supplies Chinese rules and nine hand-rank examples verified with `HandEvaluator`.
 
 `public_action_history` records successful voluntary actions with the before-action board, pot, price, stacks and actual payment. It resets each hand and does not inherit the text event log's 40-entry truncation or private decision labels. It is in-memory strategy input, not a persistent replay system.
 
@@ -63,7 +67,7 @@ The visible wait before an AI action belongs to the UI layer and does not change
 
 ## UI And Art Layer
 
-`scripts/ui/main.gd` builds the interface programmatically with Godot `Control` nodes and theme overrides. It composes generated PNG textures from `assets/art/generated/` for the menu, title, table, characters, cards, action tags, neutral nameplates, and modular chips. Dynamic Chinese text, card ranks, suits, values, and event content remain runtime-rendered so game information stays exact. Buttons, fields, panels, sliders, blind-role badges, the pot amount plaque, and HUD chrome use hard-edged `StyleBoxFlat` or runtime-drawn controls instead of enlarged UI atlases.
+`scripts/ui/main.gd` coordinates live play and configuration. `scripts/ui/practice_views.gd` renders tutorials, records, filtered statistics and immutable replay frames without assigning replay state to the live game. The UI builds the interface programmatically with Godot `Control` nodes and theme overrides. It composes generated PNG textures from `assets/art/generated/` for the menu, title, table, characters, cards, action tags, neutral nameplates, and modular chips. Dynamic Chinese text, card ranks, suits, values, and event content remain runtime-rendered so game information stays exact. Buttons, fields, panels, sliders, blind-role badges, the pot amount plaque, and HUD chrome use hard-edged `StyleBoxFlat` or runtime-drawn controls instead of enlarged UI atlases.
 
 The table is a fixed-aspect `AspectRatioContainer` stage (`TableStage`, ratio 1619:971 matching the table texture). The table texture's built-in dark margins double as standing room: character sprites anchored at each seat overlap the rail from outside, selling players sitting around the table. All seat elements are positioned with fractional anchors from `SEAT_LAYOUTS` so the layout holds at any window size:
 
@@ -79,7 +83,7 @@ Key widgets carry stable node names (`TableStageRoot`, `TableFeltSafeZone`, `Flo
 The UI displays:
 
 - Chinese main menu with AI-count and difficulty controls.
-- A settings popup for local sound/pace switches and aggregate statistics, including a two-step reset confirmation.
+- A settings popup for sound/pace, two scrollable references and the explicitly labeled legacy summary reset. New cumulative statistics and achievements have their own page.
 - During a match, the settings popup also exposes pause; the full-screen pause overlay offers resume and return-to-menu.
 - A compact floating hand/street/status capsule, community cards, player seats, role markers, stacks, bets, and a physical pot display.
 - An on-demand right-side event-log drawer containing only actual game events.
@@ -90,14 +94,25 @@ The canonical visual constraints are documented in `docs/art-direction.md`. Asse
 
 ## Local Persistence And Audio
 
-- `LocalProfile` stores AI count, difficulty, sound enabled, fast pace enabled, total hands, wins, net profit, and maximum single-hand win.
-- Values are normalized when loaded; missing or invalid values fall back to defaults.
-- Statistics are aggregate local records, not hand histories, accounts, or cloud saves.
-- Action sounds are generated locally with `AudioStreamGenerator`; there are no downloaded audio assets or network calls.
-- No music toggle or music track is shipped. The old unused preference is ignored on load.
-- Saves write to a temporary file and then replace the profile; failure returns false and the UI shows an error popup. Tests and package self-test use separate profile paths.
+- `LocalProfile` stores preferences plus the preserved old aggregate totals. Invalid fields recover with a visible notice; an unknown newer version remains read-only.
+- `user://poker_practice/hand_<id>.json` stores each finished hand (format version 1). Frames include dealt hole cards, the board at that moment, action amounts, bets, stacks, blind/button positions, refunds and final per-pot payouts. IDs use independent cryptographic randomness and do not alter the poker shuffle RNG.
+- `user://poker_practice/profile.json` stores the compact per-hand ledger, match outcomes, legacy summary, progress and achievements. It contains no full replay frames. The compact ledger grows with played hands so deletion can retain cumulative filters and deduplication; full replay files are limited to 1000. At capacity, saving pauses for explicit manual cleanup and retry; no replay is silently evicted.
+- A hand file is written before its metadata. Failed metadata writes retain the durable record for retry/recovery. Deletion persists the ledger before removing the full record. Invalid or unknown hand files are skipped and reported without removing valid siblings; damaged/newer metadata is read-only.
+- Wins mean an exclusive award from any pot; splits are tracked separately and may overlap with wins. Positive-net hands are a separate measure. Raw profit is grouped by blind pair, with BB totals also available. Rank counts require actual showdown participation; tutorial and replay activity never adds ordinary hands. Early departures are separate from completed won/lost matches.
+- The UI retains unsaved hand and match submissions in memory and warns on exit. This does not provide unfinished-match resume. Replay is a deep copy; hero-time view hides unrevealed opponents and future board cards, while all-knowing view is restricted to completed hands. A replay achievement requires visiting every frame.
+- Test scenes derive an isolated practice directory from their injected profile path; tests and the fixed source/package self-test do not use player data.
+- Action sounds use a local `AudioStreamGenerator`; scene teardown stops and detaches the stream. There is no downloaded audio, telemetry, account or cloud save.
+- Opponent decisions use the range and action-EV model described above. Coach evaluation, radar dimensions and cross-stack AI quality remain separate work. Opening the unavailable coach panel does not count as actually viewing assistance.
+
+Hand records retain only the peak observed within that hand. The double-stack achievement requires crossing the threshold during that hand, so an inherited starting stack cannot reattribute an earlier achievement. Match persistence waits until every pending hand of that match has been committed.
 
 ## Tests
+
+- `tests/practice_save_retry_test.gd` checks match persistence ordering during capacity failure and recovery.
+
+- `tests/practice_data_test.gd` covers all 80 count/stake/blind combinations, record fidelity and isolation, multi-pot classification, atomic retry, migration, corrupt/future files, filtering, milestones and retained statistics after deletion.
+- `tests/tutorial_test.gd` covers seven lessons, wrong-answer recovery, deterministic restart, real payouts and legal self-test branches.
+- `tests/practice_ui_probe.gd` drives mode/configuration, references, tutorial completion, real replay traversal, filter controls, isolation and practice auto-advance at three sizes. Its windowed run captures `/tmp/poker_practice_audit/`.
 
 - `tests/test_ai_strategy.gd` checks all 169 preflop classes, position/stack/price scaling, concrete suit-aware posteriors, blocker-weighted and joint sampling frequencies, analytic side-pot/action EVs, response information timing, bounded profiles and personality/category behavior.
 - `tests/test_ai_observations.gd` checks successful-action history, resets and deep copies, private-data exclusion from snapshots, and seeded decision invariance when hidden opponent information changes.
@@ -112,7 +127,7 @@ The release branch adds exact full-big-blind call amounts for short blinds, all-
 
 `AiTurnWorker` never touches the active scene tree or live poker state. `_show_menu()` and `_on_start_pressed()` invalidate the generation; completed stale results are discarded. Closing the scene joins the worker. Queued human input checks that the table is interactive and it is still the human turn before applying an action. Infinite portrait tweens bind to their sprite node, so redraws free the material and animation together.
 
-The default UI font is the bundled Noto Sans SC with an explicit weight-400 `FontVariation`. Help explains the goal, betting and settlement, and leaving a match asks for confirmation. The game intentionally retains aggregate completed-hand statistics, not an unfinished match.
+The default UI font is the bundled Noto Sans SC with an explicit weight-400 `FontVariation`. Help explains the goal, betting and settlement, and leaving a match asks for confirmation. The game retains completed-hand replays and cumulative results, but does not resume unfinished matches.
 
 `export_presets.cfg` explicitly lists script and asset roots, including global classes that selected-scene export does not reliably discover. `tools/bootstrap_godot.py` verifies the official Godot 4.7.2 standard editor/templates against SHA-512; `tools/build_release.py` builds versioned ZIPs, hashes them, and runs a native package self-test outside the source checkout. The self-test is a fixed internal diagnostic (`--headless -- --self-test`), not support for arbitrary external scripts. It uses a separate cache profile and does not run in a graphical game.
 
