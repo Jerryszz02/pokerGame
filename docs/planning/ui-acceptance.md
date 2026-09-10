@@ -1,5 +1,7 @@
 # UI 验收指标（ui-acceptance）
 
+> 范围说明（2026-09-10）：本文保留原牌桌 UI 的验收基线；新的模式、教程、配置与回放交互按 [非 AI 算法功能规划](practice-product-plan.md#12-验收清单) 增补探针。下文“只修改 UI”的步骤限于原 UI 修复任务，不限制新规划中必要的规则配置和持久化实现。
+
 本文定义 PokerGame UI 修复的可验收指标。机器指标由 `tests/ui_playthrough_probe.gd`（窗口模式）与 `tests/ui_layout_probe.gd`（headless）自动断言；人工指标由 agent 扮演玩家对截图做对抗式审查。
 
 ## 问题分级
