@@ -2,6 +2,7 @@ extends SceneTree
 var failures := 0
 func _init() -> void: call_deferred("_run")
 func _run() -> void:
+	TranslationServer.set_locale("zh_CN") # This fixture asserts Chinese tutorial copy.
 	_reference(); _t1(); _lessons(); _t3_t6(); _t7()
 	if failures == 0: print("Tutorial tests passed.")
 	quit(failures)
