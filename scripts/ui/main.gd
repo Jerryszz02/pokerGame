@@ -1,5 +1,7 @@
 extends Control
 
+const AUDIO_CREDITS := "Airport Lounge — Kevin MacLeod (incompetech.com)\nCC BY 4.0 · https://creativecommons.org/licenses/by/4.0/\nhttps://incompetech.com/music/royalty-free/index.html?isrc=USUAN1100806\nUnmodified recording, repeated at reduced volume.\n\nCasino Audio — Kenney (kenney.nl)\nCC0 · https://kenney.nl/assets/casino-audio"
+
 const COLOR_DEEP = Color(0.018, 0.043, 0.039)
 const COLOR_PANEL = Color(0.055, 0.067, 0.058)
 const COLOR_PANEL_DARK = Color(0.030, 0.037, 0.033)
@@ -34,7 +36,7 @@ const STAGE_LABELS = {
 	TableState.STAGE_SHOWDOWN: "摊牌",
 	TableState.STAGE_HAND_OVER: "结算"
 }
-const AUDIO_SAMPLE_RATE := 22050
+const GameAudioScript := preload("res://scripts/ui/game_audio.gd")
 const MENU_SELECTION_SIZE := Vector2(180, 38)
 const MENU_BOARD_SIZE := Vector2(600, 540)
 const MENU_START_BUTTON_SIZE := Vector2(360, 48)
@@ -42,6 +44,7 @@ const MENU_TITLE_ANCHOR_X := 676.5
 const MENU_TITLE_REGION := Rect2(14, 260, 1325, 350)
 const ExportSelfTestScript := preload("res://scripts/game/export_self_test.gd")
 const LocalProfileScript := preload("res://scripts/game/local_profile.gd")
+const GameLocalizationScript := preload("res://scripts/game/localization.gd")
 const UI_FONT := preload("res://assets/fonts/UI-Regular.tres")
 const MENU_BACKGROUND_TEXTURE := preload("res://assets/art/generated/misc/menu-background.png")
 const MENU_NOTICE_BOARD_TEXTURE := preload("res://assets/art/generated/ui/menu-notice-board.png")
@@ -94,7 +97,7 @@ var sound_toggle: CheckBox
 var pace_toggle: CheckBox
 var raise_slider: HSlider
 var raise_button: Button
-var sound_player: AudioStreamPlayer
+var sound_player: GameAudioScript
 var stats_label: Label
 var stats_reset_button: Button
 var stats_reset_pending := false
@@ -132,6 +135,7 @@ func _ready() -> void:
 		profile_path = OS.get_cache_dir().path_join("poker_export_self_test.cfg")
 	randomize()
 	profile = LocalProfileScript.load_profile(profile_path)
+	GameLocalizationScript.apply_choice(profile.settings.get("language", GameLocalizationScript.SYSTEM))
 	practice_store = PracticeStore.new("user://poker_practice" if profile_path == LocalProfileScript.PROFILE_PATH else profile_path + ".practice")
 	practice_store.migrate_legacy(profile)
 	pending_match_config = MatchConfig.normalize(profile.settings)
@@ -141,9 +145,9 @@ func _ready() -> void:
 	_setup_audio()
 	_show_menu()
 	if not str(profile.get("notice", "")).is_empty():
-		_show_text_popup("配置恢复", profile.notice, "ProfileNoticePopup")
+		_show_text_popup(GameLocalization.present("配置恢复"), profile.notice, "ProfileNoticePopup")
 	if not practice_store.notice.is_empty():
-		_show_text_popup("本地资料", practice_store.notice, "PracticeNoticePopup")
+		_show_text_popup(GameLocalization.present("本地资料"), practice_store.notice, "PracticeNoticePopup")
 	if self_test:
 		call_deferred("_run_package_self_test")
 
@@ -173,7 +177,7 @@ func _process(delta: float) -> void:
 func _exit_tree() -> void:
 	_ai_worker.finish()
 	if is_instance_valid(sound_player):
-		sound_player.stop()
+		sound_player.stop_all()
 		sound_player.stream = null
 
 func _invalidate_ai_turn() -> void:
@@ -212,13 +216,24 @@ func _show_menu(reset_pending: bool = true) -> void:
 	menu_stack.alignment = BoxContainer.ALIGNMENT_CENTER
 	shell.add_child(menu_stack)
 
-	var logo_texture := _atlas_texture(TITLE_LOGO_TEXTURE, MENU_TITLE_REGION)
-	var logo := _texture_rect(logo_texture, TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
-	logo.name = "MenuTitleLogo"
-	logo.custom_minimum_size = Vector2(520, 96)
-	logo.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	logo.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	menu_stack.add_child(logo)
+	if TranslationServer.get_locale().begins_with("en"):
+		var logo := Label.new()
+		logo.name = "MenuTitleLogo"
+		logo.text = "♠ POKERGAME ♦"
+		logo.custom_minimum_size = Vector2(520, 96)
+		logo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		logo.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		logo.add_theme_font_size_override("font_size", 40)
+		logo.add_theme_color_override("font_color", COLOR_BRASS.lightened(0.25))
+		menu_stack.add_child(logo)
+	else:
+		var logo_texture := _atlas_texture(TITLE_LOGO_TEXTURE, MENU_TITLE_REGION)
+		var logo := _texture_rect(logo_texture, TextureRect.STRETCH_KEEP_ASPECT_CENTERED)
+		logo.name = "MenuTitleLogo"
+		logo.custom_minimum_size = Vector2(520, 96)
+		logo.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		logo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		menu_stack.add_child(logo)
 
 	var panel := PanelContainer.new()
 	panel.name = "MenuNoticeBoard"
@@ -270,7 +285,7 @@ func _menu_controls_panel() -> Control:
 	primary.columns = 1
 	primary.add_theme_constant_override("h_separation", 6)
 	primary.add_theme_constant_override("v_separation", 6)
-	for entry in [{"name":"新手教程", "id":"tutorial", "node":"HomeTutorialButton"}, {"name":"自由对战", "id":"free", "node":"HomeFreePlayButton"}, {"name":"练习对局 · 基础流程", "id":"practice", "node":"HomePracticeButton"}]:
+	for entry in [{"name":GameLocalization.present("新手教程"), "id":"tutorial", "node":"HomeTutorialButton"}, {"name":GameLocalization.present("自由对战"), "id":"free", "node":"HomeFreePlayButton"}, {"name":GameLocalization.present("练习对局 · 基础流程"), "id":"practice", "node":"HomePracticeButton"}]:
 		var mode_button := _command_button(str(entry.name), COLOR_ACTION, _white_color())
 		mode_button.name = str(entry.node)
 		mode_button.custom_minimum_size = Vector2(0, 42)
@@ -282,14 +297,14 @@ func _menu_controls_panel() -> Control:
 	secondary.name = "SecondaryHomeEntries"
 	secondary.alignment = BoxContainer.ALIGNMENT_CENTER
 	secondary.add_theme_constant_override("separation", 6)
-	for entry in [{"name":"牌局记录", "id":"history"}, {"name":"统计与成就", "id":"stats"}]:
+	for entry in [{"name":GameLocalization.present("牌局记录"), "id":"history"}, {"name":GameLocalization.present("统计与成就"), "id":"stats"}]:
 		var secondary_button := _command_button(str(entry.name), COLOR_PANEL_DARK, _muted_color())
 		secondary_button.name = "Home%sButton" % str(entry.id).capitalize()
 		secondary_button.custom_minimum_size = Vector2(132, 34)
 		secondary_button.pressed.connect(func(): _open_home_secondary(str(entry.id)))
 		secondary.add_child(secondary_button)
 	box.add_child(secondary)
-	var help_button := _command_button("玩法说明", COLOR_ACTION, _white_color())
+	var help_button := _command_button(GameLocalization.present("玩法说明"), COLOR_ACTION, _white_color())
 	help_button.name = "MenuHelpButton"
 	help_button.custom_minimum_size = Vector2(180, 36)
 	help_button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
@@ -309,9 +324,9 @@ func _build_ai_spin() -> SpinBox:
 
 func _build_difficulty_options() -> OptionButton:
 	difficulty_options = OptionButton.new()
-	difficulty_options.add_item("简单", 0)
-	difficulty_options.add_item("普通", 1)
-	difficulty_options.add_item("困难", 2)
+	difficulty_options.add_item(GameLocalization.present("简单"), 0)
+	difficulty_options.add_item(GameLocalization.present("普通"), 1)
+	difficulty_options.add_item(GameLocalization.present("困难"), 2)
 	match str(pending_match_config.difficulty):
 		"simple":
 			difficulty_options.select(0)
@@ -327,7 +342,7 @@ func _build_difficulty_options() -> OptionButton:
 
 func _build_sound_toggle() -> Control:
 	sound_toggle = CheckBox.new()
-	sound_toggle.text = "开启本地音效"
+	sound_toggle.text = tr("开启本地音效")
 	sound_toggle.button_pressed = bool(profile.settings.sound_enabled)
 	sound_toggle.add_theme_color_override("font_color", _white_color())
 	sound_toggle.add_theme_font_size_override("font_size", FONT_BODY)
@@ -336,7 +351,7 @@ func _build_sound_toggle() -> Control:
 
 func _build_pace_toggle() -> Control:
 	pace_toggle = CheckBox.new()
-	pace_toggle.text = "快速行动"
+	pace_toggle.text = tr("快速行动")
 	pace_toggle.button_pressed = bool(profile.settings.fast_mode)
 	pace_toggle.add_theme_color_override("font_color", _white_color())
 	pace_toggle.add_theme_font_size_override("font_size", FONT_BODY)
@@ -344,7 +359,7 @@ func _build_pace_toggle() -> Control:
 	return pace_toggle
 
 func _settings_button() -> Button:
-	var button := _command_button("设置", COLOR_ACTION, _white_color())
+	var button := _command_button(GameLocalization.present("设置"), COLOR_ACTION, _white_color())
 	button.custom_minimum_size = Vector2(96, 42)
 	button.anchor_left = 1.0
 	button.anchor_top = 1.0
@@ -365,7 +380,7 @@ func _show_settings_popup() -> void:
 	add_child(popup)
 	popup.popup_hide.connect(func(): popup.queue_free())
 	popup.add_child(_settings_panel(popup, in_match))
-	popup.popup_centered(Vector2i(470, 610) if in_match else Vector2i(470, 500))
+	popup.popup_centered(Vector2i(540, 670) if in_match else Vector2i(540, 610))
 
 func _settings_panel(popup: PopupPanel, in_match: bool) -> Control:
 	var panel := PanelContainer.new()
@@ -375,32 +390,41 @@ func _settings_panel(popup: PopupPanel, in_match: bool) -> Control:
 	box.add_theme_constant_override("separation", 6)
 	panel.add_child(box)
 	var title := Label.new()
-	title.text = "设置"
+	title.text = tr("设置")
 	title.add_theme_color_override("font_color", COLOR_BRASS)
 	title.add_theme_font_size_override("font_size", FONT_LABEL)
 	box.add_child(title)
-	box.add_child(_menu_row("音效", _build_sound_toggle()))
-	box.add_child(_menu_row("节奏", _build_pace_toggle()))
+	box.add_child(_menu_row(GameLocalization.present("音效"), _build_sound_toggle()))
+	box.add_child(_menu_row(GameLocalization.present("音乐音量"), _audio_volume_control("music_volume")))
+	box.add_child(_menu_row(GameLocalization.present("音效音量"), _audio_volume_control("sound_volume")))
+	box.add_child(_menu_row(GameLocalization.present("节奏"), _build_pace_toggle()))
+	box.add_child(_language_row(popup, in_match))
 	box.add_child(_stats_panel())
-	var help_button := _command_button("规则速览", COLOR_ACTION, _white_color())
+	var help_button := _command_button(GameLocalization.present("规则速览"), COLOR_ACTION, _white_color())
 	help_button.name = "RulesReferenceButton"
 	help_button.pressed.connect(func():
 		popup.hide()
 		_show_help()
 	)
 	box.add_child(help_button)
-	var hands_button := _command_button("牌型速览", COLOR_ACTION, _white_color())
+	var hands_button := _command_button(GameLocalization.present("牌型速览"), COLOR_ACTION, _white_color())
 	hands_button.name = "HandsReferenceButton"
 	hands_button.pressed.connect(func(): popup.hide(); _show_hand_reference())
 	box.add_child(hands_button)
+	var credits := _command_button(GameLocalization.present("音频署名"), COLOR_ACTION, _white_color())
+	credits.name = "AudioCreditsButton"
+	credits.pressed.connect(func():
+		popup.hide()
+		_show_text_popup(GameLocalization.present("音频署名"), AUDIO_CREDITS, "AudioCreditsPopup"))
+	box.add_child(credits)
 	if in_match and current_mode == "practice":
 		var hints := CheckBox.new()
-		hints.text = "显示提示入口（尚无分析结果）"
+		hints.text = tr("显示提示入口（尚无分析结果）")
 		hints.button_pressed = pending_match_config.show_hints
 		hints.toggled.connect(func(value: bool): pending_match_config.show_hints = value; profile.settings.show_hints = value; _save_profile())
 		box.add_child(hints)
 	if in_match:
-		var pause_button := _command_button("继续游戏" if paused else "暂停游戏", COLOR_ACTION, _white_color())
+		var pause_button := _command_button(GameLocalization.present("继续游戏") if paused else GameLocalization.present("暂停游戏"), COLOR_ACTION, _white_color())
 		pause_button.name = "PauseToggleButton"
 		pause_button.custom_minimum_size = Vector2(0, 36)
 		pause_button.pressed.connect(func():
@@ -408,7 +432,7 @@ func _settings_panel(popup: PopupPanel, in_match: bool) -> Control:
 			_toggle_pause()
 		)
 		box.add_child(pause_button)
-	var close_button := _command_button("关闭", COLOR_ACTION, _white_color())
+	var close_button := _command_button(GameLocalization.present("关闭"), COLOR_ACTION, _white_color())
 	close_button.custom_minimum_size = Vector2(0, 36)
 	close_button.pressed.connect(func():
 		popup.hide()
@@ -416,11 +440,29 @@ func _settings_panel(popup: PopupPanel, in_match: bool) -> Control:
 	box.add_child(close_button)
 	return panel
 
+func _language_row(popup: PopupPanel, in_match: bool) -> Control:
+	var options := OptionButton.new()
+	options.name = "LanguageOptions"
+	options.add_item(GameLocalizationScript.choice_label(GameLocalizationScript.SYSTEM), 0)
+	options.add_item(GameLocalizationScript.choice_label(GameLocalizationScript.ZH_CN), 1)
+	options.add_item(GameLocalizationScript.choice_label(GameLocalizationScript.EN), 2)
+	var current := GameLocalizationScript.normalize_choice(profile.settings.get("language", GameLocalizationScript.SYSTEM))
+	options.select({GameLocalizationScript.SYSTEM: 0, GameLocalizationScript.ZH_CN: 1, GameLocalizationScript.EN: 2}.get(current, 0))
+	_apply_field_style(options)
+	options.item_selected.connect(func(index: int):
+		var choices := [GameLocalizationScript.SYSTEM, GameLocalizationScript.ZH_CN, GameLocalizationScript.EN]
+		profile.settings.language = GameLocalizationScript.apply_choice(choices[index])
+		_save_profile()
+		popup.hide()
+		if in_match: _render_table()
+		else: _show_menu(false))
+	return _menu_row(GameLocalization.present("语言 / Language"), options)
+
 func _stats_panel() -> Control:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)
 	var title := Label.new()
-	title.text = "旧版历史汇总（无法追溯）"
+	title.text = tr("旧版历史汇总（无法追溯）")
 	title.add_theme_color_override("font_color", COLOR_BRASS)
 	title.add_theme_font_size_override("font_size", FONT_LABEL)
 	box.add_child(title)
@@ -437,7 +479,7 @@ func _stats_panel() -> Control:
 
 func _refresh_stats_panel() -> void:
 	if stats_label:
-		stats_label.text = "总手数 %d · 胜手 %d\n净盈利 %d · 最大单手 +%d" % [
+		stats_label.text = tr("总手数 %d · 胜手 %d\n净盈利 %d · 最大单手 +%d") % [
 			int(profile.stats.total_hands),
 			int(profile.stats.total_win_hands),
 			int(profile.stats.total_net_profit),
@@ -445,7 +487,7 @@ func _refresh_stats_panel() -> void:
 		]
 	if stats_reset_button:
 		var color := COLOR_DANGER if stats_reset_pending else COLOR_ACTION
-		stats_reset_button.text = "再次点击确认" if stats_reset_pending else "重置历史汇总"
+		stats_reset_button.text = tr("再次点击确认" if stats_reset_pending else GameLocalization.present("重置历史汇总"))
 		_apply_command_button_style(stats_reset_button, color)
 
 func _menu_row(label_text: String, field: Control, centered: bool = false) -> Control:
@@ -454,7 +496,7 @@ func _menu_row(label_text: String, field: Control, centered: bool = false) -> Co
 	if centered:
 		row.alignment = BoxContainer.ALIGNMENT_CENTER
 	var label := Label.new()
-	label.text = label_text
+	label.text = tr(label_text)
 	label.custom_minimum_size = Vector2(104 if centered else 150, 0)
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.add_theme_color_override("font_color", COLOR_BRASS)
@@ -544,37 +586,37 @@ func _show_mode_config(mode: String) -> void:
 	box.add_theme_constant_override("separation", 9)
 	scroll.add_child(box)
 	var title := Label.new()
-	title.text = "新手教程" if mode == "tutorial" else ("练习对局配置" if mode == "practice" else "自由对战配置")
+	title.text = tr("新手教程" if mode == "tutorial" else (GameLocalization.present("练习对局配置") if mode == "practice" else GameLocalization.present("自由对战配置")))
 	title.add_theme_font_size_override("font_size", FONT_DISPLAY)
 	title.add_theme_color_override("font_color", COLOR_BRASS)
 	box.add_child(title)
-	box.add_child(_config_row("AI 对手", _build_ai_spin()))
-	box.add_child(_config_row("难度", _build_difficulty_options()))
+	box.add_child(_config_row(GameLocalization.present("AI 对手"), _build_ai_spin()))
+	box.add_child(_config_row(GameLocalization.present("难度"), _build_difficulty_options()))
 	var stack := OptionButton.new()
 	stack.name = "InitialStackOptions"
 	for stack_value in MatchConfig.STACKS:
-		stack.add_item("%d 筹码" % int(stack_value), int(stack_value))
+		stack.add_item(GameLocalization.present("%d 筹码") % int(stack_value), int(stack_value))
 		if int(pending_match_config.get("initial_stack", 1000)) == int(stack_value): stack.select(stack.item_count - 1)
 	_apply_field_style(stack)
-	box.add_child(_config_row("初始筹码", stack))
+	box.add_child(_config_row(GameLocalization.present("初始筹码"), stack))
 	var blind := OptionButton.new()
 	blind.name = "BlindOptions"
 	for item in [[5,10],[10,20],[25,50],[50,100]]:
 		blind.add_item("%d / %d" % item, item[1])
 		if int(pending_match_config.get("big_blind", 20)) == item[1]: blind.select(blind.item_count - 1)
 	_apply_field_style(blind)
-	box.add_child(_config_row("大小盲", blind))
+	box.add_child(_config_row(GameLocalization.present("大小盲"), blind))
 	if mode == "practice":
 		var hints := CheckBox.new()
 		hints.name = "ShowHintsToggle"
-		hints.text = "显示提示入口（本地教练尚不可用）"
+		hints.text = tr("显示提示入口（本地教练尚不可用）")
 		hints.button_pressed = bool(pending_match_config.get("show_hints", false))
 		hints.add_theme_color_override("font_color", _white_color())
 		hints.toggled.connect(func(value): pending_match_config.show_hints = value)
 		box.add_child(hints)
 		var pause_hand := CheckBox.new()
 		pause_hand.name = "PauseEachHandToggle"
-		pause_hand.text = "每手结束时暂停复盘"
+		pause_hand.text = GameLocalization.present("每手结束时暂停复盘")
 		pause_hand.button_pressed = bool(pending_match_config.get("pause_each_hand", true))
 		pause_hand.add_theme_color_override("font_color", _white_color())
 		pause_hand.toggled.connect(func(value): pending_match_config.pause_each_hand = value)
@@ -587,7 +629,7 @@ func _show_mode_config(mode: String) -> void:
 	_update_config_notice()
 	var actions := HBoxContainer.new()
 	actions.alignment = BoxContainer.ALIGNMENT_CENTER
-	var start := _command_button("开始", COLOR_BRASS, _ink_color())
+	var start := _command_button(GameLocalization.present("开始"), COLOR_BRASS, _ink_color())
 	start.name = "ConfigStartButton"
 	start.custom_minimum_size = Vector2(180, 42)
 	start.pressed.connect(func():
@@ -610,7 +652,7 @@ func _show_mode_config(mode: String) -> void:
 	ai_count_spin.value_changed.connect(func(value): pending_match_config.ai_count = int(value))
 	difficulty_options.item_selected.connect(func(index): pending_match_config.difficulty = ["simple", "medium", "hard"][index])
 	actions.add_child(start)
-	var cancel := _command_button("取消", COLOR_ACTION, _white_color())
+	var cancel := _command_button(GameLocalization.present("取消"), COLOR_ACTION, _white_color())
 	cancel.name = "ConfigCancelButton"
 	cancel.custom_minimum_size = Vector2(140, 42)
 	cancel.pressed.connect(_show_menu)
@@ -623,18 +665,18 @@ func _config_row(label_text: String, field: Control) -> Control:
 func _validate_match_config(config: Dictionary) -> bool:
 	if not MatchConfig.validate(config):
 		if mode_config_notice:
-			mode_config_notice.text = "配置无效：请选择支持的 AI 数量、筹码和大小盲。"
+			mode_config_notice.text = tr("配置无效：请选择支持的 AI 数量、筹码和大小盲。")
 		return false
 	var valid := int(config.get("ai_count", 0)) >= 1 and int(config.get("ai_count", 0)) <= 5
 	valid = valid and int(config.get("initial_stack", 0)) >= 1000
 	valid = valid and int(config.get("small_blind", 0)) > 0 and int(config.get("small_blind", 0)) < int(config.get("big_blind", 0))
 	if not valid and mode_config_notice:
-		mode_config_notice.text = "配置无效：请选择 1–5 名 AI、合法筹码和大小盲。"
+		mode_config_notice.text = tr("配置无效：请选择 1–5 名 AI、合法筹码和大小盲。")
 	return valid
 
 func _update_config_notice() -> void:
 	if not is_instance_valid(mode_config_notice): return
-	mode_config_notice.text = "%d 筹码 · %d/%d 盲注 · %.0f BB\nBB 是大盲单位。本场盲注固定，可免费重开。不同筹码尺度的 AI 表现仍待专项验证。" % [pending_match_config.initial_stack,pending_match_config.small_blind,pending_match_config.big_blind,float(pending_match_config.initial_stack)/pending_match_config.big_blind]
+	mode_config_notice.text = tr("%d 筹码 · %d/%d 盲注 · %.0f BB\nBB 是大盲单位。本场盲注固定，可免费重开。不同筹码尺度的 AI 表现仍待专项验证。") % [pending_match_config.initial_stack,pending_match_config.small_blind,pending_match_config.big_blind,float(pending_match_config.initial_stack)/pending_match_config.big_blind]
 
 func _show_tutorial_home() -> void:
 	practice_views.tutorial_home()
@@ -696,7 +738,7 @@ func _build_floating_status() -> Control:
 	panel.add_child(box)
 	var title := Label.new()
 	title.name = "FloatingStatusTitle"
-	title.text = "第 %d 手 · %s" % [game.hand_number, _stage_label(game.stage)]
+	title.text = tr("第 %d 手 · %s") % [game.hand_number, _stage_label(game.stage)]
 	title.add_theme_color_override("font_color", COLOR_BRASS)
 	title.add_theme_font_size_override("font_size", FONT_BUTTON)
 	box.add_child(title)
@@ -711,7 +753,7 @@ func _build_floating_status() -> Control:
 
 func _status_detail() -> String:
 	if game.is_human_turn():
-		return "轮到你行动"
+		return GameLocalization.present("轮到你行动")
 	var events := game.recent_events(1)
 	if not events.is_empty():
 		return _event_log_text(str(events[0].text))
@@ -729,7 +771,7 @@ func _build_utility_buttons() -> Control:
 	row.offset_right = -24
 	row.offset_bottom = 60
 	row.add_theme_constant_override("separation", 8)
-	var log_button := _command_button("记录", COLOR_ACTION, _white_color())
+	var log_button := _command_button(GameLocalization.present("记录"), COLOR_ACTION, _white_color())
 	log_button.name = "LogButton"
 	log_button.custom_minimum_size = Vector2(96, 40)
 	log_button.pressed.connect(_toggle_log)
@@ -748,14 +790,14 @@ func _build_utility_buttons() -> Control:
 		unread.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		log_button.add_child(unread)
 	row.add_child(log_button)
-	var settings := _command_button("设置", COLOR_ACTION, _white_color())
+	var settings := _command_button(GameLocalization.present("设置"), COLOR_ACTION, _white_color())
 	settings.name = "SettingsButton"
 	settings.custom_minimum_size = Vector2(96, 40)
 	settings.pressed.connect(_show_settings_popup)
 	row.add_child(settings)
 	if current_mode == "practice" and bool(pending_match_config.show_hints):
 		row.offset_left = -328
-		var hint := _command_button("提示", COLOR_ACTION, _white_color())
+		var hint := _command_button(GameLocalization.present("提示"), COLOR_ACTION, _white_color())
 		hint.name = "PracticeHintsButton"
 		hint.custom_minimum_size = Vector2(96, 40)
 		hint.pressed.connect(_show_analysis_unavailable)
@@ -763,12 +805,12 @@ func _build_utility_buttons() -> Control:
 	return row
 
 func _show_analysis_unavailable() -> void:
-	var popup := _show_text_popup("实时提示暂不可用", "本地教练尚未接入，当前没有建议或胜率。打开此面板不会计作使用实时辅助，也不改变发牌或对手行为。", "AnalysisUnavailablePanel")
-	var retry := _command_button("重试", COLOR_ACTION, _white_color())
+	var popup := _show_text_popup(GameLocalization.present("实时提示暂不可用"), GameLocalization.present("本地教练尚未接入，当前没有建议或胜率。打开此面板不会计作使用实时辅助，也不改变发牌或对手行为。"), "AnalysisUnavailablePanel")
+	var retry := _command_button(GameLocalization.present("重试"), COLOR_ACTION, _white_color())
 	retry.name = "AnalysisRetryButton"
 	retry.pressed.connect(func(): popup.hide(); _show_analysis_unavailable())
 	popup.get_child(0).add_child(retry)
-	var toggle := _command_button("隐藏提示入口", COLOR_ACTION, _white_color())
+	var toggle := _command_button(GameLocalization.present("隐藏提示入口"), COLOR_ACTION, _white_color())
 	toggle.pressed.connect(func():
 		pending_match_config.show_hints = false
 		profile.settings.show_hints = false
@@ -804,12 +846,12 @@ func _build_log_drawer() -> Control:
 	header.add_theme_constant_override("separation", 8)
 	box.add_child(header)
 	var title := Label.new()
-	title.text = "牌局记录"
+	title.text = tr("牌局记录")
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.add_theme_color_override("font_color", COLOR_BRASS)
 	title.add_theme_font_size_override("font_size", 16)
 	header.add_child(title)
-	var close := _command_button("关闭", COLOR_ACTION, _white_color())
+	var close := _command_button(GameLocalization.present("关闭"), COLOR_ACTION, _white_color())
 	close.name = "LogCloseButton"
 	close.custom_minimum_size = Vector2(72, 34)
 	close.pressed.connect(_toggle_log)
@@ -859,17 +901,17 @@ func _build_pause_overlay() -> Control:
 	box.add_theme_constant_override("separation", 10)
 	panel.add_child(box)
 	var title := Label.new()
-	title.text = "已暂停"
+	title.text = tr("已暂停")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_color_override("font_color", COLOR_BRASS)
 	title.add_theme_font_size_override("font_size", FONT_DISPLAY)
 	box.add_child(title)
-	var resume_button := _command_button("继续游戏", COLOR_BRASS, _ink_color())
+	var resume_button := _command_button(GameLocalization.present("继续游戏"), COLOR_BRASS, _ink_color())
 	resume_button.name = "PauseResumeButton"
 	resume_button.custom_minimum_size = Vector2(160, 40)
 	resume_button.pressed.connect(_toggle_pause)
 	box.add_child(resume_button)
-	var quit_button := _command_button("返回菜单", COLOR_ACTION, _white_color())
+	var quit_button := _command_button(GameLocalization.present("返回菜单"), COLOR_ACTION, _white_color())
 	quit_button.name = "PauseQuitButton"
 	quit_button.custom_minimum_size = Vector2(160, 40)
 	quit_button.pressed.connect(func(): _confirm_leave(false))
@@ -1086,9 +1128,9 @@ func _role_markers(player_index: int) -> Array:
 	if player_index == game.button_index:
 		roles.append({"key": "Dealer", "text": "D", "atlas_index": 0})
 	if player_index == game.small_blind_player_index:
-		roles.append({"key": "SmallBlind", "text": "小盲", "atlas_index": 1})
+		roles.append({"key": "SmallBlind", "text": "SB" if TranslationServer.get_locale().begins_with("en") else "小盲", "atlas_index": 1})
 	if player_index == game.big_blind_player_index:
-		roles.append({"key": "BigBlind", "text": "大盲", "atlas_index": 4})
+		roles.append({"key": "BigBlind", "text": "BB" if TranslationServer.get_locale().begins_with("en") else "大盲", "atlas_index": 4})
 	return roles
 
 func _role_marker(player_index: int, role: Dictionary) -> Control:
@@ -1176,21 +1218,26 @@ func _nameplate_text(player_index: int) -> String:
 	var display_name := _seat_name(player_index)
 	match str(player.status):
 		TableState.STATUS_FOLDED:
-			return "%s · 已弃牌" % display_name
+			return "%s · %s" % [display_name, tr("已弃牌")]
 		TableState.STATUS_ALL_IN:
-			return "%s · 全下" % display_name
+			return "%s · %s" % [display_name, tr("全下")]
 		TableState.STATUS_OUT:
-			return "%s · 出局" % display_name
+			return "%s · %s" % [display_name, tr("出局")]
 	return display_name
 
 func _event_log_text(event_text: String) -> String:
-	var compact_text := event_text
+	var compact_text := _localized_game_message(event_text)
 	var chinese_parentheses := RegEx.new()
 	chinese_parentheses.compile("（[^）]*）")
 	compact_text = chinese_parentheses.sub(compact_text, "", true)
 	var parentheses := RegEx.new()
 	parentheses.compile("\\([^)]*\\)")
 	return parentheses.sub(compact_text, "", true).strip_edges()
+
+## PokerRound keeps Chinese messages for save/test compatibility.  Presentation
+## localizes their stable sentence shapes here, without changing round state.
+func _localized_game_message(message: String) -> String:
+	return GameLocalizationScript.message(message)
 
 func _build_pot_instrument() -> Control:
 	var panel := PanelContainer.new()
@@ -1286,7 +1333,7 @@ func _build_action_dock() -> Control:
 		return panel
 	if not game.is_human_turn():
 		var waiting := Label.new()
-		waiting.text = "等待 AI…"
+		waiting.text = tr("等待 AI…")
 		waiting.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		waiting.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		waiting.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -1301,13 +1348,13 @@ func _build_action_dock() -> Control:
 	actions_row.add_theme_constant_override("separation", 6)
 	box.add_child(actions_row)
 
-	_add_action_button(actions_row, "弃牌", TableState.ACTION_FOLD, legal, COLOR_DANGER)
-	_add_action_button(actions_row, "让牌", TableState.ACTION_CHECK, legal, COLOR_ACTION)
-	_add_action_button(actions_row, "跟注 %d" % mini(game.get_to_call(0), int(game.players[0].stack)), TableState.ACTION_CALL, legal, COLOR_ACTION)
-	_add_action_button(actions_row, "全下", TableState.ACTION_ALL_IN, legal, COLOR_DANGER)
+	_add_action_button(actions_row, GameLocalization.present("弃牌"), TableState.ACTION_FOLD, legal, COLOR_DANGER)
+	_add_action_button(actions_row, GameLocalization.present("让牌"), TableState.ACTION_CHECK, legal, COLOR_ACTION)
+	_add_action_button(actions_row, "%s %d" % [tr("跟注"), mini(game.get_to_call(0), int(game.players[0].stack))], TableState.ACTION_CALL, legal, COLOR_ACTION)
+	_add_action_button(actions_row, GameLocalization.present("全下"), TableState.ACTION_ALL_IN, legal, COLOR_DANGER)
 
 	if legal.actions.has(TableState.ACTION_RAISE):
-		var expand_button := _command_button("加注", COLOR_BRASS, _ink_color())
+		var expand_button := _command_button(GameLocalization.present("加注"), COLOR_BRASS, _ink_color())
 		expand_button.name = "RaiseExpandButton"
 		expand_button.custom_minimum_size = Vector2(68, 38)
 		expand_button.pressed.connect(func():
@@ -1336,7 +1383,7 @@ func _build_action_dock() -> Control:
 		var increase_button := _raise_step_button("+")
 		increase_button.pressed.connect(func(): _change_raise_by_step(1))
 		raise_row.add_child(increase_button)
-		raise_button = _command_button("加注到", COLOR_BRASS, _ink_color())
+		raise_button = _command_button(GameLocalization.present("加注到"), COLOR_BRASS, _ink_color())
 		raise_button.custom_minimum_size = Vector2(96, 36)
 		raise_button.pressed.connect(func(): _on_action(TableState.ACTION_RAISE, int(raise_slider.value)))
 		raise_row.add_child(raise_button)
@@ -1366,7 +1413,7 @@ func _result_panel() -> Control:
 	column.add_child(title)
 	if game.match_over and not game.match_summary.is_empty():
 		var summary := Label.new()
-		summary.text = "总手数 %d · 最终筹码 %d · 净盈利 %d · 最大单手 +%d" % [
+		summary.text = tr("总手数 %d · 最终筹码 %d · 净盈利 %d · 最大单手 +%d") % [
 			int(game.match_summary.hands),
 			int(game.match_summary.final_stack),
 			int(game.match_summary.net_profit),
@@ -1387,7 +1434,7 @@ func _result_panel() -> Control:
 	for player_index in payout_order:
 		var payout: Dictionary = payouts[player_index]
 		var win_label := Label.new()
-		win_label.text = "%s +%d（%s）" % [game.players[player_index].name, int(payout.amount), str(payout.rank_name)]
+		win_label.text = "%s +%d (%s)" % [_seat_name(player_index), int(payout.amount), tr(str(payout.rank_name))]
 		win_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		win_label.add_theme_color_override("font_color", _white_color())
 		win_label.add_theme_font_size_override("font_size", FONT_SMALL)
@@ -1396,25 +1443,25 @@ func _result_panel() -> Control:
 	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
 	buttons.add_theme_constant_override("separation", 10)
 	if current_mode == "practice" or current_mode == "free":
-		var replay := _command_button("复盘本手", COLOR_ACTION, _white_color())
+		var replay := _command_button(GameLocalization.present("复盘本手"), COLOR_ACTION, _white_color())
 		replay.name = "ReplayCurrentHandButton"
 		replay.pressed.connect(func(): _show_replay_view(game.completed_hand_record()))
 		buttons.add_child(replay)
 	if game.players[0].stack > 0 and not game.match_over:
-		var next_button := _command_button("下一手", COLOR_BRASS, _ink_color())
+		var next_button := _command_button(GameLocalization.present("下一手"), COLOR_BRASS, _ink_color())
 		next_button.pressed.connect(_next_hand)
 		buttons.add_child(next_button)
-	var restart_button := _command_button("重新开始", COLOR_ACTION, _white_color())
+	var restart_button := _command_button(GameLocalization.present("重新开始"), COLOR_ACTION, _white_color())
 	restart_button.pressed.connect(func(): _confirm_leave(false))
 	buttons.add_child(restart_button)
 	column.add_child(buttons)
 	var save_label := Label.new()
-	save_label.text = "本手牌谱已保存" if _pending_records.is_empty() else "牌谱未保存，可重试或清理旧牌谱"
+	save_label.text = tr("本手牌谱已保存" if _pending_records.is_empty() else GameLocalization.present("牌谱未保存，可重试或清理旧牌谱"))
 	save_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	save_label.add_theme_font_size_override("font_size", FONT_SMALL)
 	column.add_child(save_label)
 	if not _pending_records.is_empty() or not _pending_matches.is_empty():
-		var retry := _command_button("重试保存", COLOR_ACTION, _white_color())
+		var retry := _command_button(GameLocalization.present("重试保存"), COLOR_ACTION, _white_color())
 		retry.name = "PracticeSaveRetry"
 		retry.pressed.connect(func(): _retry_practice_saves(); _render_table())
 		column.add_child(retry)
@@ -1457,7 +1504,8 @@ func _add_action_button(parent: Control, label: String, action: String, legal: D
 
 func _command_button(label: String, color: Color, text_color: Color) -> Button:
 	var button := Button.new()
-	button.text = label
+	button.text = tr(label)
+	button.pressed.connect(func(): _play_effect("deal"))
 	button.custom_minimum_size = BUTTON_SIZE
 	button.add_theme_color_override("font_color", text_color)
 	button.add_theme_color_override("font_hover_color", text_color)
@@ -1471,7 +1519,7 @@ func _command_button(label: String, color: Color, text_color: Color) -> Button:
 func _raise_step_button(label: String) -> Button:
 	var button := _command_button(label, COLOR_ACTION, _white_color())
 	button.custom_minimum_size = BUTTON_STEP_SIZE
-	button.tooltip_text = "按最小单位调整加注"
+	button.tooltip_text = tr("按最小单位调整加注")
 	return button
 
 func _change_raise_by_step(direction: int) -> void:
@@ -1483,10 +1531,11 @@ func _change_raise_by_step(direction: int) -> void:
 
 func _on_raise_slider_changed(value: float) -> void:
 	if raise_button:
-		raise_button.text = "加注到 %d" % int(value)
+		raise_button.text = "%s %d" % [tr("加注到"), int(value)]
 
 func _on_sound_toggled(enabled: bool) -> void:
 	profile.settings.sound_enabled = enabled
+	if is_instance_valid(sound_player): sound_player.apply_settings(profile.settings)
 	_save_profile()
 
 func _on_pace_toggled(enabled: bool) -> void:
@@ -1499,7 +1548,7 @@ func _on_reset_stats_pressed() -> void:
 		_refresh_stats_panel()
 		return
 	if not practice_store.reset_legacy():
-		_show_text_popup("未能重置",practice_store.notice,"ResetLegacyError")
+		_show_text_popup(GameLocalization.present("未能重置"),practice_store.notice,"ResetLegacyError")
 		return
 	profile = LocalProfileScript.reset_stats(profile)
 	_save_profile()
@@ -1523,7 +1572,7 @@ func _run_ai_turn() -> void:
 	if error != OK:
 		paused = true
 		_render_table()
-		_show_text_popup("AI 暂停", "AI 计算未能启动。关闭提示后，点击继续游戏重试。", "AiErrorPopup")
+		_show_text_popup(GameLocalization.present("AI 暂停"), GameLocalization.present("AI 计算未能启动。关闭提示后，点击继续游戏重试。"), "AiErrorPopup")
 		return
 	ai_pending = true
 
@@ -1584,6 +1633,7 @@ func _record_completed_hand_if_needed() -> void:
 	var record := game.completed_hand_record()
 	if record.is_empty() or _submitted_hands.has(record.id): return
 	_submitted_hands[record.id] = true
+	_play_effect("settle")
 	last_recorded_hand_number = game.hand_number
 	_pending_records[record.id] = record
 	_auto_next_elapsed = 0.0
@@ -1627,39 +1677,47 @@ func _next_hand() -> void:
 	_render_table()
 
 func _setup_audio() -> void:
-	if DisplayServer.get_name() == "headless":
-		return
-	sound_player = AudioStreamPlayer.new()
-	var stream := AudioStreamGenerator.new()
-	stream.mix_rate = AUDIO_SAMPLE_RATE
-	stream.buffer_length = 0.08
-	sound_player.stream = stream
+	sound_player = GameAudioScript.new()
+	sound_player.apply_settings(profile.settings)
 	add_child(sound_player)
-	sound_player.play()
+
+func _audio_volume_control(key: String) -> Control:
+	var row := HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var slider := HSlider.new()
+	slider.name = "MusicVolume" if key == "music_volume" else "SoundVolume"
+	slider.min_value = 0
+	slider.max_value = 100
+	slider.step = 1
+	slider.value = float(profile.settings[key]) * 100.0
+	slider.custom_minimum_size = Vector2(140, 28)
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(slider)
+	var value_label := Label.new()
+	value_label.custom_minimum_size.x = 42
+	value_label.text = "%d%%" % int(slider.value)
+	row.add_child(value_label)
+	slider.value_changed.connect(func(value: float):
+		profile.settings[key] = value / 100.0
+		value_label.text = "%d%%" % int(value)
+		if is_instance_valid(sound_player): sound_player.apply_settings(profile.settings)
+		_save_profile())
+	return row
+
+func _play_effect(kind: String) -> void:
+	if is_instance_valid(sound_player):
+		sound_player.apply_settings(profile.settings)
+		sound_player.play_effect(kind)
 
 func _play_action_sound(action: String) -> void:
 	match action:
-		TableState.ACTION_FOLD:
-			_play_sound(180.0, 0.05)
-		TableState.ACTION_RAISE, TableState.ACTION_ALL_IN:
-			_play_sound(520.0, 0.09)
-		_:
-			_play_sound(300.0, 0.05)
+		TableState.ACTION_FOLD: _play_effect("fold")
+		TableState.ACTION_CHECK: _play_effect("deal")
+		_: _play_effect("chip")
 
-func _play_sound(frequency: float, duration: float) -> void:
-	if not bool(profile.settings.sound_enabled) or sound_player == null:
-		return
-	if not sound_player.playing:
-		sound_player.play()
-	var playback := sound_player.get_stream_playback() as AudioStreamGeneratorPlayback
-	if playback == null:
-		return
-	var frames := int(AUDIO_SAMPLE_RATE * duration)
-	for i in range(frames):
-		var phase := TAU * frequency * float(i) / float(AUDIO_SAMPLE_RATE)
-		var envelope := 1.0 - float(i) / float(maxi(1, frames))
-		var sample := sin(phase) * 0.08 * envelope
-		playback.push_frame(Vector2(sample, sample))
+# Retain the probe-facing cue entry point; the cues now use local recordings.
+func _play_sound(frequency: float, _duration: float) -> void:
+	_play_effect("shuffle" if frequency >= 400.0 else "deal")
 
 func _fade_in(control: CanvasItem, duration: float) -> void:
 	if control == null:
@@ -1785,38 +1843,38 @@ func _card_color(card: Dictionary) -> Color:
 	return _ink_color()
 
 func _stage_label(stage_name: String) -> String:
-	return STAGE_LABELS.get(stage_name, stage_name)
+	return tr(STAGE_LABELS.get(stage_name, stage_name))
 
 func _status_message() -> String:
 	if game.stage == TableState.STAGE_HAND_OVER:
-		return game.last_message
+		return _localized_game_message(game.last_message)
 	if game.current_player_index >= 0:
 		var actor: Dictionary = game.players[game.current_player_index]
 		if actor.is_human:
-			return "轮到你行动"
-		return "等待 %s 行动" % actor.name
-	return game.last_message
+			return tr("轮到你行动")
+		return tr("等待 %s 行动") % _seat_name(game.current_player_index)
+	return _localized_game_message(game.last_message)
 
 func _seat_name(player_index: int) -> String:
 	var player: Dictionary = game.players[player_index]
 	if player.is_human:
-		return "你"
+		return tr("你")
 	return player.name
 
 func _action_label(action: String) -> String:
 	if action.begins_with("Blind"):
-		return action.replace("Blind", "盲注")
+		return action.replace("Blind", tr("盲注"))
 	if action.begins_with("Raise"):
-		return action.replace("Raise", "加注到")
+		return action.replace("Raise", tr("加注到"))
 	match action:
 		"Fold":
-			return "弃牌"
+			return tr("弃牌")
 		"Check":
-			return "让牌"
+			return tr("让牌")
 		"Call":
-			return "跟注"
+			return tr("跟注")
 		"All-in":
-			return "全下"
+			return tr("全下")
 	return action
 
 func _save_profile() -> void:
@@ -1826,7 +1884,7 @@ func _save_profile() -> void:
 
 func _show_save_notice() -> void:
 	_save_notice_pending = false
-	_show_text_popup("未能保存", "设置本次仍然有效，但未能写入本地文件。请检查磁盘空间和存档目录权限；退出后本次更新可能丢失。", "SaveErrorPopup")
+	_show_text_popup(GameLocalization.present("未能保存"), GameLocalization.present("设置本次仍然有效，但未能写入本地文件。请检查磁盘空间和存档目录权限；退出后本次更新可能丢失。"), "SaveErrorPopup")
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
@@ -1838,12 +1896,12 @@ func _confirm_leave(quit_app: bool) -> void:
 		else: _show_menu()
 		return
 	if find_child("LeavePopup", true, false) != null: return
-	var message := "已成功保存的手牌、教程进度和设置保留。当前整场不支持续玩；离开会放弃未结算手牌，提前离桌单列。重新开桌免费。"
+	var message := GameLocalization.present("已成功保存的手牌、教程进度和设置保留。当前整场不支持续玩；离开会放弃未结算手牌，提前离桌单列。重新开桌免费。")
 	if not _pending_records.is_empty() or not _pending_matches.is_empty():
-		message += "\n还有未保存资料，退出应用会丢失这部分更新，请先重试保存。"
-	var popup := _show_text_popup("离开牌桌？",message,"LeavePopup")
+		message += GameLocalization.present("\n还有未保存资料，退出应用会丢失这部分更新，请先重试保存。")
+	var popup := _show_text_popup(GameLocalization.present("离开牌桌？"),message,"LeavePopup")
 	var box := popup.get_child(0) as VBoxContainer
-	var leave := _command_button("确认退出" if quit_app else "确认返回菜单", COLOR_DANGER, _white_color())
+	var leave := _command_button(GameLocalization.present("确认退出") if quit_app else GameLocalization.present("确认返回菜单"), COLOR_DANGER, _white_color())
 	leave.name = "ConfirmLeaveButton"
 	leave.pressed.connect(func():
 		popup.hide()
@@ -1854,10 +1912,11 @@ func _confirm_leave(quit_app: bool) -> void:
 	box.add_child(leave)
 
 func _show_help() -> void:
-	_show_text_popup("规则速览", PokerReference.rules_text(), "HelpPopup")
+	var body := GameLocalizationScript.present(PokerReference.rules_text())
+	_show_text_popup(tr("规则速览"), body, "HelpPopup")
 
 func _show_hand_reference() -> void:
-	_show_text_popup("牌型速览", PokerReference.hands_text(), "HandReferencePopup")
+	_show_text_popup(tr("牌型速览"), tr(PokerReference.hands_text()), "HandReferencePopup")
 
 func _show_text_popup(title_text: String, body: String, node_name: String) -> PopupPanel:
 	var popup := PopupPanel.new()
@@ -1871,12 +1930,12 @@ func _show_text_popup(title_text: String, body: String, node_name: String) -> Po
 	box.custom_minimum_size.x = 540
 	popup.add_child(box)
 	var title := Label.new()
-	title.text = title_text
+	title.text = tr(title_text)
 	title.add_theme_font_size_override("font_size", FONT_DISPLAY)
 	title.add_theme_color_override("font_color", COLOR_BRASS)
 	box.add_child(title)
 	var content := Label.new()
-	content.text = body
+	content.text = tr(body)
 	content.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.custom_minimum_size.x = 540
 	content.add_theme_font_size_override("font_size", FONT_BODY)
@@ -1887,7 +1946,7 @@ func _show_text_popup(title_text: String, body: String, node_name: String) -> Po
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	box.add_child(scroll)
 	scroll.add_child(content)
-	var close := _command_button("关闭", COLOR_ACTION, _white_color())
+	var close := _command_button(GameLocalization.present("关闭"), COLOR_ACTION, _white_color())
 	close.name = "PopupCloseButton"
 	close.pressed.connect(func(): popup.hide())
 	box.add_child(close)

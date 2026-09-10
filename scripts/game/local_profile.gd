@@ -7,7 +7,7 @@ const PROFILE_VERSION := 2
 static func default_profile() -> Dictionary:
 	return {
 		"version": PROFILE_VERSION,
-		"settings": {"ai_count": 3, "difficulty": "medium", "initial_stack": 1000, "small_blind": 10, "big_blind": 20, "mode": "free", "show_hints": false, "pause_each_hand": true, "sound_enabled": true, "fast_mode": false},
+		"settings": {"ai_count": 3, "difficulty": "medium", "initial_stack": 1000, "small_blind": 10, "big_blind": 20, "mode": "free", "show_hints": false, "pause_each_hand": true, "sound_enabled": true, "music_volume": 0.18, "sound_volume": 0.7, "fast_mode": false, "language": "system"},
 		"stats": {"total_hands": 0, "total_net_profit": 0, "total_win_hands": 0, "max_single_hand_win": 0}
 	}
 
@@ -55,6 +55,9 @@ static func normalize_profile(profile: Dictionary) -> Dictionary:
 		for key in ["sound_enabled", "fast_mode"]:
 			if settings.get(key) is bool:
 				normalized.settings[key] = settings[key]
+		normalized.settings.language = GameLocalization.normalize_choice(settings.get("language", GameLocalization.SYSTEM))
+		normalized.settings.music_volume = _safe_volume(settings.get("music_volume"), 0.18 if normalized.settings.sound_enabled else 0.0)
+		normalized.settings.sound_volume = _safe_volume(settings.get("sound_volume"), 0.7)
 		var safe := MatchConfig.normalize(settings)
 		for key in ["initial_stack", "small_blind", "big_blind", "mode", "show_hints", "pause_each_hand"]:
 			normalized.settings[key] = safe[key]
@@ -89,3 +92,8 @@ static func _safe_difficulty(value: Variant) -> String:
 	if value is String and ["simple", "medium", "hard"].has(value):
 		return value
 	return "medium"
+
+static func _safe_volume(value: Variant, fallback: float) -> float:
+	if (value is int or value is float) and is_finite(float(value)):
+		return clampf(float(value), 0.0, 1.0)
+	return fallback

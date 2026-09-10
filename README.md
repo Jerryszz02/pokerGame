@@ -10,7 +10,7 @@ A free, offline Texas Hold’em game for Windows and macOS. Sit down with up to 
 
 **Single player · 1–5 AI opponents · Three difficulty levels · Simplified Chinese interface**
 
-The game’s menus, action buttons, and help are currently in **Simplified Chinese**. This English page introduces the game; an English in-game interface is not included.
+The published **v1.1.0** downloads use Simplified Chinese. The current source adds **English / 简体中文** switching in Settings, lounge background music, and recorded card/chip sounds. These changes require a new release before they appear in public downloads. See the [implementation and checks](docs/planning/bilingual-audio-plan.md).
 
 ![A river decision against five AI opponents, with fold, call, and all-in actions](docs/media/river-decision.png)
 

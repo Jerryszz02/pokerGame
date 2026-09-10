@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://bxexd5mgug8qw"
+
+[deps]
+
+files=["res://assets/translations/poker.en.translation", "res://assets/translations/poker.zh_CN.translation"]
+
+source_file="res://assets/translations/poker.csv"
+dest_files=["res://assets/translations/poker.en.translation", "res://assets/translations/poker.zh_CN.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

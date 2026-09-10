@@ -4,7 +4,6 @@ extends RefCounted
 static func rules_text() -> String:
 	return "整场目标：赢得牌桌全部筹码；筹码归零则整场结束。开桌可选人数、筹码和盲注，盲注一场内固定，重新开桌完全免费。\n\n每手用自己的两张底牌与最多五张公共牌选最佳五张。流程为翻前 → 翻牌（三张）→ 转牌（一张）→ 河牌（一张）→ 摊牌；对手全部弃牌时可提前结束。\n\n让牌：无需跟注时免费继续。跟注：补足本轮最高下注，筹码不足时只付剩余筹码。加注到：本轮累计投入的目标总额，不是额外投入。弃牌：放弃本手争夺。全下：投入剩余筹码，但仍受加注权限制。\n\n多人桌翻前从大盲之后开始，翻后从庄位之后第一位可行动者开始。单挑时庄位兼小盲，翻前先行动、翻后后行动。每手庄位轮换。\n\n全下玩家只争夺其投入对应的底池，其余投入形成边池。最佳五张相同则平分，余数按庄位之后的座位顺序分配。无人跟注的多余筹码退回。派奖金额不是净利润，净变化须扣除本手投入。\n\n设置和速览打开期间牌局等待。已完成手牌保存成功后可以跨启动回放；当前未结束的对局不支持续玩。离开时放弃未结算手牌，提前离桌单列。保存失败会明确提示并可重试。"
 
-
 static func hands() -> Array:
 	return [
 		_example("同花顺", [c(14,"S"),c(13,"S"),c(12,"S"),c(11,"S"),c(10,"S")], "同一花色的连续五张；皇家同花顺是其中的 A 高同花顺。", HandEvaluator.STRAIGHT_FLUSH),
@@ -19,11 +18,11 @@ static func hands() -> Array:
 	]
 
 static func hands_text() -> String:
-	var lines := ["牌型从高到低：" ]
+	var lines := [GameLocalization.present("牌型从高到低：") ]
 	for i in range(hands().size()):
 		var item: Dictionary = hands()[i]
-		lines.append("%d. %s：%s 示例 %s" % [i + 1, item.name, item.description, CardUtil.labels(item.cards)])
-	return "\n".join(lines) + "\n皇家同花顺属于同花顺，不是第十种牌型；公共牌组成的最佳五张牌对所有仍在牌局中的玩家可用。"
+		lines.append(GameLocalization.present("%d. %s：%s 示例 %s") % [i + 1, GameLocalization.present(item.name), GameLocalization.present(item.description), CardUtil.labels(item.cards)])
+	return "\n".join(lines) + GameLocalization.present("\n皇家同花顺属于同花顺，不是第十种牌型；公共牌组成的最佳五张牌对所有仍在牌局中的玩家可用。")
 
 static func _example(name: String, cards: Array, description: String, rank: int) -> Dictionary:
 	return {"name": name, "cards": CardUtil.clone_cards(cards), "description": description, "rank": rank}

@@ -9,6 +9,15 @@ func _check(ok: bool, message: String) -> void:
 func run(scene: Node) -> int:
 	print("Package self-test: template=", not OS.has_feature("editor"))
 	scene.set_process(false)
+	var previous_locale := TranslationServer.get_locale()
+	TranslationServer.set_locale("en")
+	_check(TranslationServer.translate("设置") == "Settings", "export contains English translations")
+	TranslationServer.set_locale("zh_CN")
+	_check(TranslationServer.translate("设置") == "设置", "export contains Chinese translations")
+	TranslationServer.set_locale(previous_locale)
+	_check(GameAudio.MUSIC.get_length() > 300.0, "export contains complete background music")
+	for effect in GameAudio.EFFECTS.values():
+		_check(effect.get_length() > 0.0, "export contains decodable card/chip sounds")
 	scene.profile.settings.sound_enabled = false
 	var font: Font = scene.get_theme_font("font")
 	_check(font == scene.UI_FONT, "export uses the bundled regular font")
@@ -38,5 +47,5 @@ func run(scene: Node) -> int:
 			await scene.get_tree().process_frame
 			await scene.get_tree().process_frame
 	if failures == 0:
-		print("Package self-test passed: packaged scene/font, 9 configurations, one-time statistics.")
+		print("Package self-test passed: packaged scene/font/translations/audio, 9 configurations, one-time statistics.")
 	return failures
