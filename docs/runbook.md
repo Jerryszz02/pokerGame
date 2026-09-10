@@ -131,3 +131,5 @@ Developer ID 需要开发者计划资格，常规会员价格为 99 USD/年（�
 ```
 
 headless 音频检查验证资源、循环、音量独立性和输入解锁逻辑；实际扬声器听感、背景音乐循环接缝需单独试听。
+
+The two generated `assets/translations/poker.*.translation` resources are tracked because startup loading and release fingerprints require them before the first import. After editing the CSV, import with the pinned Godot version and commit the regenerated resources together.
