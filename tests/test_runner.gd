@@ -443,7 +443,9 @@ func _test_profile_recovery() -> void:
 	_assert(recovered.settings.sound_enabled and recovered.settings.fast_mode, "invalid boolean defaults; valid pace preference persists")
 	_assert(recovered.stats.total_hands == 0 and recovered.stats.total_win_hands == 0, "malformed statistics normalize safely")
 	_assert(LocalProfileScript.save_profile(recovered, path), "atomic save replaces the old profile")
-	_assert(LocalProfileScript.load_profile(path) == recovered, "replacement profile round trips")
+	_assert(not str(recovered.get("notice", "")).is_empty(), "invalid old configuration reports its fallback")
+	recovered.erase("notice")
+	_assert(LocalProfileScript.load_profile(path) == recovered, "replacement profile round trips without a stale recovery notice")
 	_assert(not LocalProfileScript.save_profile(recovered, "user://missing-release-test-parent/profile.cfg"), "unwritable profile returns failure without crashing")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 

@@ -69,6 +69,8 @@ The game and this page include AI-generated artwork. Gameplay screenshots show t
 <details>
 <summary><strong>For developers: run from source</strong></summary>
 
+Current source adds tutorials, configurable stacks/blinds, saved replays and local statistics/achievements. Practice coaching and radar scores remain unavailable. Downloaded v1.0.0 packages are unchanged; see the [implementation and checks](docs/planning/practice-implementation.md).
+
 Built with Godot 4 and GDScript. Release builds use **Godot 4.7.2 standard**, with no .NET requirement. On macOS/Linux:
 
 ```sh

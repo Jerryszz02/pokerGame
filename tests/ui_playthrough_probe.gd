@@ -78,7 +78,7 @@ func _playthrough(viewport_size: Vector2i) -> void:
 		scene.pace_toggle.button_pressed = false
 		_assert(scene._ai_action_delay({"difficulty": "simple"}) >= 3.0, "normal setting restores normal delay")
 		await _state(scene, tag + "_02_settings")
-		var reset_button := _find_button_with_text(popup, "重置统计") if popup != null else null
+		var reset_button := _find_button_with_text(popup, "重置历史汇总") if popup != null else null
 		_assert(reset_button != null, "%s settings popup should expose reset stats button" % tag)
 		_assert(_find_button_with_text(popup, "暂停游戏") == null, "%s menu settings popup should not expose a pause button" % tag)
 		if reset_button != null:
@@ -96,9 +96,13 @@ func _playthrough(viewport_size: Vector2i) -> void:
 			await process_frame
 			await process_frame
 
+	scene._show_mode_config("free")
+	await process_frame
+	await process_frame
+	await _state(scene, tag + "_03a_config")
 	scene.ai_count_spin.value = 5
 	scene.difficulty_options.select(2)
-	var start_button := scene.find_child("MenuStartButton", true, false) as Button
+	var start_button := scene.find_child("ConfigStartButton", true, false) as Button
 	_assert(start_button != null, "%s menu should expose a start button" % tag)
 	if start_button == null:
 		scene.queue_free()
@@ -162,14 +166,23 @@ func _playthrough(viewport_size: Vector2i) -> void:
 	if restart_button != null:
 		restart_button.emit_signal("pressed")
 		await process_frame
+		var leave_confirm: Button = scene.find_child("ConfirmLeaveButton",true,false)
+		if leave_confirm != null:
+			leave_confirm.emit_signal("pressed")
+		await process_frame
 		await process_frame
 		await _state(scene, tag + "_10_menu_again")
 
 	# Regression: quitting to the menu mid-AI-turn must stop the abandoned
 	# match from scheduling or completing AI turns (PR #3 review).
-	var menu_start := scene.find_child("MenuStartButton", true, false) as Button
+	var menu_start := scene.find_child("HomeFreePlayButton", true, false) as Button
 	if menu_start != null:
 		menu_start.emit_signal("pressed")
+		await process_frame
+		var config_start := scene.find_child("ConfigStartButton", true, false) as Button
+		_assert(config_start != null, "free mode opens configuration before starting")
+		if config_start != null:
+			config_start.emit_signal("pressed")
 		await process_frame
 		await process_frame
 		scene.game.current_player_index = 1 # force an AI turn before quitting
@@ -197,7 +210,7 @@ func _playthrough(viewport_size: Vector2i) -> void:
 						confirm_leave.emit_signal("pressed")
 					await process_frame
 					await process_frame
-					_assert(scene.find_child("MenuStartButton", true, false) != null, "%s quit-to-menu should return to the menu" % tag)
+					_assert(scene.find_child("HomeFreePlayButton", true, false) != null, "%s quit-to-menu should return to the menu" % tag)
 					_assert(not scene.paused, "%s quit-to-menu should clear the paused state" % tag)
 					_assert(not scene._ai_can_advance(), "%s menu after quitting mid-AI-turn should block AI advancement" % tag)
 					_assert(not scene._execute_ai_turn_if_allowed(), "%s a pending AI callback should stop after quitting to the menu" % tag)
@@ -232,7 +245,7 @@ func _playthrough(viewport_size: Vector2i) -> void:
 	if restart != null:
 		restart.emit_signal("pressed")
 		await process_frame
-		_assert(scene.find_child("MenuStartButton", true, false) != null, "victory restart returns to the menu")
+		_assert(scene.find_child("HomeFreePlayButton", true, false) != null, "victory restart returns to the menu")
 	var original_profile_path: String = scene.profile_path
 	scene.profile_path = "user://missing-ui-save-probe-parent/profile.cfg"
 	scene._save_profile()

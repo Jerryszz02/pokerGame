@@ -61,6 +61,8 @@ Windows 版本未签名，macOS 版本未经 Apple 公证，第一次打开时�
 <details>
 <summary><strong>想改点东西？从源码运行</strong></summary>
 
+当前源码已加入教程、可配置筹码/盲注、牌谱回放和本地统计/成就。练习教练与画像评分尚不可用；公开 v1.0.0 下载包未因此更新。详见 [实施与验收记录](docs/planning/practice-implementation.md)。
+
 使用 Godot 4 和 GDScript 构建。发布版本使用 **Godot 4.7.2 standard**，无需 .NET。在 macOS/Linux 上运行以下命令。
 
 ```sh
