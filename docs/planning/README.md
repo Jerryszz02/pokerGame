@@ -1,40 +1,50 @@
 # PokerGame 项目规划入口
 
-请求：稳定公开桌面首发，先定义验收再实施。工作模式：实施与验收。更新日期：2026-09-07。项目根目录：`/Users/jerryszz/Desktop/Projects/pokerGame`；本轮 worktree：`/Users/jerryszz/Desktop/Projects/pokerGame-release`。
+请求：先归档与 AI 算法无关的模式、配置、教学等产品规划，算法另行讨论。工作模式：需求归档与索引同步。更新日期：2026-09-10。项目根目录：`/Users/jerryszz/Desktop/Projects/pokerGame`。
 
-项目是 Godot 4 + GDScript 中文离线单人德州扑克。首发目标、验收门和执行顺序以 [release-plan.md](release-plan.md) 为准。当前处于候选构建验收阶段，尚未满足公开发布门。
+## 当前规划与代码状态
 
-## 设计与验收文档
+项目是 Godot 4 + GDScript 中文离线单人德州扑克。后续定位为免费德扑练习游戏；首页三模式、可配置牌桌、分步教学、回放、细化统计和成就处于 `计划中`，不因文档提交而视为已经实现。
 
-- [release-plan.md](release-plan.md)：新增，R1–R9 定义稳定公开桌面首发，含真实发行包、目标平台与公开下载门；用户于 2026-09-07 取消 R8 真人试玩门并要求零成本首发。
-- [prd.md](prd.md)：已有产品需求和离线边界；首发新增要求见 release plan，旧原型描述不覆盖首发目标。
-- [technical-design.md](technical-design.md)：已有架构与实现约束，随对应阶段更新。
-- [test-plan.md](test-plan.md)：原型回归入口；发布性能、CI、设备矩阵现已纳入首发范围，见 release plan。
-- [ui-acceptance.md](ui-acceptance.md)：M1–M8 布局与截图指标，首发增加帮助、退出确认和比赛总结状态。
+本轮从新获取的 `origin/main`（`7d27d18`）建立 `agent/practice-product-plan`，只修改规划文档。现有代码仍以人数/难度开桌、固定初始筹码与盲注、静态说明及本地聚合统计为基线。具体当前实现以代码和 [架构说明](../architecture.md) 为准。
 
-## 当前证据与维护文档
+本轮没有重新验证公开 Release、itch.io 或目标设备，也没有运行游戏测试。下面的首发材料是历史范围及证据入口，不能把其中旧的“候选验收中”当作今天的发布状态。
 
-本轮核对 `AGENTS.md`、`project.godot`、规则/AI/UI/测试脚本及 `origin/main`（起点 `ebf7623`）。前序同日审计规则、布局和完整窗口流程均通过，但额外复现短盲注停滞、全下绕过加注权和多人出局结算缺口。此记录是基线历史，不证明后续分支或发行包通过。
+## 文档索引与分工
 
-- [README](../../README.md)：面向首次访问者的介绍与运行入口；发布阶段改为玩家下载入口。
-- [架构说明](../architecture.md)：当前实现，随代码同 PR 更新。
-- [运行手册](../runbook.md)：开发验证、构建和本地数据，随对应机制更新。
-- [美术规范](../art-direction.md)：美术方向和动态文本边界。
+| 文档 | 用途与本次处理 |
+| --- | --- |
+| [practice-product-plan.md](practice-product-plan.md) | **新增：本轮非 AI 算法需求入口**。集中维护已确定需求、建议方案、数据边界、实施阶段、验收和待确认事项。 |
+| [prd.md](prd.md) | 原型/首发产品基线。更新范围声明及被新规划替代的成就、逐手历史非目标；规则约束保留。 |
+| [technical-design.md](technical-design.md) | 原型/首发技术基线。补充新规划关系，区分完结牌谱与进行中对局续玩；不在本轮决定 AI 算法。 |
+| [test-plan.md](test-plan.md) | 既有规则、AI、配置与首发回归策略；注明新功能尚需追加对应测试，旧测试不证明新能力。 |
+| [ui-acceptance.md](ui-acceptance.md) | 既有布局、清晰度、暂停与点击流指标；注明新流程的增补要求和旧 UI 修复任务的范围。 |
+| [release-plan.md](release-plan.md) | 2026-09-07 稳定桌面首发的历史范围与 R1–R9 验收基线；补充历史定位及新规划链接。 |
 
-规则入口：`Godot --headless --path . -s tests/test_runner.gd`；布局：`Godot --headless --path . -s tests/ui_layout_probe.gd`；窗口流程：`Godot --path . -s tests/ui_playthrough_probe.gd`。发布验证已固定 Godot 4.7.2 标准版及匹配模板，由 `tools/bootstrap_godot.py` 获取并校验。本机旧 Mono 编辑器可继续开发使用；实际命令见运行手册，未验证的新命令不记为通过。
+新增规划覆盖旧文档中与本轮目标冲突的产品非目标，不覆盖行动合法性、牌型评估、规则/AI/UI 分层和离线约束。没有文档被退役。
 
-设计目标由本目录维护，当前实现由代码和架构/runbook说明，单次证据进入 `docs/releases/`（产生报告时创建），CI 和公开 Release 是其各自状态的权威来源。
+根 [README](../../README.md) 面向玩家下载与快速开始；[架构](../architecture.md) 和 [Runbook](../runbook.md) 描述实际代码与运行方法；本目录描述设计目标。实现变化时在对应 PR 同步受影响的现状文档，不能提前把规划能力写进玩家介绍。
+
+## 本次证据与检查
+
+- 需求依据：2026-09-10 用户对免费练习定位、三模式、开桌设置、教程、速览、回放、统计和成就的说明，以及“完全本地分析教练”的选择。
+- 代码依据：`scripts/ui/main.gd`、`scripts/game/poker_round.gd`、`scripts/game/table_state.gd`、`scripts/game/local_profile.gd`；AI 模块仅用于识别依赖，不在本轮改动或定算法。
+- 文档依据：本目录既有六篇规划、[架构](../architecture.md)、[Runbook](../runbook.md) 及既有玩家说明。
+- 本轮检查：planning 索引覆盖、本地 Markdown 链接与 `git diff --check`。检查结果随本轮 PR 记录，不把它们当作游戏测试或发布证据。
+- 后续实施使用的引擎与命令沿用 [Runbook](../runbook.md)。新功能验收见 [规划验收清单](practice-product-plan.md#12-验收清单)。
 
 ## 文档选择与待确认
 
-新增 release plan，撤销旧索引“无需发布计划”的决定。没有退役其他文档；不创建重复架构、项目简述、API、数据库、在线运维文档，相关边界仍为离线且已有文档足够。
+本次新增一篇功能规划，并同步本索引和五篇既有基线的范围说明。用户流程、数据保存、成就口径和阶段验收集中在新规划，暂不拆成重复的 PRD、数据库、用户流程或决策日志。没有新增外部 API、在线服务或运维职责，因此不创建 API/在线运维文档。根 README、现状架构、Runbook 和产品代码不在本次修改范围。
 
-待确认：首发平台与渠道、Windows 图形测试设备，以及若包含 macOS 时的分发/签名路径。零成本约束已确定，真人试玩已移出 Goal。工程阶段可先推进，不把这些未验证项记为完成。
+待确认：大小盲预设、是否逐座位选性格、教程课数与文案、牌谱保留/删除语义、成就门槛及辅助模式计入方式。AI 难度/性格/打法、教练分析与画像计算明确留到下一轮讨论。完整清单见 [新规划](practice-product-plan.md#13-待确认与维护契约)。
 
-## 本轮实现位置
+## 历史首发证据
 
-首发分支已新增规则回归、后台 AI、输入与动画生命周期保护、帮助/离桌确认、独立字体、标准构建与 CI。实现中不等于发布完成；R7/R9 仍须以目标设备和公开发行证据判定；R8 已按用户要求取消。
+2026-09-07 首发工作定义了 R1–R9，并取消 R8 真人试玩门；该取消只描述当次首发范围，不代表体验已获验证。
 
-新增玩家安装/玩法说明：[player-guide.md](../player-guide.md)。本轮范围同步更新 release plan、测试计划、索引、验收报告、可选试玩模板、根 README 和运行手册；不新增重复文档。文档索引/本地链接审计与差异检查通过；本轮未重跑游戏测试。没有退役文档。Windows 图形测试及 macOS 签名/下载的待执行步骤已写入运行手册。最新验证命令见 [runbook.md](../runbook.md)，独立包与每次构建日志位于被 Git 忽略的 `export/`，逐门验收证据已在 `docs/releases/` 归档。
+- [2026-09-07 桌面验收记录](../releases/2026-09-07-desktop-acceptance.md)：当次逐门结果和未通过项，不证明今天的发布状态。
+- [可选试玩记录模板](../releases/playtest-template.md)：用于后续自愿收集产品体验反馈。
+- [玩家说明](../player-guide.md)、[美术规范](../art-direction.md)：已有操作与视觉参考；具体实现阶段再核对和更新相关内容。
 
-当前逐门证据与剩余阻塞见 [2026-09-07 桌面验收记录](../releases/2026-09-07-desktop-acceptance.md)，可选真人反馈使用 [试玩记录模板](../releases/playtest-template.md)。该记录包含未通过项，不是首发放行声明。
+当前发布事实需重新核对 GitHub Release/CI、对应提交和公开下载；运行状态需重新核对实际包与目标设备。不要把 Git 合并、文档计划或旧验收日志互相替代。
