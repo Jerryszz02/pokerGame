@@ -1,6 +1,6 @@
 # PokerGame 技术设计
 
-> 范围说明（2026-09-10）：本文保留原型/首发架构基线；当前代码机制以 [架构说明](../architecture.md) 为准。新增教程、配置、牌谱与回放、统计/成就的目标见 [非 AI 算法功能规划](practice-product-plan.md)，尚未实现。本文对旧 profile 的描述不限制新增独立牌谱存储；保存已结束手牌也不等于保存进行中的权威牌局。AI 算法及画像计算留待后续讨论。
+> 范围说明（2026-09-10）：本文保留原型/首发架构基线；当前代码机制以 [架构说明](../architecture.md) 为准。新增教程、配置、牌谱与回放、统计/成就的目标见 [非 AI 算法功能规划](practice-product-plan.md)，尚未实现。本文对旧 profile 的描述不限制新增独立牌谱存储；保存已结束手牌也不等于保存进行中的权威牌局。AI 范围与行动收益实现见 [ai-strategy-plan.md](ai-strategy-plan.md)；教练及画像计算仍待后续讨论。
 
 ## 文档目的
 
@@ -13,7 +13,7 @@
 适用：
 
 - `scripts/game/` 内的牌、牌组、手牌评估、下注、边池和牌局生命周期。
-- `scripts/ai/` 内的起手牌评分、Monte Carlo、个性配置和行动选择。
+- `scripts/ai/` 内的起手范围、公开行动推断、Monte Carlo、有限行动收益评估、个性配置和行动选择；新增算法边界与验收见 [ai-strategy-plan.md](ai-strategy-plan.md)。
 - `scripts/ui/main.gd` 内的菜单、设置弹窗、生成式美术组合、牌桌渲染、事件日志、玩家输入和结果面板。
 - `scripts/game/local_profile.gd` 内的本地偏好与聚合统计持久化。
 - `tests/test_runner.gd`、`tests/ui_layout_probe.gd` 和 `tests/ui_playthrough_probe.gd` 内的当前自动化回归方式。

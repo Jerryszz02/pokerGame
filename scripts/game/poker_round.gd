@@ -20,6 +20,11 @@ var side_pots: Array = []
 var last_message := "请选择设置后开始。"
 var difficulty := "simple"
 var event_log: Array = []
+## Public action history for strategy: one deep-copied observation per
+## successful voluntary action, reset per hand/match. It never contains hole
+## cards, notes, sampled equity or personality internals and is not truncated
+## like the human-readable event_log.
+var public_action_history: Array = []
 var match_over := false
 var match_result := ""
 var match_summary := {}
@@ -51,6 +56,7 @@ func start_new_match(ai_count: int, selected_difficulty: String) -> void:
 	match_result = ""
 	match_summary = {}
 	event_log = []
+	public_action_history = []
 	start_next_hand()
 
 func start_next_hand() -> void:
@@ -61,6 +67,7 @@ func start_next_hand() -> void:
 		return
 	_select_positions()
 	hand_number += 1
+	public_action_history = []
 	last_hand_human_delta = 0
 	last_hand_human_won = false
 	_human_stack_at_hand_start = players[0].stack
@@ -109,6 +116,24 @@ func apply_action(action_type: String, amount: int = 0, action_note: String = ""
 	var legal := get_legal_actions(current_player_index)
 	if not legal.actions.has(action_type):
 		return false
+	# Public before-state for strategy history. Only successful actions reach
+	# the append below, and hidden cards/notes/personality never enter it.
+	var observation := {
+		"hand": hand_number,
+		"actor": actor_index,
+		"street": stage,
+		"board_before": CardUtil.clone_cards(community_cards),
+		"action": action_type,
+		"pot_before": total_pot(),
+		"to_call_before": get_to_call(actor_index),
+		"stack_before": int(player.stack),
+		"bet_before": current_bet,
+		"actor_bet_before": int(player.current_bet),
+		"actor_total_before": int(player.total_bet),
+		"big_blind": big_blind,
+		"button": button_index,
+		"active_count": active_player_count()
+	}
 	match action_type:
 		TableState.ACTION_FOLD:
 			player.status = TableState.STATUS_FOLDED
@@ -139,6 +164,13 @@ func apply_action(action_type: String, amount: int = 0, action_note: String = ""
 			player.last_action_note = action_note
 		_:
 			return false
+	observation["paid"] = int(observation.stack_before) - int(player.stack)
+	observation["raise_to"] = int(player.current_bet) if (action_type == TableState.ACTION_RAISE or action_type == TableState.ACTION_ALL_IN) else 0
+	observation["increased_current_bet"] = current_bet > int(observation.bet_before)
+	observation["all_in"] = player.status == TableState.STATUS_ALL_IN or int(player.stack) <= 0
+	observation["is_all_in_call"] = action_type == TableState.ACTION_ALL_IN and not bool(observation.increased_current_bet)
+	observation["pot_after"] = total_pot()
+	public_action_history.append(observation)
 	_record_action_event(actor_index, action_type, amount, action_note)
 	player.last_action_bet = current_bet
 	_after_state_change()
