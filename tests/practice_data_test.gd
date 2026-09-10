@@ -11,6 +11,7 @@ func _run() -> void:
 	_test_frames()
 	_test_store()
 	_test_achievements()
+	_test_peak_ownership()
 	_test_failures()
 	if failures == 0:
 		print("Practice data tests passed.")
@@ -192,6 +193,61 @@ func _test_failures() -> void:
 	full._disk_hand_count = 1000
 	check(not full.commit_hand(record) and full.statistics().hands == 0, "capacity gate doesn't evict or claim success")
 
+func _test_peak_ownership() -> void:
+	var store := PracticeStore.new(scratch.path_join("peak-ownership"))
+	var game := _game({"mode":"practice"})
+	# Controlled settlements keep both hands in one match while making the
+	# second hand start below the first hand's peak.
+	game._hand_starting_stacks = [1000, 1000]
+	game.players[0].stack = 2500
+	game.players[1].stack = 500
+	game.mark_assistance_viewed()
+	game.stage = TableState.STAGE_HAND_OVER
+	game._finish_hand()
+	var assisted_high := game.completed_hand_record()
+	check(assisted_high.peak_stack == 2500, "first hand records its own high peak")
+	check(store.commit_hand(assisted_high), "assisted high hand commits")
+
+	game.players[0].stack = 1500
+	game.players[1].stack = 1500
+	game.start_next_hand()
+	game._hand_starting_stacks = [1500, 1500]
+	game.players[0].stack = 1400
+	game.players[1].stack = 1600
+	game.stage = TableState.STAGE_HAND_OVER
+	game._finish_hand()
+	var independent_low := game.completed_hand_record()
+	check(independent_low.peak_stack == 1500, "second hand does not inherit earlier peak")
+	check(store.commit_hand(independent_low), "independent low hand commits")
+	check(store.statistics({"assistance":true}).peak_stack == 2500, "assisted peak filter is per hand")
+	check(store.statistics({"assistance":false}).peak_stack == 1500, "independent peak filter is per hand")
+	check(store.state.achievements.has("stack_double_assisted") and not store.state.achievements.has("stack_double_independent"), "assisted to independent achievement source stays isolated")
+
+	var reverse_store := PracticeStore.new(scratch.path_join("peak-ownership-reverse"))
+	var reverse := _game({"mode":"practice"})
+	reverse._hand_starting_stacks = [1000, 1000]
+	reverse.players[0].stack = 2500
+	reverse.players[1].stack = 500
+	reverse.stage = TableState.STAGE_HAND_OVER
+	reverse._finish_hand()
+	var independent_high := reverse.completed_hand_record()
+	check(reverse_store.commit_hand(independent_high), "independent high hand commits")
+	reverse.players[0].stack = 1500
+	reverse.players[1].stack = 1500
+	reverse.start_next_hand()
+	reverse._hand_starting_stacks = [1500, 1500]
+	reverse.players[0].stack = 1400
+	reverse.players[1].stack = 1600
+	reverse.mark_assistance_viewed()
+	reverse.stage = TableState.STAGE_HAND_OVER
+	reverse._finish_hand()
+	var assisted_low := reverse.completed_hand_record()
+	check(assisted_low.peak_stack == 1500, "reverse second hand keeps its own peak")
+	check(reverse_store.commit_hand(assisted_low), "reverse assisted low hand commits")
+	check(reverse_store.statistics({"assistance":true}).peak_stack == 1500, "reverse assisted peak filter stays per hand")
+	check(reverse_store.statistics({"assistance":false}).peak_stack == 2500, "reverse independent peak filter stays per hand")
+	check(reverse_store.state.achievements.has("stack_double_independent") and not reverse_store.state.achievements.has("stack_double_assisted"), "independent to assisted achievement source stays isolated")
+
 func _write(path: String, content: String) -> void:
 	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
 	var file := FileAccess.open(path, FileAccess.WRITE)
@@ -223,6 +279,25 @@ func _test_achievements() -> void:
 	check(not store.state.achievements.has("full_house_independent"),"assisted milestone not labeled independent")
 	store.commit_hand(record)
 	check(store.statistics().rank_counts.get("葫芦",0) == 1,"duplicate doesn't repeat rare hand count")
+	# A later independent hand may inherit a stack already above 2x entry. Its
+	# own peak must not reassign the earlier assisted milestone.
+	var inherited := record.duplicate(true)
+	inherited.id = "hand-inherited-independent"
+	inherited.match_id = "match-inherited-independent"
+	inherited.assistance_viewed = false
+	inherited.starting_stacks[0] = 2000
+	inherited.peak_stack = 2200
+	check(store.commit_hand(inherited), "inherited-stack hand commits")
+	check(not store.state.achievements.has("stack_double_independent"), "inherited stack does not unlock independent double milestone")
+	# A hand that crosses the threshold itself still receives the source label.
+	var crossed := record.duplicate(true)
+	crossed.id = "hand-crossed-independent"
+	crossed.match_id = "match-crossed-independent"
+	crossed.assistance_viewed = false
+	crossed.starting_stacks[0] = 1000
+	crossed.peak_stack = 2000
+	check(store.commit_hand(crossed), "threshold-crossing hand commits")
+	check(store.state.achievements.has("stack_double_independent"), "threshold crossing unlocks independent double milestone")
 	check(store.finish_match(record.match_id,"won",record.config),"completed match records outcome")
 	check(store.statistics().completed_matches == 1 and store.statistics({"mode":"free"}).completed_matches == 0,"match counters share filters")
 	for id in PracticeStore.LESSONS: store.complete_tutorial(id)

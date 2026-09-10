@@ -8,6 +8,8 @@ func _init() -> void:
 	call_deferred("_run")
 
 func _run() -> void:
+	# Keep popup lifetime inside the probe viewport, independent of OS focus.
+	root.gui_embed_subwindows = true
 	root.mode = Window.MODE_WINDOWED
 	DirAccess.make_dir_recursive_absolute(shot_dir)
 	for size in [Vector2i(1280,720),Vector2i(1440,900),Vector2i(1920,1080)]:
@@ -59,6 +61,10 @@ func _probe(viewport: Vector2i) -> void:
 	check(scene.game.players == state_before,"visible reference doesn't advance")
 	await _state(scene,viewport,"04_hand_reference")
 	var popup: PopupPanel = scene.find_child("HandReferencePopup",true,false)
+	check(popup != null,"hand reference popup remains mounted until the probe closes it")
+	if popup == null:
+		scene.queue_free()
+		return
 	popup.hide()
 	await process_frame
 	check(scene._ai_can_advance(),"closing reference restores live table")
