@@ -14,13 +14,13 @@ var _settlement := {}
 
 static func lessons() -> Array:
 	return [
-		{"id":"T1","title":"认识牌桌","summary":"分清区域，再从七张牌中选出最佳五张。"},
-		{"id":"T2","title":"牌型大小","summary":"认识九类牌型、踢脚牌和公共牌平分。"},
-		{"id":"T3","title":"轮到我怎么办","summary":"在真实合法局面中执行五种行动。"},
-		{"id":"T4","title":"完整打一手","summary":"从翻前跟到河牌，再查看真实摊牌。"},
-		{"id":"T5","title":"庄位与盲注","summary":"理解多人桌与单挑的行动顺序和轮换。"},
-		{"id":"T6","title":"结算进阶","summary":"用真实结算结果认识主池、边池、返还与平分。"},
-		{"id":"T7","title":"入门自测","summary":"按实际合法选项完成一手牌。"}
+		{"id":"T1","title":GameLocalization.present("认识牌桌"),"summary":GameLocalization.present("分清区域，再从七张牌中选出最佳五张。")},
+		{"id":"T2","title":GameLocalization.present("牌型大小"),"summary":GameLocalization.present("认识九类牌型、踢脚牌和公共牌平分。")},
+		{"id":"T3","title":GameLocalization.present("轮到我怎么办"),"summary":GameLocalization.present("在真实合法局面中执行五种行动。")},
+		{"id":"T4","title":GameLocalization.present("完整打一手"),"summary":GameLocalization.present("从翻前跟到河牌，再查看真实摊牌。")},
+		{"id":"T5","title":GameLocalization.present("庄位与盲注"),"summary":GameLocalization.present("理解多人桌与单挑的行动顺序和轮换。")},
+		{"id":"T6","title":GameLocalization.present("结算进阶"),"summary":GameLocalization.present("用真实结算结果认识主池、边池、返还与平分。")},
+		{"id":"T7","title":GameLocalization.present("入门自测"),"summary":GameLocalization.present("按实际合法选项完成一手牌。")}
 	]
 
 func start(id: String) -> void:
@@ -35,7 +35,7 @@ func start(id: String) -> void:
 func restart() -> void: start(lesson_id)
 
 func current_step() -> Dictionary:
-	if completed: return {"title":"课程完成","text":"你已完成本课；可以重练。","kind":"summary","options":[],"cards":[],"detail":_summary()}
+	if completed: return {"title":GameLocalization.present("课程完成"),"text":GameLocalization.present("你已完成本课；可以重练。"),"kind":"summary","options":[],"cards":[],"detail":_summary()}
 	var r := {"title":"","text":"","kind":"choice","options":[],"cards":[],"detail":""}
 	match lesson_id:
 		"T1": _step_t1(r)
@@ -48,7 +48,7 @@ func current_step() -> Dictionary:
 	return r
 
 func submit(choice: String) -> Dictionary:
-	if completed: return {"ok":false,"message":"本课已经完成。","completed":true}
+	if completed: return {"ok":false,"message":GameLocalization.present("本课已经完成。"),"completed":true}
 	var ok := false
 	match lesson_id:
 		"T1": ok = _submit_t1(choice)
@@ -61,7 +61,7 @@ func submit(choice: String) -> Dictionary:
 	if ok and not completed and lesson_id != "T7":
 		step_index += 1
 		if step_index >= {"T1":9,"T2":3,"T3":5,"T4":5,"T5":3,"T6":4,"T7":1}.get(lesson_id, 1): completed = true
-	return {"ok":ok,"message":"回答正确，观察牌面和筹码的变化。" if ok else "请按提示重试。","completed":completed}
+	return {"ok":ok,"message":GameLocalization.present("回答正确，观察牌面和筹码的变化。") if ok else GameLocalization.present("请按提示重试。"),"completed":completed}
 
 func _new_game(ai_count: int, seed: int) -> void:
 	game = PokerRound.new()
@@ -72,20 +72,20 @@ func _t1_cards() -> Array: return [c(14,"S"),c(13,"S"),c(12,"S"),c(11,"S"),c(10,
 
 func _step_t1(r: Dictionary) -> void:
 	var ids := ["hole_cards","community_cards","chips","pot"]
-	var labels := ["我的两张底牌","桌面中央的公共牌","座位旁的筹码","中央底池"]
+	var labels := [GameLocalization.present("我的两张底牌"),GameLocalization.present("桌面中央的公共牌"),GameLocalization.present("座位旁的筹码"),GameLocalization.present("中央底池")]
 	r.cards = _t1_cards()
 	if step_index < 4:
-		r.title = "指认牌桌区域"; r.text = ["底牌在哪一组？","公共牌在哪一组？","筹码信息在哪一组？","底池在哪一组？"][step_index]
+		r.title = GameLocalization.present("指认牌桌区域"); r.text = [GameLocalization.present("底牌在哪一组？"),GameLocalization.present("公共牌在哪一组？"),GameLocalization.present("筹码信息在哪一组？"),GameLocalization.present("底池在哪一组？")][step_index]
 		r.kind = "region"
 		for i in range(ids.size()):
 			r.options.append({"id":ids[i],"label":labels[i]})
-		r.detail = "示意牌前两张为底牌、后五张为公共牌；实际桌面分别显示筹码与底池。"
+		r.detail = GameLocalization.present("示意牌前两张为底牌、后五张为公共牌；实际桌面分别显示筹码与底池。")
 		return
-	r.title = "从七张牌中选最佳五张"; r.text = "请选择第 %d 张；只能选择当前七张牌且不能重复。" % (_selected.size() + 1); r.kind = "select_cards"
+	r.title = GameLocalization.present("从七张牌中选最佳五张"); r.text = GameLocalization.present("请选择第 %d 张；只能选择当前七张牌且不能重复。") % (_selected.size() + 1); r.kind = "select_cards"
 	for card in r.cards:
 		var id := CardUtil.card_key(card)
 		if not _selected.has(id): r.options.append({"id":id,"label":CardUtil.card_label(card)})
-	r.detail = "已选：%s。完成后会与七张牌的最佳评估比较。" % " ".join(_selected)
+	r.detail = GameLocalization.present("已选：%s。完成后会与七张牌的最佳评估比较。") % " ".join(_selected)
 
 func _submit_t1(choice: String) -> bool:
 	if step_index < 4: return choice == ["hole_cards","community_cards","chips","pot"][step_index]
@@ -102,16 +102,16 @@ func _step_t2(r: Dictionary) -> void:
 	var a := [c(14,"S"),c(14,"H"),c(13,"D"),c(9,"C"),c(4,"S")]
 	var b := [c(14,"D"),c(14,"C"),c(12,"H"),c(9,"D"),c(4,"H")]
 	var board := [c(14,"S"),c(13,"H"),c(12,"D"),c(11,"C"),c(10,"S")]
-	r.title = "牌型大小"
+	r.title = GameLocalization.present("牌型大小")
 	if step_index == 0:
-		r.text = "九类牌型中，哪个高于四条？"; r.options = [{"id":"straight_flush","label":"同花顺"},{"id":"four_kind","label":"四条"}]; r.cards = PokerReference.hands()[0].cards
-		r.detail = "从高到低：同花顺、四条、葫芦、同花、顺子、三条、两对、一对、高牌。皇家同花顺属于同花顺。"
+		r.text = GameLocalization.present("九类牌型中，哪个高于四条？"); r.options = [{"id":"straight_flush","label":GameLocalization.present("同花顺")},{"id":"four_kind","label":GameLocalization.present("四条")}]; r.cards = PokerReference.hands()[0].cards
+		r.detail = GameLocalization.present("从高到低：同花顺、四条、葫芦、同花、顺子、三条、两对、一对、高牌。皇家同花顺属于同花顺。")
 	elif step_index == 1:
-		r.text = "两手都是一对 A，哪一手获胜？"; r.options = [{"id":"a","label":"A 对，K 踢脚"},{"id":"b","label":"A 对，Q 踢脚"}]; r.cards = a + b
-		r.detail = "实际比较结果 %d：K 踢脚更大。" % HandEvaluator.compare_results(HandEvaluator.evaluate(a), HandEvaluator.evaluate(b))
+		r.text = GameLocalization.present("两手都是一对 A，哪一手获胜？"); r.options = [{"id":"a","label":GameLocalization.present("A 对，K 踢脚")},{"id":"b","label":GameLocalization.present("A 对，Q 踢脚")}]; r.cards = a + b
+		r.detail = GameLocalization.present("实际比较结果 %d：K 踢脚更大。") % HandEvaluator.compare_results(HandEvaluator.evaluate(a), HandEvaluator.evaluate(b))
 	else:
-		r.text = "公共牌已经构成双方最佳顺子，双方结果是什么？"; r.options = [{"id":"tie","label":"平分底池"},{"id":"hole","label":"比较无关底牌"}]; r.cards = board
-		r.detail = "双方七张牌评估均为 %s，公共牌可被双方使用。" % HandEvaluator.evaluate(board).rank_name
+		r.text = GameLocalization.present("公共牌已经构成双方最佳顺子，双方结果是什么？"); r.options = [{"id":"tie","label":GameLocalization.present("平分底池")},{"id":"hole","label":GameLocalization.present("比较无关底牌")}]; r.cards = board
+		r.detail = GameLocalization.present("双方七张牌评估均为 %s，公共牌可被双方使用。") % GameLocalization.present(HandEvaluator.evaluate(board).rank_name)
 
 func _prepare_t3(index: int) -> void:
 	_new_game(1, 3000 + index)
@@ -124,10 +124,10 @@ func _step_t3(r: Dictionary) -> void:
 	_prepare_t3(step_index)
 	var action: String = [TableState.ACTION_CHECK,TableState.ACTION_CALL,TableState.ACTION_FOLD,TableState.ACTION_RAISE,TableState.ACTION_ALL_IN][step_index]
 	var legal := game.get_legal_actions(game.current_player_index)
-	r.title = "实际执行：" + _action_label(action); r.text = "请执行 %s。" % _action_label(action); r.kind = "action"
-	r.options = [{"id":action,"label":_action_label(action) + ("到 100" if action == TableState.ACTION_RAISE else "")}]
+	r.title = GameLocalization.present("实际执行：") + _action_label(action); r.text = GameLocalization.present("请执行 %s。") % _action_label(action); r.kind = "action"
+	r.options = [{"id":action,"label":_action_label(action) + (GameLocalization.present("到 100") if action == TableState.ACTION_RAISE else "")}]
 	r.cards = game.players[game.current_player_index].hole_cards + game.community_cards
-	r.detail = "阶段：%s；需跟注 %d；当前下注 %d；加注到 %d–%d。加注到 100 是本轮总投入，额外支付 %d。" % [game.describe_stage(),game.get_to_call(game.current_player_index),game.current_bet,legal.min_raise_to,legal.max_raise_to,100 - game.players[game.current_player_index].current_bet]
+	r.detail = GameLocalization.present("阶段：%s；需跟注 %d；当前下注 %d；加注到 %d–%d。加注到 100 是本轮总投入，额外支付 %d。") % [GameLocalization.present(game.describe_stage()),game.get_to_call(game.current_player_index),game.current_bet,legal.min_raise_to,legal.max_raise_to,100 - game.players[game.current_player_index].current_bet]
 
 func _submit_t3(choice: String) -> bool:
 	_prepare_t3(step_index)
@@ -146,11 +146,11 @@ func _auto_opponents() -> void:
 func _step_t4(r: Dictionary) -> void:
 	_auto_opponents()
 	if step_index == 4:
-		r.title = "查看摊牌"; r.text = "本手已经完成摊牌结算。"; r.options = [{"id":"showdown","label":"查看结果"}]; r.cards = game.community_cards; r.detail = _game_result_detail(); return
+		r.title = GameLocalization.present("查看摊牌"); r.text = GameLocalization.present("本手已经完成摊牌结算。"); r.options = [{"id":"showdown","label":GameLocalization.present("查看结果")}]; r.cards = game.community_cards; r.detail = _game_result_detail(); return
 	var action := TableState.ACTION_CALL if step_index == 0 else TableState.ACTION_CHECK
-	r.title = ["翻前","翻牌","转牌","河牌"][step_index] + "行动"; r.text = "轮到你时执行%s，预设对手会真实跟注或让牌。" % _action_label(action)
+	r.title = [GameLocalization.present("翻前"),GameLocalization.present("翻牌"),GameLocalization.present("转牌"),GameLocalization.present("河牌")][step_index] + GameLocalization.present("行动"); r.text = GameLocalization.present("轮到你时执行%s，预设对手会真实跟注或让牌。") % _action_label(action)
 	r.options = [{"id":action,"label":_action_label(action)}]; r.cards = game.players[0].hole_cards + game.community_cards
-	r.detail = "阶段：%s；底池：%d；需跟注：%d。" % [game.describe_stage(),game.total_pot(),game.get_to_call(0)]
+	r.detail = GameLocalization.present("阶段：%s；底池：%d；需跟注：%d。") % [GameLocalization.present(game.describe_stage()),game.total_pot(),game.get_to_call(0)]
 
 func _submit_t4(choice: String) -> bool:
 	if step_index == 4: return choice == "showdown" and game.stage == TableState.STAGE_HAND_OVER
@@ -158,16 +158,16 @@ func _submit_t4(choice: String) -> bool:
 	return choice == action and game.current_player_index == 0 and game.apply_action(action, 0, "教程完整手牌")
 
 func _step_t5(r: Dictionary) -> void:
-	r.title = "庄位与盲注"
+	r.title = GameLocalization.present("庄位与盲注")
 	if step_index == 0:
-		r.text = "四人桌翻前，当前实际轮到哪个座位行动？"; r.options = [{"id":"seat_%d" % game.current_player_index,"label":"%d 号位" % game.current_player_index},{"id":"seat_%d" % game.big_blind_player_index,"label":"%d 号位（大盲）" % game.big_blind_player_index}]
-		r.detail = "按钮 %d；小盲 %d；大盲 %d；当前行动者 %d。" % [game.button_index,game.small_blind_player_index,game.big_blind_player_index,game.current_player_index]
+		r.text = GameLocalization.present("四人桌翻前，当前实际轮到哪个座位行动？"); r.options = [{"id":"seat_%d" % game.current_player_index,"label":GameLocalization.present("%d 号位") % game.current_player_index},{"id":"seat_%d" % game.big_blind_player_index,"label":GameLocalization.present("%d 号位（大盲）") % game.big_blind_player_index}]
+		r.detail = GameLocalization.present("按钮 %d；小盲 %d；大盲 %d；当前行动者 %d。") % [game.button_index,game.small_blind_player_index,game.big_blind_player_index,game.current_player_index]
 	elif step_index == 1:
-		_new_game(1, 5051); r.text = "单挑中，按钮位与小盲的关系及翻前行动顺序是什么？"; r.options = [{"id":"button_small_blind","label":"按钮兼小盲，翻前先行动"},{"id":"big_blind_first","label":"大盲翻前先行动"}]
-		r.detail = "实际按钮 %d，小盲 %d，大盲 %d，当前行动者 %d。" % [game.button_index,game.small_blind_player_index,game.big_blind_player_index,game.current_player_index]
+		_new_game(1, 5051); r.text = GameLocalization.present("单挑中，按钮位与小盲的关系及翻前行动顺序是什么？"); r.options = [{"id":"button_small_blind","label":GameLocalization.present("按钮兼小盲，翻前先行动")},{"id":"big_blind_first","label":GameLocalization.present("大盲翻前先行动")}]
+		r.detail = GameLocalization.present("实际按钮 %d，小盲 %d，大盲 %d，当前行动者 %d。") % [game.button_index,game.small_blind_player_index,game.big_blind_player_index,game.current_player_index]
 	else:
 		if game.players.size() != 2: _new_game(1, 5052)
-		r.text = "完成当前手牌并开始下一手，按钮会如何变化？"; r.options = [{"id":"rotate","label":"按钮轮到另一位有筹码玩家"},{"id":"fixed","label":"按钮保持不动"}]; r.detail = "选择后将结束本手并开始下一手，观察庄位标记的位置变化。"
+		r.text = GameLocalization.present("完成当前手牌并开始下一手，按钮会如何变化？"); r.options = [{"id":"rotate","label":GameLocalization.present("按钮轮到另一位有筹码玩家")},{"id":"fixed","label":GameLocalization.present("按钮保持不动")}]; r.detail = GameLocalization.present("选择后将结束本手并开始下一手，观察庄位标记的位置变化。")
 
 func _submit_t5(choice: String) -> bool:
 	if step_index == 0: return choice == "seat_%d" % game.current_player_index
@@ -199,22 +199,22 @@ func _fixture(contributions: Array, holes: Array, board: Array) -> PokerRound:
 
 func _step_t6(r: Dictionary) -> void:
 	var side: PokerRound = _settlement.side; var refund: PokerRound = _settlement.refund; var split: PokerRound = _settlement.split
-	r.title = "结算进阶"; r.kind = "settlement_question"
-	if step_index == 0: r.text = "四位玩家投入 50、100、200、200，主池是多少？"; r.options = [{"id":"200","label":"200"},{"id":"250","label":"250"}]; r.cards = side.community_cards; r.detail = "按每人最低投入 50 形成 200 主池；其余按下一档投入分层。"
-	elif step_index == 1: r.text = "同一局中，第一个边池是多少？"; r.options = [{"id":"150","label":"150"},{"id":"200","label":"200"}]; r.detail = "第二层：三位玩家各追加 50，形成 150 边池；最后两位再各追加 100，形成 200 边池。"
-	elif step_index == 2: r.text = "另一局投入 1000 与 20，无法被跟注的筹码返还多少？"; r.options = [{"id":"980","label":"980"},{"id":"1000","label":"1000"}]; r.detail = "实际可争夺底池 %d；返还 %d。" % [refund.total_pot(),_settlement.refund_amount]
-	else: r.text = "公共牌构成双方相同顺子，200 底池如何结算？"; r.options = [{"id":"split","label":"各得 100，平分底池"},{"id":"winner","label":"按底牌花色决胜"}]; r.detail = "双方各得 100。投入合计 200，派奖合计 200。"
+	r.title = GameLocalization.present("结算进阶"); r.kind = "settlement_question"
+	if step_index == 0: r.text = GameLocalization.present("四位玩家投入 50、100、200、200，主池是多少？"); r.options = [{"id":"200","label":"200"},{"id":"250","label":"250"}]; r.cards = side.community_cards; r.detail = GameLocalization.present("按每人最低投入 50 形成 200 主池；其余按下一档投入分层。")
+	elif step_index == 1: r.text = GameLocalization.present("同一局中，第一个边池是多少？"); r.options = [{"id":"150","label":"150"},{"id":"200","label":"200"}]; r.detail = GameLocalization.present("第二层：三位玩家各追加 50，形成 150 边池；最后两位再各追加 100，形成 200 边池。")
+	elif step_index == 2: r.text = GameLocalization.present("另一局投入 1000 与 20，无法被跟注的筹码返还多少？"); r.options = [{"id":"980","label":"980"},{"id":"1000","label":"1000"}]; r.detail = GameLocalization.present("实际可争夺底池 %d；返还 %d。") % [refund.total_pot(),_settlement.refund_amount]
+	else: r.text = GameLocalization.present("公共牌构成双方相同顺子，200 底池如何结算？"); r.options = [{"id":"split","label":GameLocalization.present("各得 100，平分底池")},{"id":"winner","label":GameLocalization.present("按底牌花色决胜")}]; r.detail = GameLocalization.present("双方各得 100。投入合计 200，派奖合计 200。")
 
 func _step_t7(r: Dictionary) -> void:
-	_auto_opponents(); r.title = "入门自测"; r.cards = game.players[0].hole_cards + game.community_cards
+	_auto_opponents(); r.title = GameLocalization.present("入门自测"); r.cards = game.players[0].hole_cards + game.community_cards
 	if _t7_finished:
-		r.text = "本手已结束。未被跟注的多余筹码应怎样处理？"; r.options = [{"id":"refund","label":"返还下注者"},{"id":"pot","label":"放入无人可争夺底池"}]; r.detail = _game_result_detail(); return
-	var legal := game.get_legal_actions(0); r.text = "请选择当前真实合法行动。加注会使用最小合法加注到 %d。" % legal.min_raise_to
+		r.text = GameLocalization.present("本手已结束。未被跟注的多余筹码应怎样处理？"); r.options = [{"id":"refund","label":GameLocalization.present("返还下注者")},{"id":"pot","label":GameLocalization.present("放入无人可争夺底池")}]; r.detail = _game_result_detail(); return
+	var legal := game.get_legal_actions(0); r.text = GameLocalization.present("请选择当前真实合法行动。加注会使用最小合法加注到 %d。") % legal.min_raise_to
 	var options := []
 	for action in legal.actions:
-		options.append({"id":action,"label":_action_label(action) + ("到 %d" % legal.min_raise_to if action == TableState.ACTION_RAISE else "")})
+		options.append({"id":action,"label":_action_label(action) + (GameLocalization.present("到 %d") % legal.min_raise_to if action == TableState.ACTION_RAISE else "")})
 	r.options = options
-	r.detail = "阶段：%s；需跟注 %d；底池 %d。每个分支都能继续到结算。" % [game.describe_stage(),game.get_to_call(0),game.total_pot()]
+	r.detail = GameLocalization.present("阶段：%s；需跟注 %d；底池 %d。每个分支都能继续到结算。") % [GameLocalization.present(game.describe_stage()),game.get_to_call(0),game.total_pot()]
 
 func _submit_t7(choice: String) -> bool:
 	if _t7_finished:
@@ -232,9 +232,9 @@ func _total(target: PokerRound) -> int:
 	var total := 0
 	for p in target.players: total += int(p.stack)
 	return total
-func _action_label(action: String) -> String: return {TableState.ACTION_CHECK:"让牌",TableState.ACTION_CALL:"跟注",TableState.ACTION_FOLD:"弃牌",TableState.ACTION_RAISE:"加注",TableState.ACTION_ALL_IN:"全下"}.get(action,action)
-func _game_result_detail() -> String: return "结算：%s；你的筹码 %d。" % [game.last_message,game.players[0].stack]
-func _summary() -> String: return "你已完成本课练习。可以重练巩固或进入下一课；教程进度独立保存，不影响普通对战统计。"
+func _action_label(action: String) -> String: return {TableState.ACTION_CHECK:GameLocalization.present("让牌"),TableState.ACTION_CALL:GameLocalization.present("跟注"),TableState.ACTION_FOLD:GameLocalization.present("弃牌"),TableState.ACTION_RAISE:GameLocalization.present("加注"),TableState.ACTION_ALL_IN:GameLocalization.present("全下")}.get(action,action)
+func _game_result_detail() -> String: return GameLocalization.present("结算：%s；你的筹码 %d。") % [GameLocalization.message(game.last_message),game.players[0].stack]
+func _summary() -> String: return GameLocalization.present("你已完成本课练习。可以重练巩固或进入下一课；教程进度独立保存，不影响普通对战统计。")
 func c(rank: int, suit: String) -> Dictionary: return CardUtil.make_card(rank,suit)
 
 func _t2_answer() -> String:

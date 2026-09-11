@@ -1,0 +1,433 @@
+keys,en,zh_CN
+新手教程,Tutorial,新手教程
+自由对战,Free Play,自由对战
+练习对局 · 基础流程,Practice · Basics,练习对局 · 基础流程
+牌局记录,Hand History,牌局记录
+统计与成就,Statistics & Achievements,统计与成就
+玩法说明,How to Play,玩法说明
+设置,Settings,设置
+开启本地音效,Sound Effects,开启本地音效
+快速行动,Fast Actions,快速行动
+规则速览,Rules,规则速览
+牌型速览,Hand Rankings,牌型速览
+显示提示入口（尚无分析结果）,Show hints (no analysis yet),显示提示入口（尚无分析结果）
+显示提示入口（本地教练尚不可用）,Show hints (coach unavailable),显示提示入口（本地教练尚不可用）
+继续游戏,Resume Game,继续游戏
+暂停游戏,Pause Game,暂停游戏
+关闭,Close,关闭
+旧版历史汇总（无法追溯）,Legacy Summary (not traceable),旧版历史汇总（无法追溯）
+重置历史汇总,Reset Legacy Summary,重置历史汇总
+再次点击确认,Click Again to Confirm,再次点击确认
+新手教程 · 七课入门,Tutorial · Seven Lessons,新手教程 · 七课入门
+开始,Start,开始
+取消,Cancel,取消
+AI 对手,AI Opponents,AI 对手
+难度,Difficulty,难度
+初始筹码,Starting Chips,初始筹码
+大小盲,Blinds,大小盲
+每手结束时暂停复盘,Pause after each hand,每手结束时暂停复盘
+返回首页,Back to Home,返回首页
+记录,Log,记录
+提示,Hint,提示
+隐藏提示入口,Hide Hint,隐藏提示入口
+重试,Retry,重试
+等待 AI…,Waiting for AI…,等待 AI…
+弃牌,Fold,弃牌
+让牌,Check,让牌
+跟注,Call,跟注
+全下,All-in,全下
+加注到,Raise to,加注到
+翻前,Preflop,翻前
+翻牌,Flop,翻牌
+转牌,Turn,转牌
+河牌,River,河牌
+摊牌,Showdown,摊牌
+结算,Hand Complete,结算
+轮到你行动,Your action,轮到你行动
+盲注,Blind,盲注
+本手牌已保存,Hand saved,本手牌已保存
+重试保存,Retry Save,重试保存
+复盘本手,Replay Hand,复盘本手
+重新开始,Restart,重新开始
+返回菜单,Back to Menu,返回菜单
+系统 / 跟随系统,System / Follow System,System / 跟随系统
+简体中文,Simplified Chinese,简体中文
+English,English,English
+语言,Language,语言
+总手数,Total hands,总手数
+胜手,Wins,胜手
+净盈利,Net profit,净盈利
+Language / 语言,Language / 语言,Language / 语言
+你,You,你
+已弃牌,Folded,已弃牌
+出局,Out,出局
+加注,Raise,加注
+下一手,Next Hand,下一手
+已暂停,Paused,已暂停
+练习对局配置,Practice Setup,练习对局配置
+自由对战配置,Free Play Setup,自由对战配置
+简单,Easy,简单
+普通,Medium,普通
+困难,Hard,困难
+音效,Audio,音效
+节奏,Pace,节奏
+第 %d 手 · %s,Hand %d · %s,第 %d 手 · %s
+总手数 %d · 最终筹码 %d · 净盈利 %d · 最大单手 +%d,Total hands %d · Final stack %d · Net profit %d · Best hand +%d,总手数 %d · 最终筹码 %d · 净盈利 %d · 最大单手 +%d
+牌谱未保存，可重试或清理旧牌谱,Hand history not saved. Retry or clear old records.,牌谱未保存，可重试或清理旧牌谱
+等待 %s 行动,Waiting for %s,等待 %s 行动
+按最小单位调整加注,Adjust raise by the minimum increment,按最小单位调整加注
+实时提示暂不可用,Live hints unavailable,实时提示暂不可用
+本地教练尚未接入，当前没有建议或胜率。打开此面板不会计作使用实时辅助，也不改变发牌或对手行为。,The local coach is not connected. No advice or equity is available. Opening this panel does not count as assistance and does not change dealing or opponents.,本地教练尚未接入，当前没有建议或胜率。打开此面板不会计作使用实时辅助，也不改变发牌或对手行为。
+未能保存,Could not save,未能保存
+设置本次仍然有效，但未能写入本地文件。请检查磁盘空间和存档目录权限；退出后本次更新可能丢失。,Settings still apply this session but could not be written locally. Check disk space and save-directory permissions; changes may be lost after quitting.,设置本次仍然有效，但未能写入本地文件。请检查磁盘空间和存档目录权限；退出后本次更新可能丢失。
+离开牌桌？,Leave the table?,离开牌桌？
+确认退出,Quit,确认退出
+确认返回菜单,Return to menu,确认返回菜单
+删除,Delete,删除
+删除这手牌谱？,Delete this hand history?,删除这手牌谱？
+只删除该手完整回放。累计统计、教程进度和已解锁成就保留。,"Only this hand's full replay is deleted. Cumulative statistics, tutorial progress, and unlocked achievements remain.",只删除该手完整回放。累计统计、教程进度和已解锁成就保留。
+确认删除,Delete hand history,确认删除
+没有完整牌谱,No complete hand history,没有完整牌谱
+只有已结算的有效手牌可以回放。,Only completed valid hands can be replayed.,只有已结算的有效手牌可以回放。
+上一动作,Previous action,上一动作
+播放,Play,播放
+暂停,Pause,暂停
+下一动作,Next action,下一动作
+返回记录,Back to history,返回记录
+返回牌桌,Back to table,返回牌桌
+全知视角（仅此已结束手牌，包含已弃牌底牌）,Omniscient view (completed hand only; includes folded hole cards),全知视角（仅此已结束手牌，包含已弃牌底牌）
+回放是独立只读记录；不会重新计算胜负或累计战绩。,Replay is read-only. It does not recalculate results or cumulative statistics.,回放是独立只读记录；不会重新计算胜负或累计战绩。
+配置无效：请选择支持的 AI 数量、筹码和大小盲。,Invalid configuration: choose a supported AI count stack and blinds.,配置无效：请选择支持的 AI 数量、筹码和大小盲。
+配置无效：请选择 1–5 名 AI、合法筹码和大小盲。,Invalid configuration: choose 1–5 AI players and valid stack and blinds.,配置无效：请选择 1–5 名 AI、合法筹码和大小盲。
+配置恢复,Profile recovery,配置恢复
+本地资料,Local data,本地资料
+未能重置,Could not reset,未能重置
+AI 暂停,AI paused,AI 暂停
+音乐音量,Music Volume,音乐音量
+音效音量,Effects Volume,音效音量
+音频署名,Audio Credits,音频署名
+认识牌桌,Know the Table,认识牌桌
+牌型大小,Hand Rankings,牌型大小
+轮到我怎么办,What Do I Do?,轮到我怎么办
+完整打一手,Play a Full Hand,完整打一手
+庄位与盲注,Button and Blinds,庄位与盲注
+结算进阶,Advanced Settlement,结算进阶
+入门自测,Starter Check,入门自测
+分清区域，再从七张牌中选出最佳五张。,"Identify the areas, then choose the best five from seven cards.",分清区域，再从七张牌中选出最佳五张。
+认识九类牌型、踢脚牌和公共牌平分。,"Learn the nine hand types, kickers, and board ties.",认识九类牌型、踢脚牌和公共牌平分。
+在真实合法局面中执行五种行动。,Use all five actions in legal game states.,在真实合法局面中执行五种行动。
+从翻前跟到河牌，再查看真实摊牌。,"Call from preflop to river, then see a real showdown.",从翻前跟到河牌，再查看真实摊牌。
+理解多人桌与单挑的行动顺序和轮换。,Understand turn order and rotation in multiway and heads-up play.,理解多人桌与单挑的行动顺序和轮换。
+用真实结算结果认识主池、边池、返还与平分。,"Use real settlements to learn main pots, side pots, returns, and splits.",用真实结算结果认识主池、边池、返还与平分。
+按实际合法选项完成一手牌。,Complete a hand using its actual legal options.,按实际合法选项完成一手牌。
+课程完成,Lesson complete,课程完成
+你已完成本课；可以重练。,You completed this lesson. You can practice it again.,你已完成本课；可以重练。
+回答正确，观察牌面和筹码的变化。,Correct. Watch the cards and chips change.,回答正确，观察牌面和筹码的变化。
+请按提示重试。,Try again using the prompt.,请按提示重试。
+本课已经完成。,This lesson is already complete.,本课已经完成。
+课程列表,Lesson list,课程列表
+重练本课,Practice this lesson again,重练本课
+下一课,Next lesson,下一课
+进入自由对战,Start free play,进入自由对战
+课程进度已保存。,Lesson progress saved.,课程进度已保存。
+牌局记录 · 按整场分组,Hand History · Grouped by Match,牌局记录 · 按整场分组
+暂无已保存牌谱。完成一手后可在这里回放；不会生成示例战绩。,No saved hand histories. Finish a hand to replay it here; no sample results are created.,暂无已保存牌谱。完成一手后可在这里回放；不会生成示例战绩。
+我的统计与成就,My Statistics & Achievements,我的统计与成就
+指标口径,Metric definitions,指标口径
+已解锁成就（全部来源）,Unlocked achievements (all sources),已解锁成就（全部来源）
+尚无成就。完成课程、完整回放或正常对局后解锁。,"No achievements yet. Complete lessons, a full replay, or a normal game to unlock them.",尚无成就。完成课程、完整回放或正常对局后解锁。
+当前公共牌,Community cards,当前公共牌
+你的底牌,Your hole cards,你的底牌
+当前示例牌,Example cards,当前示例牌
+尚未发出,Not dealt,尚未发出
+底池,Pot,底池
+筹码,Chips,筹码
+在局,In hand,在局
+小盲,Small blind,小盲
+大盲,Big blind,大盲
+教程,Tutorial,教程
+练习对局,Practice,练习对局
+全部模式,All modes,全部模式
+全部时间,All time,全部时间
+最近 7 天,Last 7 days,最近 7 天
+最近 30 天,Last 30 days,最近 30 天
+全部难度,All difficulties,全部难度
+全部人数,All player counts,全部人数
+全部入场深度,All entry depths,全部入场深度
+暂无数据,No data,暂无数据
+指认牌桌区域,Identify table areas,指认牌桌区域
+从七张牌中选最佳五张,Choose the best five from seven,从七张牌中选最佳五张
+我的两张底牌,My two hole cards,我的两张底牌
+桌面中央的公共牌,Community cards in the center,桌面中央的公共牌
+座位旁的筹码,Chips by the seat,座位旁的筹码
+中央底池,Center pot,中央底池
+同花顺,Straight flush,同花顺
+四条,Four of a kind,四条
+葫芦,Full house,葫芦
+同花,Flush,同花
+顺子,Straight,顺子
+三条,Three of a kind,三条
+两对,Two pair,两对
+一对,One pair,一对
+高牌,High card,高牌
+平分底池,Split the pot,平分底池
+查看结果,View result,查看结果
+查看摊牌,View showdown,查看摊牌
+返还下注者,Return it to the bettor,返还下注者
+放入无人可争夺底池,Put it in an uncontested pot,放入无人可争夺底池
+按钮兼小盲，翻前先行动,Button is small blind and acts first preflop,按钮兼小盲，翻前先行动
+大盲翻前先行动,Big blind acts first preflop,大盲翻前先行动
+按钮轮到另一位有筹码玩家,Button moves to the other player with chips,按钮轮到另一位有筹码玩家
+按钮保持不动,Button stays put,按钮保持不动
+分析说明,Analysis notes,分析说明
+复盘分析尚不可用,Replay analysis unavailable,复盘分析尚不可用
+"完成 %d 手 · 独占获奖 %d 手 · 平分 %d 手 · 未获奖 %d 手
+净盈利手 %d · 总净变化 %+.2f BB · 最大单手净盈利 %.2f BB","Hands completed: %d · Sole wins: %d · Split hands: %d · Losses: %d
+Profitable hands: %d · Total net: %+.2f BB · Best-hand net: %.2f BB","完成 %d 手 · 独占获奖 %d 手 · 平分 %d 手 · 未获奖 %d 手
+净盈利手 %d · 总净变化 %+.2f BB · 最大单手净盈利 %.2f BB"
+"完整结束 %d 场（赢 %d / 输 %d）· 提前离桌 %d 场
+摊牌获奖 %d 手 · 无人争夺获奖 %d 手 · 单场最高筹码 %d · 最高入场倍数 %.2f","%d completed matches (won %d / lost %d) · %d early exits
+%d showdown wins · %d uncontested wins · peak stack %d · highest entry multiple %.2f","完整结束 %d 场（赢 %d / 输 %d）· 提前离桌 %d 场
+摊牌获奖 %d 手 · 无人争夺获奖 %d 手 · 单场最高筹码 %d · 最高入场倍数 %.2f"
+按盲注分组的净筹码：,Net chips by blind:,按盲注分组的净筹码：
+摊牌形成牌型：,Showdown hand ranks:,摊牌形成牌型：
+以牌型获奖：,Wins by hand rank:,以牌型获奖：
+其中独占：,Sole wins:,其中独占：
+其中平分：,Split wins:,其中平分：
+语言 / Language,Language / 语言,语言 / Language
+"总手数 %d · 胜手 %d
+净盈利 %d · 最大单手 +%d","Hands %d · Wins %d
+Net %d · Best hand +%d","总手数 %d · 胜手 %d
+净盈利 %d · 最大单手 +%d"
+%d 筹码,%d chips,%d 筹码
+"%d 筹码 · %d/%d 盲注 · %.0f BB
+BB 是大盲单位。本场盲注固定，可免费重开。不同筹码尺度的 AI 表现仍待专项验证。","%d chips · %d/%d blinds · %.0f BB
+BB means big blind. Blinds stay fixed. Starting again is free. AI performance at other stack sizes is not yet validated.","%d 筹码 · %d/%d 盲注 · %.0f BB
+BB 是大盲单位。本场盲注固定，可免费重开。不同筹码尺度的 AI 表现仍待专项验证。"
+本手牌谱已保存,Hand history saved,本手牌谱已保存
+AI 计算未能启动。关闭提示后，点击继续游戏重试。,"AI calculation could not start. Close this message, then resume the game to retry.",AI 计算未能启动。关闭提示后，点击继续游戏重试。
+已成功保存的手牌、教程进度和设置保留。当前整场不支持续玩；离开会放弃未结算手牌，提前离桌单列。重新开桌免费。,"Saved hands, tutorial progress and settings are kept. Unfinished matches cannot resume: leaving abandons the current hand and counts as an early exit. Starting again is free.",已成功保存的手牌、教程进度和设置保留。当前整场不支持续玩；离开会放弃未结算手牌，提前离桌单列。重新开桌免费。
+"
+还有未保存资料，退出应用会丢失这部分更新，请先重试保存。","
+There is also unsaved data. Quitting will lose those updates; retry saving first.","
+还有未保存资料，退出应用会丢失这部分更新，请先重试保存。"
+每课使用预设局面。完成进度单独保存，重练不计入普通战绩。,Each lesson uses a preset situation. Progress is saved separately; repeating a lesson does not affect regular results.,每课使用预设局面。完成进度单独保存，重练不计入普通战绩。
+  ✓ 已完成,  ✓ Complete,  ✓ 已完成
+你的底牌区域,Your hole-card area,你的底牌区域
+公共牌区域,Community-card area,公共牌区域
+座位旁：玩家筹码区域　　桌面中央：底池区域,By the seat: player chips     Center of the table: pot,座位旁：玩家筹码区域　　桌面中央：底池区域
+课程已完成，但进度未保存：,"Lesson complete, but progress was not saved: ",课程已完成，但进度未保存：
+%s UTC · %s · 本场 %d 条记录,%s UTC · %s · %d records in this match,%s UTC · %s · 本场 %d 条记录
+第 %d 手 · %d 人 · %s · %d 筹码 · %d/%d · 净变化 %+d,Hand %d · %d players · %s · %d chips · %d/%d · Net %+d,第 %d 手 · %d 人 · %s · %d 筹码 · %d/%d · 净变化 %+d
+"有尚未保存的记录：%s
+关闭游戏前请重试保存。","Unsaved records: %s
+Retry saving before closing the game.","有尚未保存的记录：%s
+关闭游戏前请重试保存。"
+时间（UTC）,Time (UTC),时间（UTC）
+模式,Mode,模式
+辅助,Assistance,辅助
+全部辅助来源,All assistance sources,全部辅助来源
+独立对局,Unassisted play,独立对局
+实际查看过辅助,Assistance actually viewed,实际查看过辅助
+人数,Players,人数
+2 人,2 players,2 人
+3 人,3 players,3 人
+4 人,4 players,4 人
+5 人,5 players,5 人
+6 人,6 players,6 人
+深度,Depth,深度
+统计口径,Statistics definitions,统计口径
+"赢手表示独占赢得至少一个主池或边池；平分手另计，两者可以重叠。净盈利手以本手筹码变化大于零计算。未获任何奖池计为输手。
+不同盲注的原始筹码分组显示；BB 是大盲单位。提前离桌不算整场输赢。牌型只统计参与摊牌时的七选五结果。旧历史汇总不能反推牌谱或成就。辅助筛选只看是否真正显示过实时结果，打开不可用面板不算辅助。","A sole win means winning at least one main or side pot outright. Split hands are counted separately and may overlap. A profitable hand has a positive chip change. A hand with no pot awarded is a loss.
+Raw chip results are grouped by blinds; BB means big blind. Early exits are not match wins or losses. Hand ranks count only the best five of seven at showdown. Legacy totals cannot reconstruct hand histories or achievements. Assistance filters count actual displayed results, not opening an unavailable panel.","赢手表示独占赢得至少一个主池或边池；平分手另计，两者可以重叠。净盈利手以本手筹码变化大于零计算。未获任何奖池计为输手。
+不同盲注的原始筹码分组显示；BB 是大盲单位。提前离桌不算整场输赢。牌型只统计参与摊牌时的七选五结果。旧历史汇总不能反推牌谱或成就。辅助筛选只看是否真正显示过实时结果，打开不可用面板不算辅助。"
+"玩家画像 · 当前筛选样本 %d 手
+画像维度和评分尚未定义，暂不生成雷达图。","Player profile · Hands in this filter: %d
+Profile dimensions and scores are not defined yet; no radar chart is generated.","玩家画像 · 当前筛选样本 %d 手
+画像维度和评分尚未定义，暂不生成雷达图。"
+历史汇总（无法追溯、不参与上述筛选）：%d 手 · 胜手 %d · 净筹码 %d,Legacy totals (untraceable; outside these filters): %d hands · %d wins · Net chips %d,历史汇总（无法追溯、不参与上述筛选）：%d 手 · 胜手 %d · 净筹码 %d
+第 %d 手回放 · %s · 净变化 %+d,Replay hand %d · %s · Net %+d,第 %d 手回放 · %s · 净变化 %+d
+本地教练算法尚未定义。全知视角可展示底牌，但未来评价历史决策时只能使用当时可知的信息。当前不提供行动评分或最佳行动建议。,"The local coaching algorithm is not defined yet. Omniscient view reveals hole cards, but future reviews must use only information available at the time. Action scores and best-action recommendations are not provided.",本地教练算法尚未定义。全知视角可展示底牌，但未来评价历史决策时只能使用当时可知的信息。当前不提供行动评分或最佳行动建议。
+%s · 筹码 %d,%s · %d chips,%s · 筹码 %d
+已出局,Eliminated,已出局
+%s · 本轮投入 %d · 本手投入 %d,%s · Street bet %d · Hand contribution %d,%s · 本轮投入 %d · 本手投入 %d
+底池 %d · 本轮最高下注 %d · 庄位 %d · 小盲位 %d · 大盲位 %d,Pot %d · Highest bet %d · Button %d · SB seat %d · BB seat %d,底池 %d · 本轮最高下注 %d · 庄位 %d · 小盲位 %d · 大盲位 %d
+未跟注返还：%s %d,Uncalled return: %s %d,未跟注返还：%s %d
+奖池 %d：%s,Pot %d: %s,奖池 %d：%s
+已完整遍历这手牌谱；回放成就已保存。,Every step of this hand has been viewed; the replay achievement is saved.,已完整遍历这手牌谱；回放成就已保存。
+已完整回放；成就未保存（牌谱可能尚未成功保存），可在保存后重试回放。,"Replay complete, but the achievement was not saved. Save the hand history, then replay it again.",已完整回放；成就未保存（牌谱可能尚未成功保存），可在保存后重试回放。
+底牌在哪一组？,Which group is your hole cards?,底牌在哪一组？
+公共牌在哪一组？,Which group is the community cards?,公共牌在哪一组？
+筹码信息在哪一组？,Where are the player chips?,筹码信息在哪一组？
+底池在哪一组？,Where is the pot?,底池在哪一组？
+示意牌前两张为底牌、后五张为公共牌；实际桌面分别显示筹码与底池。,The first two example cards are hole cards; the other five are community cards. Chips and the pot have separate areas on the table.,示意牌前两张为底牌、后五张为公共牌；实际桌面分别显示筹码与底池。
+请选择第 %d 张；只能选择当前七张牌且不能重复。,"Choose card %d. Pick only from these seven cards, without duplicates.",请选择第 %d 张；只能选择当前七张牌且不能重复。
+已选：%s。完成后会与七张牌的最佳评估比较。,Selected: %s. Your five cards will be compared with the best possible five.,已选：%s。完成后会与七张牌的最佳评估比较。
+九类牌型中，哪个高于四条？,Which of the nine hand types beats four of a kind?,九类牌型中，哪个高于四条？
+从高到低：同花顺、四条、葫芦、同花、顺子、三条、两对、一对、高牌。皇家同花顺属于同花顺。,"Strongest to weakest: straight flush, four of a kind, full house, flush, straight, three of a kind, two pair, one pair, high card. A royal flush is a straight flush.",从高到低：同花顺、四条、葫芦、同花、顺子、三条、两对、一对、高牌。皇家同花顺属于同花顺。
+两手都是一对 A，哪一手获胜？,Both hands have a pair of aces. Which wins?,两手都是一对 A，哪一手获胜？
+A 对，K 踢脚,"Pair of aces, king kicker",A 对，K 踢脚
+A 对，Q 踢脚,"Pair of aces, queen kicker",A 对，Q 踢脚
+实际比较结果 %d：K 踢脚更大。,Actual comparison: %d. The king kicker is higher.,实际比较结果 %d：K 踢脚更大。
+公共牌已经构成双方最佳顺子，双方结果是什么？,The board makes the best straight for both players. What happens?,公共牌已经构成双方最佳顺子，双方结果是什么？
+比较无关底牌,Compare irrelevant hole cards,比较无关底牌
+双方七张牌评估均为 %s，公共牌可被双方使用。,Both seven-card evaluations are %s. Both players may use the board.,双方七张牌评估均为 %s，公共牌可被双方使用。
+教程预设,Tutorial preset,教程预设
+实际执行：,Try it: ,实际执行：
+请执行 %s。,Please %s.,请执行 %s。
+到 100, to 100,到 100
+阶段：%s；需跟注 %d；当前下注 %d；加注到 %d–%d。加注到 100 是本轮总投入，额外支付 %d。,Stage: %s; to call %d; current bet %d; raise to %d–%d. Raising to 100 is the street total; pay %d more.,阶段：%s；需跟注 %d；当前下注 %d；加注到 %d–%d。加注到 100 是本轮总投入，额外支付 %d。
+教程动作,Tutorial action,教程动作
+教程预设对手,Preset tutorial opponent,教程预设对手
+本手已经完成摊牌结算。,This hand has reached showdown and settled.,本手已经完成摊牌结算。
+行动, action,行动
+轮到你时执行%s，预设对手会真实跟注或让牌。,"On your turn, %s. The preset opponent will actually call or check.",轮到你时执行%s，预设对手会真实跟注或让牌。
+阶段：%s；底池：%d；需跟注：%d。,Stage: %s; pot: %d; to call: %d.,阶段：%s；底池：%d；需跟注：%d。
+教程完整手牌,Tutorial full hand,教程完整手牌
+四人桌翻前，当前实际轮到哪个座位行动？,"At this four-player table, which seat acts now preflop?",四人桌翻前，当前实际轮到哪个座位行动？
+%d 号位,Seat %d,%d 号位
+%d 号位（大盲）,Seat %d (big blind),%d 号位（大盲）
+按钮 %d；小盲 %d；大盲 %d；当前行动者 %d。,Button %d; small blind %d; big blind %d; current actor %d.,按钮 %d；小盲 %d；大盲 %d；当前行动者 %d。
+单挑中，按钮位与小盲的关系及翻前行动顺序是什么？,"Heads-up, how do the button and small blind relate, and who acts first preflop?",单挑中，按钮位与小盲的关系及翻前行动顺序是什么？
+实际按钮 %d，小盲 %d，大盲 %d，当前行动者 %d。,"Actual button %d, small blind %d, big blind %d, current actor %d.",实际按钮 %d，小盲 %d，大盲 %d，当前行动者 %d。
+完成当前手牌并开始下一手，按钮会如何变化？,"After this hand ends and the next begins, what happens to the button?",完成当前手牌并开始下一手，按钮会如何变化？
+选择后将结束本手并开始下一手，观察庄位标记的位置变化。,Your choice will finish this hand and start another. Watch the button move.,选择后将结束本手并开始下一手，观察庄位标记的位置变化。
+教程轮换演示,Tutorial button rotation,教程轮换演示
+四位玩家投入 50、100、200、200，主池是多少？,"Four players put in 50, 100, 200 and 200. How big is the main pot?",四位玩家投入 50、100、200、200，主池是多少？
+按每人最低投入 50 形成 200 主池；其余按下一档投入分层。,The first 50 from each player forms a main pot of 200. The rest is divided into side pots.,按每人最低投入 50 形成 200 主池；其余按下一档投入分层。
+同一局中，第一个边池是多少？,"In the same hand, how big is the first side pot?",同一局中，第一个边池是多少？
+第二层：三位玩家各追加 50，形成 150 边池；最后两位再各追加 100，形成 200 边池。,Three players add 50 each for a side pot of 150. The last two add 100 each for another side pot of 200.,第二层：三位玩家各追加 50，形成 150 边池；最后两位再各追加 100，形成 200 边池。
+另一局投入 1000 与 20，无法被跟注的筹码返还多少？,"In another hand, one player puts in 1000 and the other 20. How much is returned uncalled?",另一局投入 1000 与 20，无法被跟注的筹码返还多少？
+实际可争夺底池 %d；返还 %d。,Actual contested pot %d; returned %d.,实际可争夺底池 %d；返还 %d。
+公共牌构成双方相同顺子，200 底池如何结算？,The board gives both players the same straight. How is the 200 pot settled?,公共牌构成双方相同顺子，200 底池如何结算？
+各得 100，平分底池,100 each; split the pot,各得 100，平分底池
+按底牌花色决胜,Break the tie by hole-card suit,按底牌花色决胜
+双方各得 100。投入合计 200，派奖合计 200。,Each gets 100. Total contributions: 200. Total payouts: 200.,双方各得 100。投入合计 200，派奖合计 200。
+本手已结束。未被跟注的多余筹码应怎样处理？,The hand is over. What should happen to excess uncalled chips?,本手已结束。未被跟注的多余筹码应怎样处理？
+请选择当前真实合法行动。加注会使用最小合法加注到 %d。,Choose an action that is legal now. A raise uses the minimum legal total of %d.,请选择当前真实合法行动。加注会使用最小合法加注到 %d。
+到 %d, to %d,到 %d
+阶段：%s；需跟注 %d；底池 %d。每个分支都能继续到结算。,Stage: %s; to call %d; pot %d. Every branch can continue to settlement.,阶段：%s；需跟注 %d；底池 %d。每个分支都能继续到结算。
+教程自测,Tutorial self-check,教程自测
+结算：%s；你的筹码 %d。,Result: %s; your stack %d.,结算：%s；你的筹码 %d。
+你已完成本课练习。可以重练巩固或进入下一课；教程进度独立保存，不影响普通对战统计。,You finished this lesson. Repeat it or move on; tutorial progress is saved separately and does not affect regular results.,你已完成本课练习。可以重练巩固或进入下一课；教程进度独立保存，不影响普通对战统计。
+同一花色的连续五张；皇家同花顺是其中的 A 高同花顺。,Five consecutive cards of one suit. A royal flush is the ace-high straight flush.,同一花色的连续五张；皇家同花顺是其中的 A 高同花顺。
+四张同点数牌，加一张踢脚牌。,"Four cards of one rank, plus a kicker.",四张同点数牌，加一张踢脚牌。
+三条加一对。,Three of a kind plus a pair.,三条加一对。
+五张同一花色，不要求连续。,"Five cards of one suit, not necessarily consecutive.",五张同一花色，不要求连续。
+五张连续点数；A 可作 1，A-2-3-4-5 是最小顺子。,Five consecutive ranks. Ace can be low: A-2-3-4-5 is the lowest straight.,五张连续点数；A 可作 1，A-2-3-4-5 是最小顺子。
+三张同点数牌，比较三条点数后比较踢脚牌。,"Three cards of one rank. Compare the trip rank, then the kickers.",三张同点数牌，比较三条点数后比较踢脚牌。
+两组对子，先比高对，再比低对，最后比踢脚牌。,"Two pairs. Compare the higher pair, lower pair, then kicker.",两组对子，先比高对，再比低对，最后比踢脚牌。
+一组对子；对子相同则依次比较三张踢脚牌。,"One pair. If tied, compare the three kickers in order.",一组对子；对子相同则依次比较三张踢脚牌。
+没有更高牌型时比较五张牌的点数。,"Without a higher hand type, compare the five card ranks in order.",没有更高牌型时比较五张牌的点数。
+牌型从高到低：,"Hands, strongest to weakest:",牌型从高到低：
+%d. %s：%s 示例 %s,%d. %s: %s Example: %s,%d. %s：%s 示例 %s
+"
+皇家同花顺属于同花顺，不是第十种牌型；公共牌组成的最佳五张牌对所有仍在牌局中的玩家可用。","
+A royal flush is a straight flush, not a tenth hand type. Every remaining player can use the best five cards on the board.","
+皇家同花顺属于同花顺，不是第十种牌型；公共牌组成的最佳五张牌对所有仍在牌局中的玩家可用。"
+请选择设置后开始。,Choose your settings to begin.,请选择设置后开始。
+第 %d 手牌开始。,Hand %d begins.,第 %d 手牌开始。
+%s 庄位在 %s。,%s The button is at %s.,%s 庄位在 %s。
+发牌（收盲前）,Deal (before blinds),发牌（收盲前）
+收取盲注,Post blinds,收取盲注
+轮到 %s,Action on %s,轮到 %s
+%s 支付盲注 %d。,%s posts blind %d.,%s 支付盲注 %d。
+已发%s。,Dealt %s.,已发%s。
+%s 公共牌现在有 %d 张。,%s There are now %d community cards.,%s 公共牌现在有 %d 张。
+全下后自动发牌，公共牌现在有 %d 张。,All-in runout: %d community cards now.,全下后自动发牌，公共牌现在有 %d 张。
+全下后发%s,All-in runout: %s,全下后发%s
+无人跟注,Uncontested,无人跟注
+%s 无人跟注，赢得 %d。,%s wins %d uncontested.,%s 无人跟注，赢得 %d。
+摊牌比较,Showdown comparison,摊牌比较
+%s 收回未被跟注的 %d。,%s receives %d in uncalled chips.,%s 收回未被跟注的 %d。
+返还 %s 未被跟注的 %d,Return to %s: %d uncalled chips,返还 %s 未被跟注的 %d
+%s 用%s赢得 %d。,%s with %s wins %d.,%s 用%s赢得 %d。
+摊牌结算完成。,Showdown complete.,摊牌结算完成。
+%s 摊牌：%s。,%s shows %s.,%s 摊牌：%s。
+跟注到 %d,Call to %d,跟注到 %d
+加注到 %d,Raise to %d,加注到 %d
+全下到 %d,All-in to %d,全下到 %d
+你已出局,You are eliminated,你已出局
+你赢得牌局,You win the match,你赢得牌局
+%s 赢得牌局,%s wins the match,%s 赢得牌局
+牌局结束,Match over,牌局结束
+%s。总手数 %d，最终筹码 %d。,"%s. Hands played %d, final stack %d.",%s。总手数 %d，最终筹码 %d。
+练习资料损坏或版本较新，已保留原文件；当前只读。,Practice data is damaged or from a newer version. The original file is preserved; this session is read-only.,练习资料损坏或版本较新，已保留原文件；当前只读。
+部分牌谱损坏或版本不兼容，已跳过并保留原文件。,Some hand histories are damaged or incompatible. They were skipped and the original files preserved.,部分牌谱损坏或版本不兼容，已跳过并保留原文件。
+牌谱格式无效或来自预设教程，未计入正常战绩。,This record is invalid or from a preset tutorial. It was not counted in regular results.,牌谱格式无效或来自预设教程，未计入正常战绩。
+牌谱已满 1000 手，请手动删除旧牌谱后重试；累计统计与成就保留。,The 1000-hand limit is reached. Delete an old history and retry; cumulative statistics and achievements are kept.,牌谱已满 1000 手，请手动删除旧牌谱后重试；累计统计与成就保留。
+找不到这手有效牌谱。,This valid hand history could not be found.,找不到这手有效牌谱。
+牌谱删除失败，原文件与累计统计保留，可以重试。,Could not delete the history. The original file and cumulative statistics are kept; retry is available.,牌谱删除失败，原文件与累计统计保留，可以重试。
+已删除牌谱；累计统计与成就保留。,History deleted; cumulative statistics and achievements kept.,已删除牌谱；累计统计与成就保留。
+完成第一课,Complete the first lesson,完成第一课
+完成入门课程,Complete the beginner course,完成入门课程
+第一次完整回放,First complete replay,第一次完整回放
+回放,Replay,回放
+整场配置不完整，未记入场次。,Match settings are incomplete; the match was not counted.,整场配置不完整，未记入场次。
+辅助练习,Assisted practice,辅助练习
+首次形成葫芦,First full house,首次形成葫芦
+首次形成四条,First four of a kind,首次形成四条
+首次形成同花顺,First straight flush,首次形成同花顺
+筹码达到入场两倍,Double your starting stack,筹码达到入场两倍
+练习资料损坏或版本较新，当前只读，原文件未覆盖。,Practice data is damaged or newer; read-only mode preserves the original file.,练习资料损坏或版本较新，当前只读，原文件未覆盖。
+保存目录不可写，请修复目录后重试；本次数据尚未保存。,The save directory is not writable. Fix its permissions and retry; this data is not saved yet.,保存目录不可写，请修复目录后重试；本次数据尚未保存。
+写入失败，可以重试；原存档保留。,Write failed. Retry is available; the previous save is preserved.,写入失败，可以重试；原存档保留。
+保存失败，可以重试；原存档保留。,Save failed. Retry is available; the previous save is preserved.,保存失败，可以重试；原存档保留。
+无可用行动,No legal action,无可用行动
+继续,Continue,继续
+中等,Medium,中等
+范围再加注,Range re-raise,范围再加注
+范围全下,Range all-in,范围全下
+范围跟注,Range call,范围跟注
+范围弃牌,Range fold,范围弃牌
+平跟入池,Limp,平跟入池
+免费看牌,Free card,免费看牌
+范围让牌,Range check,范围让牌
+范围平跟,Range flat call,范围平跟
+范围开池,Range open,范围开池
+诈唬加注,Bluff raise,诈唬加注
+谨慎弃牌,Cautious fold,谨慎弃牌
+价值加注,Value raise,价值加注
+赔率跟注,Pot-odds call,赔率跟注
+控池让牌,Pot-control check,控池让牌
+采样不足，保守让牌,Too few samples; check conservatively,采样不足，保守让牌
+采样不足，保守弃牌,Too few samples; fold conservatively,采样不足，保守弃牌
+EV弃牌,EV fold,EV弃牌
+EV让牌,EV check,EV让牌
+EV跟注,EV call,EV跟注
+EV加注,EV raise,EV加注
+EV全下,EV all-in,EV全下
+EV行动,EV action,EV行动
+偏好资料来自更新版本，已保留原文件；本次使用默认设置且不覆盖。,Preferences are from a newer version. The original file is preserved; this session uses defaults without overwriting it.,偏好资料来自更新版本，已保留原文件；本次使用默认设置且不覆盖。
+部分旧配置无效，已回退到支持的安全配置。,Some old settings were invalid and have been reset to supported values.,部分旧配置无效，已回退到支持的安全配置。
+"整场目标：赢得牌桌全部筹码；筹码归零则整场结束。开桌可选人数、筹码和盲注，盲注一场内固定，重新开桌完全免费。
+
+每手用自己的两张底牌与最多五张公共牌选最佳五张。流程为翻前 → 翻牌（三张）→ 转牌（一张）→ 河牌（一张）→ 摊牌；对手全部弃牌时可提前结束。
+
+让牌：无需跟注时免费继续。跟注：补足本轮最高下注，筹码不足时只付剩余筹码。加注到：本轮累计投入的目标总额，不是额外投入。弃牌：放弃本手争夺。全下：投入剩余筹码，但仍受加注权限制。
+
+多人桌翻前从大盲之后开始，翻后从庄位之后第一位可行动者开始。单挑时庄位兼小盲，翻前先行动、翻后后行动。每手庄位轮换。
+
+全下玩家只争夺其投入对应的底池，其余投入形成边池。最佳五张相同则平分，余数按庄位之后的座位顺序分配。无人跟注的多余筹码退回。派奖金额不是净利润，净变化须扣除本手投入。
+
+设置和速览打开期间牌局等待。已完成手牌保存成功后可以跨启动回放；当前未结束的对局不支持续玩。离开时放弃未结算手牌，提前离桌单列。保存失败会明确提示并可重试。","Match goal: win every chip on the table; you are eliminated when your stack reaches zero. Choose player count, stacks, and blinds before starting. Blinds stay fixed for a match and restarting is free.
+
+Use your two hole cards and up to five community cards to choose the best five. Streets are preflop, flop (three cards), turn (one), river (one), then showdown. A hand can end early if every opponent folds.
+
+Check continues for free when there is nothing to call. Call matches the current wager; a short stack pays only its remaining chips. Raise to is your total contribution on this street. Fold gives up the hand. All-in commits the remaining stack, subject to raise rights.
+
+Preflop at a multi-player table starts after the big blind; postflop starts with the first active player after the button. Heads-up, the button is also the small blind and acts first preflop. The button rotates each hand.
+
+All-in players contest only pots covered by their contribution; the rest becomes side pots. Equal best fives split the pot, with odd chips dealt clockwise after the button. Uncalled excess is returned. Payout is not net profit; net change includes this hand's investment.
+
+The game waits while Settings and reference panels are open. Completed hands can be replayed after a successful save; unfinished matches cannot resume after restart. Leaving abandons an unsettled hand and is tracked as an early exit. Save failures are shown and can be retried.","整场目标：赢得牌桌全部筹码；筹码归零则整场结束。开桌可选人数、筹码和盲注，盲注一场内固定，重新开桌完全免费。
+
+每手用自己的两张底牌与最多五张公共牌选最佳五张。流程为翻前 → 翻牌（三张）→ 转牌（一张）→ 河牌（一张）→ 摊牌；对手全部弃牌时可提前结束。
+
+让牌：无需跟注时免费继续。跟注：补足本轮最高下注，筹码不足时只付剩余筹码。加注到：本轮累计投入的目标总额，不是额外投入。弃牌：放弃本手争夺。全下：投入剩余筹码，但仍受加注权限制。
+
+多人桌翻前从大盲之后开始，翻后从庄位之后第一位可行动者开始。单挑时庄位兼小盲，翻前先行动、翻后后行动。每手庄位轮换。
+
+全下玩家只争夺其投入对应的底池，其余投入形成边池。最佳五张相同则平分，余数按庄位之后的座位顺序分配。无人跟注的多余筹码退回。派奖金额不是净利润，净变化须扣除本手投入。
+
+设置和速览打开期间牌局等待。已完成手牌保存成功后可以跨启动回放；当前未结束的对局不支持续玩。离开时放弃未结算手牌，提前离桌单列。保存失败会明确提示并可重试。"

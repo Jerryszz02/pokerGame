@@ -1,0 +1,12 @@
+Airport Lounge — Kevin MacLeod (incompetech.com)
+Licensed under Creative Commons Attribution 4.0 International (CC BY 4.0).
+License: https://creativecommons.org/licenses/by/4.0/
+Legal code: https://creativecommons.org/licenses/by/4.0/legalcode
+Source: https://incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1100806
+Audio: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Airport%20Lounge.mp3
+ISRC: USUAN1100806
+Retrieved: 2026-09-11
+
+The bundled MP3 is unmodified. PokerGame plays it repeatedly at reduced volume;
+no endorsement by the composer is implied.
+Original SHA-256: e20d316b541c72690a3b0311c9f3d40fd00717359ab7567d7df82a9316c1dec4

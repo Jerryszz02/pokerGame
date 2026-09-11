@@ -116,3 +116,20 @@ Developer ID 需要开发者计划资格，常规会员价格为 99 USD/年（�
 美术修改先读 [art-direction.md](art-direction.md)；运行依赖由代码 `preload()` 和导出资源列表共同明确。Noto Sans SC 使用独立的 weight-400 `FontVariation`，许可位于 `assets/fonts/OFL.txt`；变量字体不能直接以最低字重作为默认界面字体。字体在主场景初始化时应用，并显式传给弹窗；不设置项目级 `theme/custom_font`，避免干净 checkout 在首次导入前读取尚不存在的字体缓存。
 
 维护约定：修改上述命令、状态机制、导出边界或数据语义时，在同一 PR 更新本文及对应架构/验收说明。
+
+
+## 中英文与音频
+
+语言方案与本轮验收见 [中英文与音频记录](planning/bilingual-audio-plan.md)。`assets/translations/poker.csv` 是翻译源；编辑后需运行 Godot import，再验证两个语言资源进入两平台导出预设。`poker_profile.cfg` 中的 `language` 为 `system / zh_CN / en`；旧设置默认跟随系统，语言不改变牌局规则或玩家数据 ID。
+
+音频来自项目本地 `assets/audio/`，运行时不访问素材网站。`GameAudio` 节点在 UI 重建时保留，负责背景循环与动作音效；音乐和音效音量分别保存。Web 的首次输入解锁仅为兼容准备，不代表 Web 导出已验收。来源、署名和许可证位于 `THIRD_PARTY_NOTICES.md` 与 `assets/licenses/`，构建脚本会复制许可证到发行包。
+
+```sh
+"$GODOT_BIN" --headless --path . -s tests/localization_test.gd
+"$GODOT_BIN" --headless --path . -s tests/localization_ui_probe.gd
+"$GODOT_BIN" --headless --path . -s tests/audio_test.gd
+```
+
+headless 音频检查验证资源、循环、音量独立性和输入解锁逻辑；实际扬声器听感、背景音乐循环接缝需单独试听。
+
+The two generated `assets/translations/poker.*.translation` resources are tracked because startup loading and release fingerprints require them before the first import. After editing the CSV, import with the pinned Godot version and commit the regenerated resources together.

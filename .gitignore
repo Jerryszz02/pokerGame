@@ -3,6 +3,9 @@
 export/
 *.tmp
 *.translation
+# Startup translations are required before the first editor import.
+!assets/translations/poker.en.translation
+!assets/translations/poker.zh_CN.translation
 *.baiduyun.uploading.cfg
 
 __pycache__/

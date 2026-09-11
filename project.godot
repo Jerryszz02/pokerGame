@@ -28,3 +28,7 @@ window/stretch/aspect="expand"
 
 renderer/rendering_method="mobile"
 textures/vram_compression/import_etc2_astc=true
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://assets/translations/poker.en.translation", "res://assets/translations/poker.zh_CN.translation")

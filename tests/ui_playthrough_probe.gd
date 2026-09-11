@@ -33,6 +33,10 @@ func _playthrough(viewport_size: Vector2i) -> void:
 		await process_frame
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
 	scene.profile_path = "user://poker_ui_playthrough_probe.cfg"
+	# Pin legacy Chinese-copy fixtures; localization_ui_probe covers English.
+	var language_fixture := LocalProfile.load_profile(scene.profile_path)
+	language_fixture.settings.language = "zh_CN"
+	LocalProfile.save_profile(language_fixture, scene.profile_path)
 	root.add_child(scene)
 	scene.set_process(false)
 	scene.set_anchors_preset(Control.PRESET_FULL_RECT)
