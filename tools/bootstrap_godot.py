@@ -11,6 +11,18 @@ import zipfile
 
 VERSION = '4.7.2'
 BASE = f'https://github.com/godotengine/godot/releases/download/{VERSION}-stable/'
+# The Web preset enables thread support and disables GDExtension, so the matching
+# official templates are the plain (non-dlink) threaded pair.
+WEB_TEMPLATES = ('web_debug.zip', 'web_release.zip')
+
+
+def is_template_file(base):
+    """Return True for export templates the project's desktop and web presets need."""
+    if base in ('macos.zip', 'version.txt'):
+        return True
+    if base.startswith('windows_') and 'x86_64' in base:
+        return True
+    return base in WEB_TEMPLATES
 
 
 def fetch(name, cache, sums):
@@ -65,7 +77,7 @@ def main():
         with zipfile.ZipFile(templates) as source:
             for name in source.namelist():
                 base = Path(name).name
-                if base in ['macos.zip', 'version.txt'] or base.startswith('windows_') and 'x86_64' in base:
+                if is_template_file(base):
                     with source.open(name) as src, (target / base).open('wb') as dst:
                         shutil.copyfileobj(src, dst)
     print(godot)
