@@ -1,21 +1,21 @@
 # PokerGame 项目规划入口
 
-项目为 Godot 4 + GDScript 单人德州扑克练习游戏。桌面可离线运行，1.2.0 源码另有 Web 候选构建；游戏逻辑与 AI 均在本地运行。
+项目为 Godot 4 + GDScript 单人德州扑克练习游戏。桌面可离线运行，1.2.0 已提供 Web 构建并在 itch.io 发布；游戏逻辑与 AI 均在本地运行。
 
 ## 当前状态（2026-09-11 核对）
 
 | 层次 | 已确认事实 | 证据与边界 |
 | --- | --- | --- |
-| 公开版本 | GitHub 最新正式版本为 **v1.1.0**，提供 Windows x64 / macOS Universal ZIP；itch.io 页面仍为简体中文桌面下载入口。 | [GitHub Release](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.1.0)、[itch.io 页面](https://jerryszz02.itch.io/poker-game)。本次核对页面及附件元数据，未重新下载运行。 |
-| 最新主线 | `0466f28`，项目版本 **1.2.0**。AI 增强、练习功能、双语音频、Web 构建和版本准备均已合入。 | [PR #12](https://github.com/Jerryszz02/pokerGame/pull/12)～[PR #17](https://github.com/Jerryszz02/pokerGame/pull/17) 已合并；1.2.0 尚非公开 Release。 |
+| 公开版本 | **itch.io 已公开 v1.2.0**，页面提供 Run game、Windows x64 / macOS Universal ZIP 和校验文件；**GitHub latest 仍为 v1.1.0**。 | [GitHub Release](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.1.0)、[itch.io 页面](https://jerryszz02.itch.io/poker-game)。本次核对页面及附件元数据，未重新下载运行。 |
+| 最新主线 | `0466f28`，项目版本 **1.2.0**。AI 增强、练习功能、双语音频、Web 构建和版本准备均已合入。 | [PR #12](https://github.com/Jerryszz02/pokerGame/pull/12)～[PR #17](https://github.com/Jerryszz02/pokerGame/pull/17) 已合并；1.2.0 已在 itch.io 发布，但尚无对应 GitHub Release。 |
 | 自动验证 | 该主线提交的规则/headless 检查、Windows 包、macOS 包和 Web 包四项 CI 作业均成功。 | [CI 运行 34560282938](https://github.com/Jerryszz02/pokerGame/actions/runs/34560282938)。桌面包自检与 Web ZIP 检查不替代实际图形界面、浏览器及 itch 内嵌验收。 |
-| Web 体验 | 已记录用户本地预览未报告问题；完整浏览器存储/音频矩阵和 itch 内嵌验证仍待完成。 | [Web 发布流程](../itchio-release.md)、[1.2.0 发布说明](../releases/1.2.0.md)。 |
+| Web 体验 | 已记录用户本地预览未报告问题；浏览器音频和本地存档已实现，公开 itch.io 页面已提供内嵌启动入口。本次未重新执行完整音频/持久化与浏览器兼容矩阵。 | [Web 发布流程](../itchio-release.md)、[1.2.0 发布说明](../releases/1.2.0.md)。 |
 
 当前玩法包括：1～5 名 AI、三档难度、四档起始筹码和四组固定盲注、七课互动教程、自由对战、基础练习（可逐手暂停）、最多 1000 手完整牌谱及回放、本地筛选统计与成就。1.2.0 源码新增中英文切换、Lounge 背景音乐、牌桌音效及独立音量。
 
 AI 已有 169 类翻前范围、根据当手公开行动估计对手范围、加权 Monte Carlo 胜率和有限行动收益评估。它是本地启发式模型，不是 CFR/GTO 求解器，也没有跨场次学习；测试通过不证明职业级强度。见 [AI 设计与验证边界](ai-strategy-plan.md)。
 
-仍未提供本地教练建议、画像雷达评分、未完成对局续玩、联网对战或跨设备存档。下一步发布工作应按 Web 验收表核对实际包、音频解锁、刷新后的存档和 itch 内嵌，再发布 1.2.0 并同步公开页面。
+仍未提供本地教练建议、画像雷达评分、未完成对局续玩、联网对战或跨设备存档。后续可补充浏览器兼容性与持久化的复验证据，并同步 GitHub Release；这些验证事项不表示音频、存档或 itch 内嵌功能尚未实现。
 
 练习功能的原实现分支和测试过程保留在[实施记录](practice-implementation.md)，属于历史证据。后续状态以对应提交、实际检查和公开发布核对为准。
 

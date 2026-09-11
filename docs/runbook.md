@@ -59,9 +59,9 @@ python3 tools/build_release.py --godot "$GODOT_BIN" --target windows
 
 `docs/.gdignore` 将验收截图和文档排除在 Godot 资源导入之外，避免干净构建为文档图片生成未跟踪的 `.import` 文件；随包 README 仍由构建脚本显式复制。
 
-## Web 构建（itch.io 候选）
+## Web 构建与 itch.io 发布
 
-Web 导出是 itch.io 浏览器试玩的候选目标；2026-09-11 已通过本地 Godot 4.7.2 导出和 ZIP 校验，用户同日试用了本地预览且未报告问题，但完整浏览器存储/音频验收与 itch 内嵌验证仍待完成。公开页面 <https://jerryszz02.itch.io/poker-game> 仍指向外部 GitHub 下载，构建脚本不执行上传或发布。完整步骤、存储语义与人工验收表见 [itchio-release.md](itchio-release.md)。
+2026-09-11 重新核对，公开页面 <https://jerryszz02.itch.io/poker-game> 已提供 v1.2.0 内嵌启动入口、桌面 ZIP 和校验文件；GitHub latest 仍为 v1.1.0。浏览器音频与本地存档已实现。既有记录包含本地导出/ZIP 校验及用户预览；本次未重新执行完整浏览器音频/持久化矩阵。构建脚本本身不执行上传或发布。完整步骤、存储语义与人工验收表见 [itchio-release.md](itchio-release.md)。
 
 ```sh
 python3 tools/build_release.py --godot "$GODOT_BIN" --target web

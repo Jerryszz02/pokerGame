@@ -4,15 +4,15 @@
 
 # 来一手？
 
-不想等人凑桌，就和电脑打几手。**深夜德州扑克（PokerGame）**是一款免费的单机德州扑克游戏，支持 Windows 和 macOS，下载解压就能玩。
+不想等人凑桌，就和电脑打几手。**深夜德州扑克（PokerGame）**是一款免费的单机德州扑克游戏，支持浏览器直接游玩，以及 Windows 和 macOS 下载解压游玩。
 
 桌上最多坐五名 AI 对手。你可以稳一点，等好牌再出手；也可以加注施压，看看谁愿意跟到底。至于全下之后会发生什么，得等牌翻开才知道。
 
-**[去 itch.io 下载](https://jerryszz02.itch.io/poker-game)** · **[去 GitHub 下载](https://github.com/Jerryszz02/pokerGame/releases/latest)**
+**[去 itch.io 游玩或下载](https://jerryszz02.itch.io/poker-game)** · **[去 GitHub 下载](https://github.com/Jerryszz02/pokerGame/releases/latest)**
 
-**单人离线 · 1 至 5 名 AI 对手 · 三档难度 · 简体中文界面**
+**单人离线 · 1 至 5 名 AI 对手 · 三档难度 · 中英文界面**
 
-公开 v1.1.0 下载包仍为简体中文。当前 1.2.0 源码新增设置内中英文切换、轻柔爵士背景音乐、牌桌音效和 Web 候选构建；这些改动尚未进入公开 v1.1.0 下载包。详见[当前状态与验证](docs/planning/README.md)。
+itch.io 已公开 **v1.2.0** 网页版和桌面下载，包含中英文切换、轻柔爵士背景音乐和牌桌音效；浏览器首次点击或按键后启用音频。截至 2026-09-11，GitHub Releases 的 latest 仍为 v1.1.0。详见[当前状态与验证](docs/planning/README.md)。
 
 ![河牌圈轮到你行动，可以弃牌、跟注或全下](docs/media/river-decision.png)
 
@@ -20,7 +20,7 @@
 
 ## 这桌怎么玩
 
-开局可选每人 1,000、2,000、5,000 或 10,000 筹码，以及 5/10、10/20、25/50 或 50/100 盲注；一场内盲注固定。一手接一手地打，直到你赢下整桌，或者筹码归零。没有真钱下注，也不用注册账号或保持联网。
+开局可选每人 1,000、2,000、5,000 或 10,000 筹码，以及 5/10、10/20、25/50 或 50/100 盲注；一场内盲注固定。一手接一手地打，直到你赢下整桌，或者筹码归零。没有真钱下注，也不用注册账号。下载版可离线运行，网页版需联网加载。
 
 - **想单挑，还是坐满一桌？** 对手数量自己选，难度有简单、普通和困难三档。
 - **别指望每个对手都一样。** 困难模式里，有的谨慎，有的爱加注，也有的喜欢跟。留意他们怎么下注，再决定这一手怎么打。
@@ -42,16 +42,16 @@
 
 ## 下载后就能开桌
 
-在 [itch.io](https://jerryszz02.itch.io/poker-game) 或 [GitHub Releases](https://github.com/Jerryszz02/pokerGame/releases/latest) 下载对应系统的 ZIP 压缩包。玩游戏不需要安装 Godot、.NET，也不用下载源码。
+在 [itch.io](https://jerryszz02.itch.io/poker-game) 直接游玩网页版，或下载对应系统的 v1.2.0 ZIP 压缩包。[GitHub Releases](https://github.com/Jerryszz02/pokerGame/releases/latest) 当前仍提供旧版 v1.1.0 桌面包。玩游戏不需要安装 Godot、.NET，也不用下载源码。
 
 | 系统 | 下载文件 | 怎么打开 |
 | --- | --- | --- |
-| Windows x64 | `PokerGame-1.1.0-windows-x64.zip` | 完整解压后，双击 `PokerGame.exe`。 |
-| macOS | `PokerGame-1.1.0-macos-universal.zip` | 解压后，打开 `PokerGame.app`。 |
+| Windows x64 | `PokerGame-1.2.0-windows-x64.zip` | 完整解压后，双击 `PokerGame.exe`。 |
+| macOS | `PokerGame-1.2.0-macos-universal.zip` | 解压后，打开 `PokerGame.app`。 |
 
 用鼠标操作，显示区域至少需要 **1280 × 720**。macOS 安装包包含 Apple Silicon 和 Intel 两个版本，其中 Intel Mac 尚未单独验证。
 
-Windows 版本未签名，macOS 版本未经 Apple 公证，第一次打开时可能遇到系统安全提示。请先阅读[发布说明和文件校验信息](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.1.0)，再决定是否运行。
+Windows 版本未签名，macOS 版本未经 Apple 公证，第一次打开时可能遇到系统安全提示。请先阅读[发布说明](docs/releases/1.2.0.md)与 [itch.io 页面上的校验文件](https://jerryszz02.itch.io/poker-game)，再决定是否运行。
 
 **打到一半要走？先暂停。** 设置和打完的手牌统计会保存在本机，但当前这场对局不能存档续玩。返回主菜单或退出游戏，就要重新开桌。
 
