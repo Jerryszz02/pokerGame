@@ -2,8 +2,9 @@
 
 This document describes the Godot Web export added for itch.io play-in-browser.
 The build tooling produces a **candidate**: local Godot 4.7.2 Web export and ZIP
-validation passed on 2026-09-11. Browser gameplay, persistence, and the itch.io
-iframe have not been validated; no upload was performed. The public page
+validation passed on 2026-09-11. The user tried the local preview without reported issues on 2026-09-11;
+this is not a completed browser gameplay/persistence acceptance checklist. The itch.io
+iframe remains unverified, and no public Web build was observed in the 2026-09-11 page check. The public page
 <https://jerryszz02.itch.io/poker-game> currently uses external GitHub download
 links, as recorded in [storefront/README.md](storefront/README.md); nothing here
 moves, replaces, or publishes those files. Treat every result below as unverified
@@ -161,6 +162,6 @@ CI alone.
 | Windows/macOS download buttons work | Download each ZIP from the page, verify SHA-256, extract and launch | ☐ | ☐ | ☐ |
 
 Known limits to keep in the page copy: the Web build is a new, unverified target;
-the interface language and existing gameplay text are unchanged; IndexedDB storage
+the 1.2.0 source includes English / Simplified Chinese and local table audio; IndexedDB storage
 is local to one browser/device/origin; and desktop signing statements still apply to
 the downloadable builds, not to the Web build.

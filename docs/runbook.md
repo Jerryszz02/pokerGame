@@ -1,6 +1,6 @@
-# 开发、验证与桌面构建
+# 开发、验证与桌面及 Web 构建
 
-本文描述现行命令和运行机制；首发完成定义以 [release-plan.md](planning/release-plan.md) 为准。玩家安装与操作见 [player-guide.md](player-guide.md)。
+本文描述现行命令和运行机制；当前源码/发布状态见[规划入口](planning/README.md)，历史首发验收门见 [release-plan.md](planning/release-plan.md)。玩家安装与操作见 [player-guide.md](player-guide.md)。
 
 ## 固定引擎
 
@@ -61,7 +61,7 @@ python3 tools/build_release.py --godot "$GODOT_BIN" --target windows
 
 ## Web 构建（itch.io 候选）
 
-Web 导出是 itch.io 浏览器试玩的候选目标；2026-09-11 已通过本地 Godot 4.7.2 导出和 ZIP 校验，尚未上传或在浏览器/itch 内嵌中验证。公开页面 <https://jerryszz02.itch.io/poker-game> 仍指向外部 GitHub 下载，本仓库不上传也不发布。完整步骤、存储语义与人工验收表见 [itchio-release.md](itchio-release.md)。
+Web 导出是 itch.io 浏览器试玩的候选目标；2026-09-11 已通过本地 Godot 4.7.2 导出和 ZIP 校验，用户同日试用了本地预览且未报告问题，但完整浏览器存储/音频验收与 itch 内嵌验证仍待完成。公开页面 <https://jerryszz02.itch.io/poker-game> 仍指向外部 GitHub 下载，构建脚本不执行上传或发布。完整步骤、存储语义与人工验收表见 [itchio-release.md](itchio-release.md)。
 
 ```sh
 python3 tools/build_release.py --godot "$GODOT_BIN" --target web
@@ -141,9 +141,9 @@ Developer ID 需要开发者计划资格，常规会员价格为 99 USD/年（�
 
 ## 中英文与音频
 
-语言方案与本轮验收见 [中英文与音频记录](planning/bilingual-audio-plan.md)。`assets/translations/poker.csv` 是翻译源；编辑后需运行 Godot import，再验证两个语言资源进入两平台导出预设。`poker_profile.cfg` 中的 `language` 为 `system / zh_CN / en`；旧设置默认跟随系统，语言不改变牌局规则或玩家数据 ID。
+语言方案与本轮验收见 [中英文与音频记录](planning/bilingual-audio-plan.md)。`assets/translations/poker.csv` 是翻译源；编辑后需运行 Godot import，再验证两个语言资源进入 Windows、macOS 和 Web 三个导出预设。`poker_profile.cfg` 中的 `language` 为 `system / zh_CN / en`；旧设置默认跟随系统，语言不改变牌局规则或玩家数据 ID。
 
-音频来自项目本地 `assets/audio/`，运行时不访问素材网站。`GameAudio` 节点在 UI 重建时保留，负责背景循环与动作音效；音乐和音效音量分别保存。Web 的首次输入解锁仅为兼容准备，不代表 Web 导出已验收。来源、署名和许可证位于 `THIRD_PARTY_NOTICES.md` 与 `assets/licenses/`，构建脚本会复制许可证到发行包。
+音频来自项目本地 `assets/audio/`，运行时不访问素材网站。`GameAudio` 节点在 UI 重建时保留，负责背景循环与动作音效；音乐和音效音量分别保存。Web 导出已有构建验证；首次输入解锁逻辑通过不代表浏览器音频与 itch 内嵌已完成验收。来源、署名和许可证位于 `THIRD_PARTY_NOTICES.md` 与 `assets/licenses/`，构建脚本会复制许可证到发行包。
 
 ```sh
 "$GODOT_BIN" --headless --path . -s tests/localization_test.gd

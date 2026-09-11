@@ -10,7 +10,7 @@ A free, offline Texas Hold’em game for Windows and macOS. Sit down with up to 
 
 **Single player · 1–5 AI opponents · Three difficulty levels · Simplified Chinese interface**
 
-The published **v1.1.0** downloads use Simplified Chinese. The current source adds **English / 简体中文** switching in Settings, lounge background music, and recorded card/chip sounds. These changes require a new release before they appear in public downloads. See the [implementation and checks](docs/planning/bilingual-audio-plan.md).
+The published **v1.1.0** downloads use Simplified Chinese. The current **1.2.0 source** adds **English / 简体中文** switching in Settings, lounge background music, recorded card/chip sounds, and a candidate Web build. These changes are not in the public v1.1.0 downloads. See the [current status and verification](docs/planning/README.md).
 
 ![A river decision against five AI opponents, with fold, call, and all-in actions](docs/media/river-decision.png)
 
@@ -20,7 +20,8 @@ The published **v1.1.0** downloads use Simplified Chinese. The current source ad
 
 - **Choose your company.** Play heads-up or fill the table with five AI opponents. Pick Easy, Medium, or Hard before you start.
 - **Watch how they bet.** On Hard, opponents have different betting tendencies, from cautious players to aggressive raisers and persistent callers.
-- **Win the last chip.** Everyone starts with 1,000 chips and fixed 10/20 blinds. Keep playing hands until you own the table—or your stack runs out.
+- **Win the last chip.** Choose 1,000, 2,000, 5,000, or 10,000 starting chips and fixed blinds of 5/10, 10/20, 25/50, or 50/100. Keep playing hands until you own the table—or your stack runs out.
+- **Learn and review.** Complete seven interactive tutorials, pause between practice hands, replay completed hands, and track local statistics and achievements.
 - **Set your own pace.** Switch between normal and fast actions, pause when you need a break, and check the current hand’s action log.
 - **Keep it local.** No game account, internet connection, real-money wagering, or background data collection. Your settings and completed-hand statistics stay on your device.
 
@@ -44,16 +45,16 @@ Get the desktop ZIP for your system from [itch.io](https://jerryszz02.itch.io/po
 
 | System | Download | Start playing |
 | --- | --- | --- |
-| Windows x64 | `PokerGame-1.0.0-windows-x64.zip` | Extract the whole ZIP, then open `PokerGame.exe`. |
-| macOS | `PokerGame-1.0.0-macos-universal.zip` | Extract the ZIP, then open `PokerGame.app`. |
+| Windows x64 | `PokerGame-1.1.0-windows-x64.zip` | Extract the whole ZIP, then open `PokerGame.exe`. |
+| macOS | `PokerGame-1.1.0-macos-universal.zip` | Extract the ZIP, then open `PokerGame.app`. |
 
-Use a display area of at least **1280 × 720** and a mouse. The macOS package contains Apple Silicon and Intel binaries; Intel Macs have not been separately validated. Windows builds are unsigned, and macOS builds are not Apple-notarized, so your system may show a first-launch security prompt. See the [release notes and checksums](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.0.0) before opening the download.
+Use a display area of at least **1280 × 720** and a mouse. The macOS package contains Apple Silicon and Intel binaries; Intel Macs have not been separately validated. Windows builds are unsigned, and macOS builds are not Apple-notarized, so your system may show a first-launch security prompt. See the [release notes and checksums](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.1.0) before opening the download.
 
 **A quick guide to the Chinese buttons:**
 
 | In the game | Meaning |
 | --- | --- |
-| 开始牌局 / 玩法说明 | Start game / How to play |
+| 新手教程 / 自由对战 / 练习对局 | Tutorial / Free play / Practice |
 | 弃牌 / 让牌 / 跟注 | Fold / Check / Call |
 | 加注到 / 全下 | Raise to / All-in |
 | 下一手 / 设置 / 记录 | Next hand / Settings / Action log |
@@ -69,7 +70,7 @@ The game and this page include AI-generated artwork. Gameplay screenshots show t
 <details>
 <summary><strong>For developers: run from source</strong></summary>
 
-Current source adds tutorials, configurable stacks/blinds, saved replays and local statistics/achievements. Practice coaching and radar scores remain unavailable. Downloaded v1.0.0 packages are unchanged; see the [implementation and checks](docs/planning/practice-implementation.md).
+Tutorials, configurable stacks/blinds, saved replays and local statistics/achievements are included in v1.1.0. Practice coaching and radar scores remain unavailable. For current source and release boundaries, see the [status and documentation index](docs/planning/README.md).
 
 Built with Godot 4 and GDScript. Release builds use **Godot 4.7.2 standard**, with no .NET requirement. On macOS/Linux:
 
