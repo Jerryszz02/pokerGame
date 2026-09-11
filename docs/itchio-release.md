@@ -38,8 +38,9 @@ python3 tools/build_release.py --godot "$GODOT_BIN" --target macos
 
 A clean checkout is required for a release build. For an explicitly unverified
 local package add `--candidate`; the manifest records the actual checkout state.
-The current version remains 1.1.0 for local candidates. Assign a new release
-version before publishing these changes; do not overwrite the existing 1.1.0 release.
+Version 1.2.0 is prepared for this release; do not overwrite the existing 1.1.0 release.
+The user tried the local preview without reported issues on 2026-09-11. Actual
+itch.io upload and iframe verification are tracked separately.
 
 Outputs land in `export/packages/`:
 
