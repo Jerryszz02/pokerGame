@@ -12,7 +12,7 @@ A free, single-player Texas Hold’em game for browsers, Windows and macOS. Desk
 
 **v1.2.0 is available on itch.io**, with browser play, Windows/macOS downloads, **English / 简体中文** switching, lounge music and card/chip sounds. Click or press a key to start browser audio. GitHub Releases still lists v1.1.0 as latest as of 2026-09-11. See the [current status and verification](docs/planning/README.md).
 
-![A river decision against five AI opponents, with fold, call, and all-in actions](docs/media/river-decision.png)
+![A river decision against five AI opponents, with fold, call, and all-in actions](docs/media/v1.0.0/river-decision.png)
 
 *The river is out. The next move is yours. Actual gameplay; the interface is in Chinese.*
 
@@ -27,15 +27,15 @@ A free, single-player Texas Hold’em game for browsers, Windows and macOS. Desk
 
 ## From the first bet to the showdown
 
-![The action log shows the current hand’s betting history](docs/media/action-log.png)
+![The action log shows the current hand’s betting history](docs/media/v1.0.0/action-log.png)
 
 *Check who acted and how much they put in with the current hand’s action log.*
 
-![Cards are revealed and the pot is awarded at showdown](docs/media/showdown.png)
+![Cards are revealed and the pot is awarded at showdown](docs/media/v1.0.0/showdown.png)
 
 *Follow each hand from the blinds to the reveal, including all-ins, side pots, and split pots.*
 
-![The main menu lets you select the number of opponents and difficulty](docs/media/choose-your-table.png)
+![The main menu lets you select the number of opponents and difficulty](docs/media/v1.0.0/choose-your-table.png)
 
 *A quiet, lamp-lit poker room. Choose your opponents and take a seat.*
 

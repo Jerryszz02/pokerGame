@@ -28,17 +28,17 @@ The implementation also follows itch.io’s [page design guidance](https://itch.
 
 ## Assets
 
-All files are in `../media/`. Screenshots were captured on 2026-09-08 from commit `c452b68e2ee0b90ff7062de099d082f5aeea43dd`, the refreshed `origin/main` checkout used for this change. They show actual game rendering at 1280 × 720, without retouching or translated UI.
+Shared artwork is in `../media/`; the v1.0.0 gameplay screenshots are in `../media/v1.0.0/`. See the [media index](../media/README.md) for version-specific devlog covers. Screenshots were captured on 2026-09-08 from commit `c452b68e2ee0b90ff7062de099d082f5aeea43dd`, the refreshed `origin/main` checkout used for this change. They show actual game rendering at 1280 × 720, without retouching or translated UI.
 
 | File | Source / use |
 | --- | --- |
 | `pokergame-banner.png` | AI-generated English title artwork, using the existing menu background and title logo as visual references; use for the itch.io banner and README header. |
 | `pokergame-cover.png` | AI-generated compact catalog composition based on the banner; use for the itch.io cover. |
 | `poker-room-background.png` | Unmodified copy of `assets/art/generated/misc/menu-background.png`; use as the page background. |
-| `river-decision.png` | UI probe: `1280x720_05_human4_river.png`; primary gameplay image. |
-| `action-log.png` | UI probe: `1280x720_03b_log_drawer.png`; current-hand action history. Replaces the near-duplicate river capture formerly named `raise-the-stakes.png`. |
-| `showdown.png` | UI probe: `1280x720_09_result.png`; cards revealed and pot awarded. |
-| `choose-your-table.png` | UI probe: `1280x720_01_menu.png`; opponents and difficulty. |
+| `v1.0.0/river-decision.png` | UI probe: `1280x720_05_human4_river.png`; primary gameplay image. |
+| `v1.0.0/action-log.png` | UI probe: `1280x720_03b_log_drawer.png`; current-hand action history. Replaces the near-duplicate river capture formerly named `raise-the-stakes.png`. |
+| `v1.0.0/showdown.png` | UI probe: `1280x720_09_result.png`; cards revealed and pot awarded. |
+| `v1.0.0/choose-your-table.png` | UI probe: `1280x720_01_menu.png`; opponents and difficulty. |
 
 Reproduce fresh captures with the pinned engine:
 
