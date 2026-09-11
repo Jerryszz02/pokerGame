@@ -59,9 +59,30 @@ python3 tools/build_release.py --godot "$GODOT_BIN" --target windows
 
 `docs/.gdignore` 将验收截图和文档排除在 Godot 资源导入之外，避免干净构建为文档图片生成未跟踪的 `.import` 文件；随包 README 仍由构建脚本显式复制。
 
+## Web 构建（itch.io 候选）
+
+Web 导出是 itch.io 浏览器试玩的候选目标；2026-09-11 已通过本地 Godot 4.7.2 导出和 ZIP 校验，尚未上传或在浏览器/itch 内嵌中验证。公开页面 <https://jerryszz02.itch.io/poker-game> 仍指向外部 GitHub 下载，本仓库不上传也不发布。完整步骤、存储语义与人工验收表见 [itchio-release.md](itchio-release.md)。
+
+```sh
+python3 tools/build_release.py --godot "$GODOT_BIN" --target web
+```
+
+Web 预设（`export_presets.cfg` 的 `preset.2`）启用线程（`variant/thread_support=true`）、关闭 GDExtension（`variant/extensions_support=false`）与 PWA（`progressive_web_app/enabled=false`，改用 itch.io 原生隔离头）；资源根、包含/排除过滤器与桌面预设逐字一致，`index.html` 位于导出根。`project.godot` 新增 `renderer/rendering_method.web="gl_compatibility"`，桌面 `renderer/rendering_method="mobile"` 不变。`bootstrap_godot.py --templates` 额外安装线程 Web 模板 `web_debug.zip` / `web_release.zip`。
+
+Web 包 `export/packages/PokerGame-<version>-web.zip` 由构建脚本重新打开校验：根 `index.html`、`index.js`、`index.wasm`、`index.pck`、两个 worklet 及许可证必须存在；大小门只针对 wasm，不针对 HTML。manifest 明确记录 `web_native_self_test` 与 `browser_validation` 为 “not established by this script”，且不会把 macOS 签名写到 Web 目标。
+
+本地静态预览使用仅绑定回环的 `tools/serve_web.py`，自动添加 COOP/COEP/CORP 与正确的 wasm 内容类型：
+
+```sh
+mkdir -p /tmp/pokergame-web && unzip -o export/packages/PokerGame-<version>-web.zip -d /tmp/pokergame-web
+python3 tools/serve_web.py --directory /tmp/pokergame-web --port 8060
+```
+
+浏览器存档：Web 上 Godot `user://` 落在 IndexedDB，按浏览器、设备与源（scheme+host+port）隔离；换浏览器、隐私模式、清理站点数据或阻止存储都会使存档不可用；未发现 itch.io 云存档 API；启用/关闭 itch “SharedArrayBuffer support” 可能切换源并分离既有存档。现有存档格式、版本与迁移语义不变，本轮不新增存档功能。
+
 ## CI 与发布
 
-`.github/workflows/desktop.yml` 在 Linux 执行 headless 检查，在 Windows/macOS 分别导出并运行实际模板自检，上传包及日志。CI artifact 不等于公开 Release，也不能代替 R7 目标设备图形验证。
+`.github/workflows/desktop.yml` 在 Linux 执行 headless 检查，在 Windows/macOS 分别导出并运行实际模板自检，并在 Linux 构建 Web 包、运行 `tools/test_web_release.py` 后上传包及日志。CI artifact 不等于公开 Release，也不能代替 R7 目标设备图形验证或浏览器/itch 验收。
 
 目标系统技术验收按下节步骤记录包哈希和结果。另行收集产品体验反馈时可使用 [可选试玩记录模板](releases/playtest-template.md)；用户已将真人试玩移出 Goal。
 
