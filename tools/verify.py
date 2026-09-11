@@ -31,6 +31,7 @@ def main():
         ('localization_test.gd', 'Localization tests passed.'),
         ('localization_ui_probe.gd', 'Localization UI probes passed.'),
         ('audio_test.gd', 'Audio tests passed.'),
+        ('profile_save_debounce_test.gd', 'Profile save debounce tests passed.'),
         ('test_runner.gd', 'All poker tests passed.'),
         ('practice_data_test.gd', 'Practice data tests passed.'),
         ('practice_save_retry_test.gd', 'Practice save retry tests passed.'),

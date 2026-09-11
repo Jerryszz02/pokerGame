@@ -121,6 +121,7 @@ var _submitted_hands: Dictionary = {}
 var _practice_save_error := ""
 var _auto_next_elapsed := 0.0
 var _match_open := false
+var _profile_save_delay := -1.0
 
 func _ready() -> void:
 	# Apply after resource import; project-level custom fonts load before first import.
@@ -152,6 +153,10 @@ func _ready() -> void:
 		call_deferred("_run_package_self_test")
 
 func _process(delta: float) -> void:
+	if _profile_save_delay >= 0.0:
+		_profile_save_delay -= delta
+		if _profile_save_delay <= 0.0:
+			_save_profile()
 	practice_views.tick(delta)
 	if _ai_can_advance() and game.stage == TableState.STAGE_HAND_OVER and not game.match_over and game.match_config.mode == "practice" and not game.match_config.pause_each_hand and _pending_records.is_empty():
 		_auto_next_elapsed += delta
@@ -175,6 +180,11 @@ func _process(delta: float) -> void:
 		_run_ai_turn()
 
 func _exit_tree() -> void:
+	# Flush a last slider change even if the quiet interval has not elapsed.
+	if _profile_save_delay >= 0.0:
+		_profile_save_delay = -1.0
+		if not LocalProfileScript.save_profile(profile, profile_path):
+			push_error("Could not save pending volume settings on exit.")
 	_ai_worker.finish()
 	if is_instance_valid(sound_player):
 		sound_player.stop_all()
@@ -1701,7 +1711,7 @@ func _audio_volume_control(key: String) -> Control:
 		profile.settings[key] = value / 100.0
 		value_label.text = "%d%%" % int(value)
 		if is_instance_valid(sound_player): sound_player.apply_settings(profile.settings)
-		_save_profile())
+		_profile_save_delay = 0.3)
 	return row
 
 func _play_effect(kind: String) -> void:
@@ -1878,6 +1888,7 @@ func _action_label(action: String) -> String:
 	return action
 
 func _save_profile() -> void:
+	_profile_save_delay = -1.0
 	if not LocalProfileScript.save_profile(profile, profile_path) and not _save_notice_pending:
 		_save_notice_pending = true
 		call_deferred("_show_save_notice")
