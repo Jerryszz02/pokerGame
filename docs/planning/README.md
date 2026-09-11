@@ -1,17 +1,30 @@
 # PokerGame 项目规划入口
 
-项目为 Godot 4 + GDScript 中文离线单人德州扑克，当前按免费练习游戏定位实施产品升级。用户于 2026-09-10 确认执行 P1～P5 非算法功能；起手范围、公开行动推断和有限行动收益评估已实现；教练和画像评分仍待独立讨论。
+项目为 Godot 4 + GDScript 单人德州扑克练习游戏。桌面可离线运行，1.2.0 已提供 Web 构建并在 itch.io 发布；游戏逻辑与 AI 均在本地运行。
 
-## 当前工作
+## 当前状态（2026-09-11 核对）
 
-实现分支 `agent/practice-product-implementation` 从已更新的 `origin/main`（`7d27d18`）建立，并带入原规划提交。具体实施选择、验收命令与结果统一维护在 [实施记录](practice-implementation.md)。未通过验收的项目不得标记完成；本地测试、PR、公开发布分别陈述。
+| 层次 | 已确认事实 | 证据与边界 |
+| --- | --- | --- |
+| 公开版本 | **itch.io 已公开 v1.2.0**，页面提供 Run game、Windows x64 / macOS Universal ZIP 和校验文件；**GitHub latest 仍为 v1.1.0**。 | [GitHub Release](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.1.0)、[itch.io 页面](https://jerryszz02.itch.io/poker-game)。本次核对页面及附件元数据，未重新下载运行。 |
+| 已验证实现基线 | `0466f28`（1.2.0 实现基线，不代表后续最新主线），项目版本 **1.2.0**。AI 增强、练习功能、双语音频、Web 构建和版本准备均已合入。 | [PR #12](https://github.com/Jerryszz02/pokerGame/pull/12)～[PR #17](https://github.com/Jerryszz02/pokerGame/pull/17) 已合并；1.2.0 已在 itch.io 发布，但尚无对应 GitHub Release。 |
+| 自动验证 | 该实现基线提交的规则/headless 检查、Windows 包、macOS 包和 Web 包四项 CI 作业均成功。 | [CI 运行 34560282938](https://github.com/Jerryszz02/pokerGame/actions/runs/34560282938)。桌面包自检与 Web ZIP 检查不替代实际图形界面、浏览器及 itch 内嵌验收。 |
+| Web 体验 | 已记录用户本地预览未报告问题；浏览器音频和本地存档已实现，公开 itch.io 页面已提供内嵌启动入口。本次未重新执行完整音频/持久化与浏览器兼容矩阵。 | [Web 发布流程](../itchio-release.md)、[1.2.0 发布说明](../releases/1.2.0.md)。 |
 
-算法设计与验证边界见 [ai-strategy-plan.md](ai-strategy-plan.md)。规则与合法性检查不证明实战强度，Git 合并不代表公开发布。
+当前玩法包括：1～5 名 AI、三档难度、四档起始筹码和四组固定盲注、七课互动教程、自由对战、基础练习（可逐手暂停）、最多 1000 手完整牌谱及回放、本地筛选统计与成就。1.2.0 源码新增中英文切换、Lounge 背景音乐、牌桌音效及独立音量。
+
+AI 已有 169 类翻前范围、根据当手公开行动估计对手范围、加权 Monte Carlo 胜率和有限行动收益评估。它是本地启发式模型，不是 CFR/GTO 求解器，也没有跨场次学习；测试通过不证明职业级强度。见 [AI 设计与验证边界](ai-strategy-plan.md)。
+
+仍未提供本地教练建议、画像雷达评分、未完成对局续玩、联网对战或跨设备存档。后续可补充浏览器兼容性与持久化的复验证据，并同步 GitHub Release；这些验证事项不表示音频、存档或 itch 内嵌功能尚未实现。
+
+练习功能的原实现分支和测试过程保留在[实施记录](practice-implementation.md)，属于历史证据。后续状态以对应提交、实际检查和公开发布核对为准。
 
 ## 文档索引
 
 | 文档 | 职责 |
 | --- | --- |
+| [bilingual-audio-plan.md](bilingual-audio-plan.md) | 中英文切换、音频资源与该轮验收记录。 |
+| [../itchio-release.md](../itchio-release.md) | Web 构建、浏览器存储与 itch.io 发布验收表。 |
 | [ai-strategy-plan.md](ai-strategy-plan.md) | 起手范围、公开行动推断、行动收益模型及性能与训练边界。 |
 | [practice-product-plan.md](practice-product-plan.md) | P1～P5 产品要求、非目标、数据口径、N1～N10 验收与后续算法依赖。 |
 | [practice-implementation.md](practice-implementation.md) | 已确认的默认方案、本轮实现边界及实际验收证据。 |

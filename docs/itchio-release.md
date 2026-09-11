@@ -1,13 +1,17 @@
 # itch.io Web build and release
 
 This document describes the Godot Web export added for itch.io play-in-browser.
-The build tooling produces a **candidate**: local Godot 4.7.2 Web export and ZIP
-validation passed on 2026-09-11. Browser gameplay, persistence, and the itch.io
-iframe have not been validated; no upload was performed. The public page
-<https://jerryszz02.itch.io/poker-game> currently uses external GitHub download
-links, as recorded in [storefront/README.md](storefront/README.md); nothing here
-moves, replaces, or publishes those files. Treat every result below as unverified
-until it is recorded with a commit, package hash, browser/OS versions, and date.
+As of the refreshed 2026-09-11 public-page check, **itch.io publishes v1.2.0**
+with a Run game embed, Windows/macOS ZIPs and a checksum file:
+<https://jerryszz02.itch.io/poker-game>. GitHub Releases still lists v1.1.0 as latest.
+Browser audio and local persistence are implemented. The code waits for an input
+event to start Web audio, and saves use Godot's browser-local storage.
+
+The build tooling itself produces packages, not uploads. Existing records include
+successful local export/ZIP validation and a user local preview without reported
+issues. This documentation pass did not replay the complete audio/persistence or
+browser/OS matrix. The checklist below is a reusable verification procedure, not a
+claim that these features or the public embed are missing.
 
 Web support does not change game rules, AI, audio behavior, or save data formats.
 The only product change is the target-specific renderer override
@@ -38,9 +42,9 @@ python3 tools/build_release.py --godot "$GODOT_BIN" --target macos
 
 A clean checkout is required for a release build. For an explicitly unverified
 local package add `--candidate`; the manifest records the actual checkout state.
-Version 1.2.0 is prepared for this release; do not overwrite the existing 1.1.0 release.
-The user tried the local preview without reported issues on 2026-09-11. Actual
-itch.io upload and iframe verification are tracked separately.
+Version 1.2.0 is published on itch.io; do not overwrite existing release files.
+The user tried the local preview without reported issues on 2026-09-11. The public
+itch.io embed and v1.2.0 downloads were subsequently confirmed from the page.
 
 Outputs land in `export/packages/`:
 
@@ -120,7 +124,7 @@ References checked on 2026-09-11: [Godot Web persistence](https://docs.godotengi
 [itch.io APIs](https://itch.io/docs/api/overview), and
 [itch.io SharedArrayBuffer and origin changes](https://itch.io/t/2025776/experimental-sharedarraybuffer-support).
 
-## itch.io upload steps (candidate, not executed)
+## itch.io upload procedure (for subsequent releases)
 
 1. Open the project edit page: <https://itch.io/game/edit/4983610>.
 2. **HTML play-in-browser build:** upload `PokerGame-<version>-web.zip` as an HTML
@@ -160,7 +164,7 @@ CI alone.
 | Actual itch iframe works | Load the itch.io game page (not the local server) and repeat the checks above inside the embed | ☐ | ☐ | ☐ |
 | Windows/macOS download buttons work | Download each ZIP from the page, verify SHA-256, extract and launch | ☐ | ☐ | ☐ |
 
-Known limits to keep in the page copy: the Web build is a new, unverified target;
-the interface language and existing gameplay text are unchanged; IndexedDB storage
+Known limits to keep in the page copy: browser compatibility depends on WebGL 2.0 and SharedArrayBuffer;
+the 1.2.0 source includes English / Simplified Chinese and local table audio; IndexedDB storage
 is local to one browser/device/origin; and desktop signing statements still apply to
 the downloadable builds, not to the Web build.

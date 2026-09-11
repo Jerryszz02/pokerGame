@@ -4,7 +4,7 @@
 
 PokerGame is an offline Texas Hold'em practice game built with Godot 4 and GDScript. The player faces 1-5 local AI opponents. Poker rules, AI decisions, local profile persistence, and UI rendering are kept separate so visual work does not become a second source of poker state.
 
-The game remains offline-only. It does not use APIs, LLMs, Steamworks, accounts, real money, networking, telemetry, or third-party poker libraries.
+Desktop play is offline; the Web build loads assets over HTTP(S), then runs rules and AI locally. There is no multiplayer backend, external AI API, LLM, Steamworks integration, game account, real-money wagering, game telemetry, or third-party poker library. Current source and public release status are tracked in [the planning index](planning/README.md).
 
 ## Runtime Flow
 
@@ -34,7 +34,8 @@ The main scene is `res://scenes/main.tscn`, backed by `scripts/ui/main.gd`.
 - `local_profile.gd` stores versioned preferences and legacy aggregate statistics at `user://poker_profile.cfg`, guarding newer-format files against overwrite.
 - `practice_store.gd` owns atomic completed-hand files, a compact cumulative ledger, match outcomes, tutorial progress, achievements, and the one-time legacy summary import.
 - `tutorial_controller.gd` prepares independent deterministic teaching games. Actions use `PokerRound.apply_action()`; settlement checkpoints use the normal evaluator and pot resolver. No tutorial record enters ordinary statistics.
-- `poker_reference.gd` supplies Chinese rules and nine hand-rank examples verified with `HandEvaluator`.
+- `poker_reference.gd` supplies localized rules and nine hand-rank examples verified with `HandEvaluator`.
+- `localization.gd` selects the system/Chinese/English locale and renders translated templates from structured game data without changing poker state or saved records.
 
 `public_action_history` records successful voluntary actions with the before-action board, pot, price, stacks and actual payment. It resets each hand and does not inherit the text event log's 40-entry truncation or private decision labels. It is in-memory strategy input, not a persistent replay system.
 
@@ -67,7 +68,7 @@ The visible wait before an AI action belongs to the UI layer and does not change
 
 ## UI And Art Layer
 
-`scripts/ui/main.gd` coordinates live play and configuration. `scripts/ui/practice_views.gd` renders tutorials, records, filtered statistics and immutable replay frames without assigning replay state to the live game. The UI builds the interface programmatically with Godot `Control` nodes and theme overrides. It composes generated PNG textures from `assets/art/generated/` for the menu, title, table, characters, cards, action tags, neutral nameplates, and modular chips. Dynamic Chinese text, card ranks, suits, values, and event content remain runtime-rendered so game information stays exact. Buttons, fields, panels, sliders, blind-role badges, the pot amount plaque, and HUD chrome use hard-edged `StyleBoxFlat` or runtime-drawn controls instead of enlarged UI atlases.
+`scripts/ui/main.gd` coordinates live play and configuration. `scripts/ui/practice_views.gd` renders tutorials, records, filtered statistics and immutable replay frames without assigning replay state to the live game. The UI builds the interface programmatically with Godot `Control` nodes and theme overrides. It composes generated PNG textures from `assets/art/generated/` for the menu, title, table, characters, cards, action tags, neutral nameplates, and modular chips. Dynamic localized text, card ranks, suits, values, and event content remain runtime-rendered so game information stays exact. Buttons, fields, panels, sliders, blind-role badges, the pot amount plaque, and HUD chrome use hard-edged `StyleBoxFlat` or runtime-drawn controls instead of enlarged UI atlases.
 
 The table is a fixed-aspect `AspectRatioContainer` stage (`TableStage`, ratio 1619:971 matching the table texture). The table texture's built-in dark margins double as standing room: character sprites anchored at each seat overlap the rail from outside, selling players sitting around the table. All seat elements are positioned with fractional anchors from `SEAT_LAYOUTS` so the layout holds at any window size:
 
@@ -82,7 +83,7 @@ Key widgets carry stable node names (`TableStageRoot`, `TableFeltSafeZone`, `Flo
 
 The UI displays:
 
-- Chinese main menu with AI-count and difficulty controls.
+- Localized home menu with tutorials, free play and basic practice; match configuration includes AI count, difficulty, starting stacks and blinds.
 - A settings popup for sound/pace, two scrollable references and the explicitly labeled legacy summary reset. New cumulative statistics and achievements have their own page.
 - During a match, the settings popup also exposes pause; the full-screen pause overlay offers resume and return-to-menu.
 - A compact floating hand/street/status capsule, community cards, player seats, role markers, stacks, bets, and a physical pot display.
@@ -101,7 +102,7 @@ The canonical visual constraints are documented in `docs/art-direction.md`. Asse
 - Wins mean an exclusive award from any pot; splits are tracked separately and may overlap with wins. Positive-net hands are a separate measure. Raw profit is grouped by blind pair, with BB totals also available. Rank counts require actual showdown participation; tutorial and replay activity never adds ordinary hands. Early departures are separate from completed won/lost matches.
 - The UI retains unsaved hand and match submissions in memory and warns on exit. This does not provide unfinished-match resume. Replay is a deep copy; hero-time view hides unrevealed opponents and future board cards, while all-knowing view is restricted to completed hands. A replay achievement requires visiting every frame.
 - Test scenes derive an isolated practice directory from their injected profile path; tests and the fixed source/package self-test do not use player data.
-- Action sounds use a local `AudioStreamGenerator`; scene teardown stops and detaches the stream. There is no downloaded audio, telemetry, account or cloud save.
+- `scripts/ui/game_audio.gd` plays bundled Airport Lounge background music and Kenney card/chip effects through `AudioStreamPlayer` nodes. Music/effects have separate saved volumes; the node survives page rebuilds and Web playback waits for a real input event. Runtime audio does not contact asset sites. Attribution and licenses are bundled; there is no game telemetry, account or cloud save.
 - Opponent decisions use the range and action-EV model described above. Coach evaluation, radar dimensions and cross-stack AI quality remain separate work. Opening the unavailable coach panel does not count as actually viewing assistance.
 
 Hand records retain only the peak observed within that hand. The double-stack achievement requires crossing the threshold during that hand, so an inherited starting stack cannot reattribute an earlier achievement. Match persistence waits until every pending hand of that match has been committed.

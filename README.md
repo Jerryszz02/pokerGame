@@ -4,13 +4,13 @@
 
 # Your seat at the table is always open.
 
-A free, offline Texas Hold’em game for Windows and macOS. Sit down with up to five AI opponents, read the table, and decide when to fold, call, or put your whole stack on the line.
+A free, single-player Texas Hold’em game for browsers, Windows and macOS. Desktop downloads work offline. Sit down with up to five AI opponents, read the table, and decide when to fold, call, or put your whole stack on the line.
 
-**[Download on itch.io](https://jerryszz02.itch.io/poker-game)** · **[Download from GitHub](https://github.com/Jerryszz02/pokerGame/releases/latest)**
+**[Play or download on itch.io](https://jerryszz02.itch.io/poker-game)** · **[Download from GitHub](https://github.com/Jerryszz02/pokerGame/releases/latest)**
 
-**Single player · 1–5 AI opponents · Three difficulty levels · Simplified Chinese interface**
+**Single player · 1–5 AI opponents · Three difficulty levels · English / Simplified Chinese**
 
-The published **v1.1.0** downloads use Simplified Chinese. The current source adds **English / 简体中文** switching in Settings, lounge background music, and recorded card/chip sounds. These changes require a new release before they appear in public downloads. See the [implementation and checks](docs/planning/bilingual-audio-plan.md).
+**v1.2.0 is available on itch.io**, with browser play, Windows/macOS downloads, **English / 简体中文** switching, lounge music and card/chip sounds. Click or press a key to start browser audio. GitHub Releases still lists v1.1.0 as latest as of 2026-09-11. See the [current status and verification](docs/planning/README.md).
 
 ![A river decision against five AI opponents, with fold, call, and all-in actions](docs/media/river-decision.png)
 
@@ -20,9 +20,10 @@ The published **v1.1.0** downloads use Simplified Chinese. The current source ad
 
 - **Choose your company.** Play heads-up or fill the table with five AI opponents. Pick Easy, Medium, or Hard before you start.
 - **Watch how they bet.** On Hard, opponents have different betting tendencies, from cautious players to aggressive raisers and persistent callers.
-- **Win the last chip.** Everyone starts with 1,000 chips and fixed 10/20 blinds. Keep playing hands until you own the table—or your stack runs out.
+- **Win the last chip.** Choose 1,000, 2,000, 5,000, or 10,000 starting chips and fixed blinds of 5/10, 10/20, 25/50, or 50/100. Keep playing hands until you own the table—or your stack runs out.
+- **Learn and review.** Complete seven interactive tutorials, pause between practice hands, replay completed hands, and track local statistics and achievements.
 - **Set your own pace.** Switch between normal and fast actions, pause when you need a break, and check the current hand’s action log.
-- **Keep it local.** No game account, internet connection, real-money wagering, or background data collection. Your settings and completed-hand statistics stay on your device.
+- **Keep it local.** No game account, real-money wagering, or background data collection. Desktop play works offline; browser play needs a connection to load. Your settings and completed-hand statistics stay on your device.
 
 ## From the first bet to the showdown
 
@@ -40,20 +41,20 @@ The published **v1.1.0** downloads use Simplified Chinese. The current source ad
 
 ## Download and take a seat
 
-Get the desktop ZIP for your system from [itch.io](https://jerryszz02.itch.io/poker-game) or [GitHub Releases](https://github.com/Jerryszz02/pokerGame/releases/latest). You do not need the Godot editor, .NET, or this source repository to play.
+Get the v1.2.0 desktop ZIP for your system from [itch.io](https://jerryszz02.itch.io/poker-game), or play in your browser there. [GitHub Releases](https://github.com/Jerryszz02/pokerGame/releases/latest) currently provides the older v1.1.0 desktop packages. You do not need the Godot editor, .NET, or this source repository to play.
 
 | System | Download | Start playing |
 | --- | --- | --- |
-| Windows x64 | `PokerGame-1.0.0-windows-x64.zip` | Extract the whole ZIP, then open `PokerGame.exe`. |
-| macOS | `PokerGame-1.0.0-macos-universal.zip` | Extract the ZIP, then open `PokerGame.app`. |
+| Windows x64 | `PokerGame-1.2.0-windows-x64.zip` | Extract the whole ZIP, then open `PokerGame.exe`. |
+| macOS | `PokerGame-1.2.0-macos-universal.zip` | Extract the ZIP, then open `PokerGame.app`. |
 
-Use a display area of at least **1280 × 720** and a mouse. The macOS package contains Apple Silicon and Intel binaries; Intel Macs have not been separately validated. Windows builds are unsigned, and macOS builds are not Apple-notarized, so your system may show a first-launch security prompt. See the [release notes and checksums](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.0.0) before opening the download.
+Use a display area of at least **1280 × 720** and a mouse. The macOS package contains Apple Silicon and Intel binaries; Intel Macs have not been separately validated. Windows builds are unsigned, and macOS builds are not Apple-notarized, so your system may show a first-launch security prompt. See the [release notes](docs/releases/1.2.0.md) and the checksum file on [itch.io](https://jerryszz02.itch.io/poker-game) before opening the download.
 
 **A quick guide to the Chinese buttons:**
 
 | In the game | Meaning |
 | --- | --- |
-| 开始牌局 / 玩法说明 | Start game / How to play |
+| 新手教程 / 自由对战 / 练习对局 | Tutorial / Free play / Practice |
 | 弃牌 / 让牌 / 跟注 | Fold / Check / Call |
 | 加注到 / 全下 | Raise to / All-in |
 | 下一手 / 设置 / 记录 | Next hand / Settings / Action log |
@@ -69,7 +70,7 @@ The game and this page include AI-generated artwork. Gameplay screenshots show t
 <details>
 <summary><strong>For developers: run from source</strong></summary>
 
-Current source adds tutorials, configurable stacks/blinds, saved replays and local statistics/achievements. Practice coaching and radar scores remain unavailable. Downloaded v1.0.0 packages are unchanged; see the [implementation and checks](docs/planning/practice-implementation.md).
+Tutorials, configurable stacks/blinds, saved replays and local statistics/achievements are included in v1.1.0. Practice coaching and radar scores remain unavailable. For current source and release boundaries, see the [status and documentation index](docs/planning/README.md).
 
 Built with Godot 4 and GDScript. Release builds use **Godot 4.7.2 standard**, with no .NET requirement. On macOS/Linux:
 
