@@ -7,8 +7,8 @@
 | 层次 | 已确认事实 | 证据与边界 |
 | --- | --- | --- |
 | 公开版本 | **itch.io 已公开 v1.2.0**，页面提供 Run game、Windows x64 / macOS Universal ZIP 和校验文件；**GitHub latest 仍为 v1.1.0**。 | [GitHub Release](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.1.0)、[itch.io 页面](https://jerryszz02.itch.io/poker-game)。本次核对页面及附件元数据，未重新下载运行。 |
-| 最新主线 | `0466f28`，项目版本 **1.2.0**。AI 增强、练习功能、双语音频、Web 构建和版本准备均已合入。 | [PR #12](https://github.com/Jerryszz02/pokerGame/pull/12)～[PR #17](https://github.com/Jerryszz02/pokerGame/pull/17) 已合并；1.2.0 已在 itch.io 发布，但尚无对应 GitHub Release。 |
-| 自动验证 | 该主线提交的规则/headless 检查、Windows 包、macOS 包和 Web 包四项 CI 作业均成功。 | [CI 运行 34560282938](https://github.com/Jerryszz02/pokerGame/actions/runs/34560282938)。桌面包自检与 Web ZIP 检查不替代实际图形界面、浏览器及 itch 内嵌验收。 |
+| 已验证实现基线 | `0466f28`（1.2.0 实现基线，不代表后续最新主线），项目版本 **1.2.0**。AI 增强、练习功能、双语音频、Web 构建和版本准备均已合入。 | [PR #12](https://github.com/Jerryszz02/pokerGame/pull/12)～[PR #17](https://github.com/Jerryszz02/pokerGame/pull/17) 已合并；1.2.0 已在 itch.io 发布，但尚无对应 GitHub Release。 |
+| 自动验证 | 该实现基线提交的规则/headless 检查、Windows 包、macOS 包和 Web 包四项 CI 作业均成功。 | [CI 运行 34560282938](https://github.com/Jerryszz02/pokerGame/actions/runs/34560282938)。桌面包自检与 Web ZIP 检查不替代实际图形界面、浏览器及 itch 内嵌验收。 |
 | Web 体验 | 已记录用户本地预览未报告问题；浏览器音频和本地存档已实现，公开 itch.io 页面已提供内嵌启动入口。本次未重新执行完整音频/持久化与浏览器兼容矩阵。 | [Web 发布流程](../itchio-release.md)、[1.2.0 发布说明](../releases/1.2.0.md)。 |
 
 当前玩法包括：1～5 名 AI、三档难度、四档起始筹码和四组固定盲注、七课互动教程、自由对战、基础练习（可逐手暂停）、最多 1000 手完整牌谱及回放、本地筛选统计与成就。1.2.0 源码新增中英文切换、Lounge 背景音乐、牌桌音效及独立音量。
