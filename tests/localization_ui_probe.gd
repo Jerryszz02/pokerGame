@@ -13,6 +13,7 @@ func _run() -> void:
 	cjk.compile("[一-龥]")
 	var profile := Profile.default_profile()
 	profile.settings.language = "en"
+	profile.settings.opponent_personality = "Rock"
 	profile.settings.music_volume = 0.0
 	profile.settings.sound_enabled = false
 	var path := OS.get_cache_dir().path_join("poker_language_%d.cfg" % Time.get_ticks_usec())
@@ -34,6 +35,7 @@ func _run() -> void:
 	await frames()
 	_assert(TranslationServer.get_locale() == "zh_CN","settings selects Chinese")
 	_assert(Profile.load_profile(path).settings.language == "zh_CN","language persists")
+	_assert(Profile.load_profile(path).settings.opponent_personality == "Rock","personality selection survives a language change")
 	if is_instance_valid(popup): popup.queue_free()
 	Localization.apply_choice("en")
 	main._show_menu(false)

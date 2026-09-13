@@ -27,6 +27,19 @@ static func choice_label(value: Variant) -> String:
 		ZH_CN: return "简体中文"
 		_: return "English"
 
+## Localized display name for the whole-table opponent style selector. Unknown
+## IDs fall back to the visible default label instead of leaking an untranslated
+## internal name.
+static func personality_label(value: Variant) -> String:
+	var id := str(value)
+	if id == MatchConfig.OPPONENT_PERSONALITY_DEFAULT:
+		return present("默认")
+	if id == MatchConfig.OPPONENT_PERSONALITY_RANDOM:
+		return present("随机")
+	if PersonalityProfiles.PROFILES.has(id):
+		return present(str(PersonalityProfiles.PROFILES[id].get("label", id)))
+	return present("默认")
+
 static func present(text: String) -> String:
 	return TranslationServer.translate(text)
 
