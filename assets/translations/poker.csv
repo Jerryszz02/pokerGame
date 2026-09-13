@@ -431,3 +431,12 @@ The game waits while Settings and reference panels are open. Completed hands can
 全下玩家只争夺其投入对应的底池，其余投入形成边池。最佳五张相同则平分，余数按庄位之后的座位顺序分配。无人跟注的多余筹码退回。派奖金额不是净利润，净变化须扣除本手投入。
 
 设置和速览打开期间牌局等待。已完成手牌保存成功后可以跨启动回放；当前未结束的对局不支持续玩。离开时放弃未结算手牌，提前离桌单列。保存失败会明确提示并可重试。"
+对手风格,Opponent style,对手风格
+默认,Default,默认
+随机,Random,随机
+紧凶,Tight-Aggressive,紧凶
+松凶,Loose-Aggressive,松凶
+跟注站,Calling Station,跟注站
+岩石,Rock,岩石
+均衡,Balanced,均衡
+所选风格应用于所有对手。默认：普通为基础风格，困难为随机风格；随机：每位对手独立分配。,"The selected style applies to all opponents. Default: standard play on Medium, random styles on Hard. Random: each opponent gets a random style.",所选风格应用于所有对手。默认：普通为基础风格，困难为随机风格；随机：每位对手独立分配。

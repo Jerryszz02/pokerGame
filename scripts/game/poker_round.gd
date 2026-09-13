@@ -61,10 +61,7 @@ func start_new_match(ai_count: int, selected_difficulty: String, options: Dictio
 	players = []
 	players.append(_make_player(0, "你", true, "human", {}))
 	for i in range(int(match_config.ai_count)):
-		var personality := {}
-		if difficulty == "hard":
-			personality = PersonalityProfiles.random_profile()
-		players.append(_make_player(i + 1, "AI %d" % [i + 1], false, difficulty, personality))
+		players.append(_make_player(i + 1, "AI %d" % [i + 1], false, difficulty, _seat_personality()))
 	button_index = 0
 	hand_number = 0
 	hands_completed = 0
@@ -295,6 +292,26 @@ func best_hand_for(player_index: int) -> Dictionary:
 func recent_events(limit: int = 8) -> Array:
 	var start: int = maxi(0, event_log.size() - limit)
 	return event_log.slice(start, event_log.size())
+
+## Resolves the whole-table opponent style for one AI seat.
+##
+## Simple ignores any remembered selection and keeps its existing behavior.
+## Medium keeps its existing no-explicit-personality behavior for `default`
+## and otherwise applies the chosen preset. Hard keeps independently random
+## presets for `default`/`random` and applies a named preset to every seat.
+## Each call returns a fresh profile so seats never share references.
+func _seat_personality() -> Dictionary:
+	if difficulty == "simple":
+		return {}
+	var selection := str(match_config.get("opponent_personality", MatchConfig.OPPONENT_PERSONALITY_DEFAULT))
+	var named := MatchConfig.OPPONENT_PERSONALITIES.has(selection) \
+		and selection != MatchConfig.OPPONENT_PERSONALITY_DEFAULT \
+		and selection != MatchConfig.OPPONENT_PERSONALITY_RANDOM
+	if named:
+		return PersonalityProfiles.get_profile(selection)
+	if difficulty == "hard" or selection == MatchConfig.OPPONENT_PERSONALITY_RANDOM:
+		return PersonalityProfiles.random_profile()
+	return {}
 
 func _make_player(id: int, name: String, is_human: bool, player_difficulty: String, personality: Dictionary) -> Dictionary:
 	return {
