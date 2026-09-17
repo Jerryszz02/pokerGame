@@ -32,7 +32,10 @@ static func decide(game: PokerRound, player_index: int, rng_override: RandomNumb
 		}
 	}
 	var chosen: Dictionary
-	if game.stage == TableState.STAGE_PREFLOP:
+	if str(profile.get("difficulty", "medium")) == "hell":
+		# Hell searches every street; simple/medium/hard branches stay untouched.
+		chosen = _decide_hell(game, player_index, legal, profile, rng, analysis)
+	elif game.stage == TableState.STAGE_PREFLOP:
 		chosen = _decide_preflop(game, player_index, legal, profile, rng, analysis)
 	elif str(profile.get("difficulty", "medium")) == "simple":
 		chosen = _decide_simple_postflop(game, player_index, legal, profile, rng, analysis)
@@ -55,6 +58,8 @@ static func profile_for_difficulty(difficulty: String) -> Dictionary:
 			}
 		"hard":
 			style = {"name": "Hard", "label": "困难"}
+		"hell":
+			style = {"name": "Hell", "label": "地狱"}
 		_:
 			style = {
 				"name": "Medium", "label": "中等", "aggression": 0.5,
@@ -198,6 +203,52 @@ static func _decide_ev_postflop(game: PokerRound, player_index: int, legal: Dict
 		return _fallback(legal)
 	var chosen := _choose_candidate(game, candidates, profile, rng)
 	return _decision(str(chosen.get("action_type", TableState.ACTION_CHECK)), int(chosen.get("amount", 0)), _candidate_label(chosen))
+
+# --- all streets: hell finite search ---------------------------------------
+
+## Hell runs the bounded FiniteSearch rollouts on every street and then reuses
+## the existing personality/noise candidate selection over the close options.
+## Insufficient evidence falls back to a safe legal action.
+static func _decide_hell(game: PokerRound, player_index: int, legal: Dictionary, profile: Dictionary, rng: RandomNumberGenerator, analysis: Dictionary) -> Dictionary:
+	var result := FiniteSearch.evaluate(game, player_index, {
+		"rng": rng,
+		"max_worlds": 16,
+		"max_depth": 8,
+		"time_budget_ms": 600
+	})
+	analysis["finite_search"] = {
+		"available": bool(result.get("available", false)),
+		"reason": str(result.get("reason", "")),
+		"world_count": int(result.get("world_count", 0)),
+		"depth_reached": int(result.get("depth_reached", 0)),
+		"cutoff_used": bool(result.get("cutoff_used", false)),
+		"assumptions": str(result.get("assumptions", "")),
+		"equity": result.get("equity", null),
+		"candidates": result.get("candidates", [])
+	}
+	if not bool(result.get("available", false)):
+		return _fallback(legal)
+	var candidates: Array = result.get("candidates", [])
+	if candidates.is_empty():
+		return _fallback(legal)
+	var chosen := _choose_candidate(game, candidates, profile, rng)
+	if chosen.is_empty():
+		return _fallback(legal)
+	return _decision(str(chosen.get("action_type", TableState.ACTION_CHECK)), int(chosen.get("amount", 0)), _hell_label(chosen))
+
+static func _hell_label(candidate: Dictionary) -> String:
+	match str(candidate.get("action_type", "")):
+		TableState.ACTION_FOLD:
+			return "搜索弃牌"
+		TableState.ACTION_CHECK:
+			return "搜索让牌"
+		TableState.ACTION_CALL:
+			return "搜索跟注"
+		TableState.ACTION_RAISE:
+			return "搜索加注"
+		TableState.ACTION_ALL_IN:
+			return "搜索全下"
+	return "搜索行动"
 
 static func _choose_candidate(game: PokerRound, candidates: Array, profile: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
 	var big_blind := maxf(1.0, float(game.big_blind))

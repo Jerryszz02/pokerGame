@@ -1,4 +1,19 @@
 keys,en,zh_CN
+搜索弃牌,Search fold,搜索弃牌
+搜索让牌,Search check,搜索让牌
+搜索跟注,Search call,搜索跟注
+搜索加注,Search raise,搜索加注
+搜索全下,Search all-in,搜索全下
+搜索行动,Search action,搜索行动
+分析本手,Analyze Hand,分析本手
+样本不足,Insufficient sample,样本不足
+上一项分析仍在收尾，请稍后重试。,The previous analysis is finishing; retry shortly.,上一项分析仍在收尾，请稍后重试。
+范围与样本假设：,Range and sample assumptions: ,范围与样本假设：
+门槛,minimum,门槛
+低权益投入：%d 次；价格可接受 %d 次；低于价格 %d 次。全下运气：%+.2f BB，合格 %d 手。,Low-equity investment: %d; pot-price-supported: %d; below price: %d. All-in luck: %+.2f BB across %d qualifying hands.,低权益投入：%d 次；价格可接受 %d 次；低于价格 %d 次。全下运气：%+.2f BB，合格 %d 手。
+分析正在收尾，请重试。,Analysis is finishing; please retry.,分析正在收尾，请重试。
+没有可比较的本地分析结果；旧局面或取消任务不会补零。,No comparable local analysis is available; old or cancelled work is never filled with zero.,没有可比较的本地分析结果；旧局面或取消任务不会补零。
+实际 %s 到 %d · 最佳 %s · %.2f ± %.2f BB · 差值 %.2f BB · %s,Actual %s to %d · Best %s · %.2f ± %.2f BB · Gap %.2f BB · %s,实际 %s 到 %d · 最佳 %s · %.2f ± %.2f BB · 差值 %.2f BB · %s
 新手教程,Tutorial,新手教程
 自由对战,Free Play,自由对战
 练习对局 · 基础流程,Practice · Basics,练习对局 · 基础流程
@@ -23,6 +38,7 @@ keys,en,zh_CN
 取消,Cancel,取消
 AI 对手,AI Opponents,AI 对手
 难度,Difficulty,难度
+地狱,Hell,地狱
 初始筹码,Starting Chips,初始筹码
 大小盲,Blinds,大小盲
 每手结束时暂停复盘,Pause after each hand,每手结束时暂停复盘
@@ -69,6 +85,19 @@ Language / 语言,Language / 语言,Language / 语言
 简单,Easy,简单
 普通,Medium,普通
 困难,Hard,困难
+运气,Luck,运气
+进攻,Aggression,进攻
+防守,Defense,防守
+冒险,Risk,冒险
+入池,VPIP,入池
+施压,Pressure,施压
+风格雷达仅描述决策倾向，不代表强弱；样本不足的维度不会绘制。,"The style radar describes tendencies, not strength; dimensions below the sample minimum are omitted.",风格雷达仅描述决策倾向，不代表强弱；样本不足的维度不会绘制。
+本地教练,Local Coach,本地教练
+正在计算…,Calculating…,正在计算…
+本次局面暂时无法计算，可重试。,This spot is temporarily unavailable; retry to calculate.,本次局面暂时无法计算，可重试。
+基于 %d 个采样世界,Based on %d sampled worlds,基于 %d 个采样世界
+胜出事件概率 %.1f%% · 平分事件概率 %.1f%%,Win event %.1f%% · Split event %.1f%%,胜出事件概率 %.1f%% · 平分事件概率 %.1f%%
+权益 %.1f%% · 底池 %d · 跟注价格 %d,Equity %.1f%% · Pot %d · Call price %d,权益 %.1f%% · 底池 %d · 跟注价格 %d
 音效,Audio,音效
 节奏,Pace,节奏
 第 %d 手 · %s,Hand %d · %s,第 %d 手 · %s
@@ -431,3 +460,24 @@ The game waits while Settings and reference panels are open. Completed hands can
 全下玩家只争夺其投入对应的底池，其余投入形成边池。最佳五张相同则平分，余数按庄位之后的座位顺序分配。无人跟注的多余筹码退回。派奖金额不是净利润，净变化须扣除本手投入。
 
 设置和速览打开期间牌局等待。已完成手牌保存成功后可以跨启动回放；当前未结束的对局不支持续玩。离开时放弃未结算手牌，提前离桌单列。保存失败会明确提示并可重试。"
+名义跟注所需权益 %.1f%%；复杂边池请结合复盘。,Nominal call equity threshold %.1f%%; review complex side pots separately.,名义跟注所需权益 %.1f%%；复杂边池请结合复盘。
+估算基于公开行动推测的中性范围；权益是摊牌份额，范围与有限样本都会带来误差。,Estimates use neutral ranges inferred from public actions. Equity is the showdown share; ranges and finite samples both introduce uncertainty.,估算基于公开行动推测的中性范围；权益是摊牌份额，范围与有限样本都会带来误差。
+样本不足以估计误差,Too few samples to estimate error,样本不足以估计误差
+决定 %d：没有可靠的分析结果。,Decision %d: no reliable analysis is available.,决定 %d：没有可靠的分析结果。
+决定 %d · %d 个共同样本 · 推演 %d 步,Decision %d · %d shared samples · %d simulated actions,决定 %d · %d 个共同样本 · 推演 %d 步
+实际：%s · %s,Actual: %s · %s,实际：%s · %s
+最高估值：%s · %s,Highest estimate: %s · %s,最高估值：%s · %s
+估值差 %.2f BB · %s,Estimated gap %.2f BB · %s,估值差 %.2f BB · %s
+已比较 %d 个决定；第 %d 个最接近本模型的最高估值。,Compared %d decisions; decision %d is closest to the highest value in this model.,已比较 %d 个决定；第 %d 个最接近本模型的最高估值。
+第 %d 个决定最值得回看。下次类似局面，先比较 %s 与 %s 的投入和后续风险。,"Decision %d merits another look. In a similar spot, compare the investment and future risks of %s and %s.",第 %d 个决定最值得回看。下次类似局面，先比较 %s 与 %s 的投入和后续风险。
+现有样本没有区分出明确差异；不要把最高估值当成唯一正确行动。,These samples do not distinguish a clear difference; the highest estimate is not the only correct action.,现有样本没有区分出明确差异；不要把最高估值当成唯一正确行动。
+数值是收益均值 ± 一个采样标准误差，不是保赢范围。中性范围和后续行动模型均为近似；深度耗尽后按过牌/跟注推进摊牌，不代表最优策略。,"Values are mean returns ± one sampling standard error, not guaranteed outcomes. Neutral ranges and future actions are approximations; the depth cutoff checks/calls through showdown. This is not an optimal strategy.",数值是收益均值 ± 一个采样标准误差，不是保赢范围。中性范围和后续行动模型均为近似；深度耗尽后按过牌/跟注推进摊牌，不代表最优策略。
+%s：进攻 %d/%d · 防守 %d/%d,%s: aggression %d/%d · defense %d/%d,%s：进攻 %d/%d · 防守 %d/%d
+低权益施压：有听牌 %d 次，无听牌 %d 次；仅为当前可见牌的行为代理。,"Low-equity pressure: %d with a draw, %d without; a proxy based only on visible cards.",低权益施压：有听牌 %d 次，无听牌 %d 次；仅为当前可见牌的行为代理。
+翻后,Postflop,翻后
+庄位,Button,庄位
+前位,Early position,前位
+后位,Late position,后位
+估计接近,Similar estimates,估计接近
+存在估计差异,Estimated difference,存在估计差异
+低权益投入：%d 次；达到名义跟注门槛 %d 次；低于门槛 %d 次。全下运气：%+.2f BB，合格 %d 手。,Low-equity investments: %d; at nominal call threshold: %d; below threshold: %d. All-in luck: %+.2f BB across %d qualifying hands.,低权益投入：%d 次；达到名义跟注门槛 %d 次；低于门槛 %d 次。全下运气：%+.2f BB，合格 %d 手。

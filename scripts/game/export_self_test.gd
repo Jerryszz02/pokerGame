@@ -27,12 +27,22 @@ func run(scene: Node) -> int:
 	help.hide()
 	help.queue_free()
 	for opponents in [1, 3, 5]:
-		for difficulty in range(3):
+		for difficulty in range(4):
 			scene._show_menu()
 			scene._show_mode_config("free")
 			scene.ai_count_spin.value = opponents
 			scene.difficulty_options.select(difficulty)
 			scene._on_start_pressed()
+			_check(scene.game.difficulty == ["simple","medium","hard","hell"][difficulty], "selected difficulty reaches the actual game")
+			if difficulty == 3:
+				var context := CoachContext.capture(scene.game, scene.game.current_player_index)
+				var live := CoachAnalysis.live(context, {"max_worlds": 96, "seed": 1709, "time_budget_ms": 1000})
+				_check(bool(live.get("available", false)), "export contains working local coach")
+				var legal: Array = context.get("legal_actions", [])
+				var move := TableState.ACTION_CALL if legal.has(TableState.ACTION_CALL) else TableState.ACTION_CHECK
+				var review := CoachAnalysis.review(context, {"action_type": move}, {"max_worlds": 16, "max_depth": 8, "seed": 1709, "time_budget_ms": 600})
+				_check(bool(review.get("available", false)), "export contains working finite search")
+				print("Package coach timing: ", JSON.stringify({"platform": OS.get_name(), "seats": opponents + 1, "live_ms": live.get("elapsed_ms", -1), "live_worlds": live.get("world_count", 0), "review_ms": review.get("elapsed_ms", -1), "review_worlds": review.get("world_count", 0), "depth": review.get("depth", 0)}))
 			var steps := 0
 			while scene.game.stage != TableState.STAGE_HAND_OVER and steps < 300:
 				var actor: int = scene.game.current_player_index
@@ -47,5 +57,5 @@ func run(scene: Node) -> int:
 			await scene.get_tree().process_frame
 			await scene.get_tree().process_frame
 	if failures == 0:
-		print("Package self-test passed: packaged scene/font/translations/audio, 9 configurations, one-time statistics.")
+		print("Package self-test passed: packaged scene/font/translations/audio/coach, 12 configurations, one-time statistics.")
 	return failures

@@ -39,6 +39,10 @@ def main():
         ('practice_ui_probe.gd', 'Practice UI probes passed.'),
         ('test_ai_strategy.gd', 'AI strategy tests passed.'),
         ('test_ai_observations.gd', 'AI observation tests passed.'),
+        ('coach_core_test.gd', 'Coach core tests passed.'),
+        ('coach_product_test.gd', 'Coach product tests passed.'),
+        ('all_in_luck_test.gd', 'All-in luck tests passed.'),
+        ('coach_ui_probe.gd', 'Coach UI probes passed.'),
         ('rules_soak.gd', 'Rules soak passed:'),
         ('ai_runtime_probe.gd', 'AI runtime probe passed:'),
         ('ui_lifecycle_probe.gd', 'UI lifecycle probe passed.'),
@@ -52,6 +56,8 @@ def main():
             'UI playthrough probe passed.', timeout=600, log_name='ui_playthrough_probe')
         run([args.godot, '--path', ROOT, '-s', 'tests/practice_ui_probe.gd'],
             'Practice UI probes passed.', timeout=600, log_name='practice_ui_windowed')
+        run([args.godot, '--path', ROOT, '-s', 'tests/coach_ui_probe.gd'],
+            'Coach UI probes passed.', timeout=600, log_name='coach_ui_windowed')
     print('Verification passed. Long-window and target-platform gates remain separate.')
 
 

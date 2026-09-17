@@ -51,7 +51,7 @@ python3 tools/build_release.py --godot "$GODOT_BIN" --target windows
 
 输出：`export/packages/` 内的版本 ZIP、平台 manifest 和 SHA256SUMS；每次使用独立临时目录导出，完成后清理本次临时目录；不会读取或删除旧 `export/macos/`、`export/windows/` 内容。manifest 记录提交、引擎、主机、平台、哈希和原生包自检结果。`.gitattributes` 固定文本 LF，避免 Windows checkout 换行转换使同一提交的资源指纹不同；构建前后会检查运行资源和 checkout 未被导入器修改。构建本身不会公开发布，也不自动将 `public_release_ready` 设为 true。
 
-原生系统上，构建脚本会把包放进独立临时目录，并使用其中的实际程序运行 `--headless -- --self-test`。这个固定内置诊断检查场景、字体、9 组人数/难度和统计幂等，使用缓存目录里的测试 profile。官方模板不开放外部脚本和路径覆盖，测试不修改这一设置。
+原生系统上，构建脚本会把包放进独立临时目录，并使用其中的实际程序运行 `--headless -- --self-test`。这个固定内置诊断检查场景、字体、本地教练、12 组人数/难度和统计幂等，使用缓存目录里的测试 profile。官方模板不开放外部脚本和路径覆盖，测试不修改这一设置。
 
 初始窗口使用最大化模式，避免 Retina 屏幕上 1280×720 物理像素只占 640×360 逻辑点。固定分辨率探针会显式还原窗口；长测沿用玩家的启动模式。
 

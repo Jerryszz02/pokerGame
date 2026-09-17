@@ -2,7 +2,11 @@
 
 项目为 Godot 4 + GDScript 单人德州扑克练习游戏。桌面可离线运行，1.2.0 已提供 Web 构建并在 itch.io 发布；游戏逻辑与 AI 均在本地运行。
 
-## 当前状态（2026-09-11 核对）
+## 开发源码
+
+本地教练、回放行动评估、地狱难度和六维画像的定义与验证见[coach-radar-plan.md](coach-radar-plan.md)。这是后续源码工作，不代表下面的发布基线已经更新。
+
+## 发布基线（2026-09-11 历史核对）
 
 | 层次 | 已确认事实 | 证据与边界 |
 | --- | --- | --- |
@@ -23,6 +27,7 @@ AI 已有 169 类翻前范围、根据当手公开行动估计对手范围、加
 
 | 文档 | 职责 |
 | --- | --- |
+| [coach-radar-plan.md](coach-radar-plan.md) | 六维画像、可见状态、有限深度模拟、API 待定项和本轮验收。 |
 | [bilingual-audio-plan.md](bilingual-audio-plan.md) | 中英文切换、音频资源与该轮验收记录。 |
 | [../itchio-release.md](../itchio-release.md) | Web 构建、浏览器存储与 itch.io 发布验收表。 |
 | [ai-strategy-plan.md](ai-strategy-plan.md) | 起手范围、公开行动推断、行动收益模型及性能与训练边界。 |

@@ -89,7 +89,7 @@ static func _safe_int(value: Variant, fallback: int) -> int:
 	return fallback
 
 static func _safe_difficulty(value: Variant) -> String:
-	if value is String and ["simple", "medium", "hard"].has(value):
+	if value is String and ["simple", "medium", "hard", "hell"].has(value):
 		return value
 	return "medium"
 

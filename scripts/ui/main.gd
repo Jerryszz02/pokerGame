@@ -54,6 +54,8 @@ const TABLE_TEXTURE := preload("res://assets/art/generated/table/poker-table.png
 const CARD_COMPONENTS_TEXTURE := preload("res://assets/art/generated/cards/card-components.png")
 const CHIP_MODULES_TEXTURE := preload("res://assets/art/generated/ui/chip-modules.png")
 const ChipStackViewScript := preload("res://scripts/ui/chip_stack.gd")
+const CoachPanelScript := preload("res://scripts/ui/coach_panel.gd")
+const CoachServiceScript := preload("res://scripts/ai/coach_service.gd")
 const PORTRAIT_OUTLINE_SHADER := preload("res://scripts/ui/portrait_outline.gdshader")
 const CHARACTER_TEXTURES := [
 	preload("res://assets/art/generated/characters/player.png"),
@@ -122,6 +124,10 @@ var _practice_save_error := ""
 var _auto_next_elapsed := 0.0
 var _match_open := false
 var _profile_save_delay := -1.0
+var coach_service := CoachServiceScript.new()
+var _style_requests: Dictionary = {}
+var _style_queue: Array = []
+var _style_enrichment_retry: Dictionary = {}
 
 func _ready() -> void:
 	# Apply after resource import; project-level custom fonts load before first import.
@@ -129,7 +135,7 @@ func _ready() -> void:
 	theme.default_font = UI_FONT
 	var self_test := OS.get_cmdline_user_args().has("--self-test")
 	if self_test:
-		if DisplayServer.get_name() != "headless":
+		if DisplayServer.get_name() != "headless" and not OS.has_feature("web"):
 			push_error("Run the package self-test with --headless -- --self-test")
 			get_tree().quit(1)
 			return
@@ -141,6 +147,10 @@ func _ready() -> void:
 	practice_store.migrate_legacy(profile)
 	pending_match_config = MatchConfig.normalize(profile.settings)
 	practice_views = PracticeViews.new(self)
+	coach_service.style_completed.connect(_on_style_completed)
+	for saved in practice_store.records():
+		if not practice_store.state.ledger.get(saved.id, {}).has("style"):
+			_style_queue.append(saved)
 	get_window().min_size = Vector2i(1280, 720)
 	get_tree().auto_accept_quit = false
 	_setup_audio()
@@ -153,6 +163,8 @@ func _ready() -> void:
 		call_deferred("_run_package_self_test")
 
 func _process(delta: float) -> void:
+	coach_service.poll()
+	_pump_style_queue()
 	if _profile_save_delay >= 0.0:
 		_profile_save_delay -= delta
 		if _profile_save_delay <= 0.0:
@@ -186,6 +198,9 @@ func _exit_tree() -> void:
 		if not LocalProfileScript.save_profile(profile, profile_path):
 			push_error("Could not save pending volume settings on exit.")
 	_ai_worker.finish()
+	coach_service.finish()
+	if practice_views != null:
+		practice_views.finish()
 	if is_instance_valid(sound_player):
 		sound_player.stop_all()
 		sound_player.stream = null
@@ -199,6 +214,7 @@ func _ai_request_is_current() -> bool:
 	return not _ai_request.is_empty() and _ai_request.epoch == _ai_epoch and _ai_request.hand == game.hand_number and _ai_request.actor == game.current_player_index and _ai_request.stage == game.stage
 
 func _clear() -> void:
+	if practice_views != null: practice_views._cancel_replay_analysis()
 	raise_slider = null
 	raise_button = null
 	for child in get_children():
@@ -337,6 +353,7 @@ func _build_difficulty_options() -> OptionButton:
 	difficulty_options.add_item(GameLocalization.present("简单"), 0)
 	difficulty_options.add_item(GameLocalization.present("普通"), 1)
 	difficulty_options.add_item(GameLocalization.present("困难"), 2)
+	difficulty_options.add_item(GameLocalization.present("地狱"), 3)
 	match str(pending_match_config.difficulty):
 		"simple":
 			difficulty_options.select(0)
@@ -344,6 +361,8 @@ func _build_difficulty_options() -> OptionButton:
 			difficulty_options.select(1)
 		"hard":
 			difficulty_options.select(2)
+		"hell":
+			difficulty_options.select(3)
 		_:
 			difficulty_options.select(1)
 	difficulty_options.custom_minimum_size = MENU_SELECTION_SIZE
@@ -544,6 +563,8 @@ func _on_start_pressed() -> void:
 			difficulty = "medium"
 		2:
 			difficulty = "hard"
+		3:
+			difficulty = "hell"
 	profile.settings.ai_count = int(ai_count_spin.value)
 	profile.settings.difficulty = difficulty
 	last_recorded_hand_number = 0
@@ -660,7 +681,7 @@ func _show_mode_config(mode: String) -> void:
 		_update_config_notice()
 	)
 	ai_count_spin.value_changed.connect(func(value): pending_match_config.ai_count = int(value))
-	difficulty_options.item_selected.connect(func(index): pending_match_config.difficulty = ["simple", "medium", "hard"][index])
+	difficulty_options.item_selected.connect(func(index): pending_match_config.difficulty = ["simple", "medium", "hard", "hell"][index])
 	actions.add_child(start)
 	var cancel := _command_button(GameLocalization.present("取消"), COLOR_ACTION, _white_color())
 	cancel.name = "ConfigCancelButton"
@@ -815,7 +836,15 @@ func _build_utility_buttons() -> Control:
 	return row
 
 func _show_analysis_unavailable() -> void:
-	var popup := _show_text_popup(GameLocalization.present("实时提示暂不可用"), GameLocalization.present("本地教练尚未接入，当前没有建议或胜率。打开此面板不会计作使用实时辅助，也不改变发牌或对手行为。"), "AnalysisUnavailablePanel")
+	if game.is_human_turn() and not game.stage == TableState.STAGE_HAND_OVER:
+		var context: Dictionary = {}
+		var context_script: Variant = load("res://scripts/ai/coach_context.gd")
+		if context_script != null: context = context_script.capture(game, 0)
+		if not context.is_empty():
+			var panel := CoachPanelScript.new()
+			panel.open_live(self, context)
+			return
+	var popup := _show_text_popup(GameLocalization.present("实时提示暂不可用"), GameLocalization.present("当前局面暂时无法计算。打开此面板不会计作使用实时辅助，也不改变发牌或对手行为。"), "AnalysisUnavailablePanel")
 	var retry := _command_button(GameLocalization.present("重试"), COLOR_ACTION, _white_color())
 	retry.name = "AnalysisRetryButton"
 	retry.pressed.connect(func(): popup.hide(); _show_analysis_unavailable())
@@ -1646,15 +1675,52 @@ func _record_completed_hand_if_needed() -> void:
 	_play_effect("settle")
 	last_recorded_hand_number = game.hand_number
 	_pending_records[record.id] = record
+	if not record.has("style"):
+		_style_queue.append(record.duplicate(true))
+		_pump_style_queue()
 	_auto_next_elapsed = 0.0
 	_retry_practice_saves()
 	if game.match_over: _record_match_outcome()
+
+func _on_style_completed(token: int, result: Dictionary) -> void:
+	if not _style_requests.has(token): return
+	var job: Dictionary = _style_requests[token]
+	var id: String = str(job.id)
+	_style_requests.erase(token)
+	var record: Dictionary = job.record.duplicate(true)
+	if bool(result.get("available", false)) and result.get("style", null) is Dictionary:
+		record.style = result.style
+	else:
+		record.style = PlayerStyle.empty()
+	# The base hand may already have been committed and its replay can be deleted
+	# while analysis runs. update_style deliberately enriches only the ledger in
+	# that case, so this never resurrects a deleted replay.
+	if practice_store.update_style(id, record.style):
+		_style_enrichment_retry.erase(id)
+	else:
+		_style_enrichment_retry[id] = record.style
+	_retry_practice_saves()
+	_pump_style_queue()
+
+func _pump_style_queue() -> void:
+	if coach_service.is_busy() or _style_queue.is_empty(): return
+	var record: Dictionary = _style_queue.pop_front()
+	var token := coach_service.request_style(record, {"max_worlds":64, "seed":int(record.get("hand_number", 0) * 7919)})
+	if token >= 0:
+		_style_requests[token] = {"id":record.id,"record":record}
+	else:
+		_style_queue.push_front(record)
 
 func _retry_practice_saves() -> void:
 	_practice_save_error = ""
 	for id in _pending_records.keys():
 		if practice_store.commit_hand(_pending_records[id]):
 			_pending_records.erase(id)
+		else:
+			_practice_save_error = practice_store.notice
+	for id in _style_enrichment_retry.keys():
+		if practice_store.update_style(id, _style_enrichment_retry[id]):
+			_style_enrichment_retry.erase(id)
 		else:
 			_practice_save_error = practice_store.notice
 	for id in _pending_matches.keys():

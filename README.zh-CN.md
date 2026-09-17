@@ -64,7 +64,7 @@ Windows 版本未签名，macOS 版本未经 Apple 公证，第一次打开时�
 <details>
 <summary><strong>想改点东西？从源码运行</strong></summary>
 
-v1.1.0 已包含教程、可配置筹码/盲注、牌谱回放和本地统计/成就。练习教练与画像评分尚不可用。当前源码与公开发布的区别见[状态与文档索引](docs/planning/README.md)。
+v1.1.0 已包含教程、可配置筹码/盲注、牌谱回放和本地统计/成就。开发源码新增本地练习提示、回放决策分析、地狱难度与六维打法画像，口径和验收见[教练与雷达图方案](docs/planning/coach-radar-plan.md)。这些源码变化尚未更新已发布下载。当前源码与公开发布的区别见[状态与文档索引](docs/planning/README.md)。
 
 使用 Godot 4 和 GDScript 构建。发布版本使用 **Godot 4.7.2 standard**，无需 .NET。在 macOS/Linux 上运行以下命令。
 

@@ -58,6 +58,7 @@ static func evaluate(game, player_index: int, profile: Dictionary = {}, opts: Di
 		"equity": float(equity.equity),
 		"win_rate": float(equity.win_rate),
 		"tie_rate": float(equity.tie_rate),
+		"tie_probability": float(equity.tie_probability),
 		"assumptions": ASSUMPTIONS,
 		"response_model": response_model,
 		"pot": pot,
