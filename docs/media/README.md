@@ -13,6 +13,7 @@ Keep reusable artwork at this directory's root and release-specific screenshots 
 | `v1.0.0/choose-your-table.png` | Gameplay screenshot: table settings in the main menu. |
 | `v1.1.0/cover.png` | User-supplied v1.1.0 devlog cover. |
 | `v1.2.0/cover.png` | User-supplied v1.2.0 devlog cover. |
+| `v1.2.0/achievements.png` | Actual statistics and achievements screen with the first complete replay achievement unlocked; [capture details and existing devlog insertion](../releases/1.2.0-devlog-addendum.md). |
 
 The existing gameplay screenshots belong to v1.0.0, as identified by the capture source's `project.godot` version. See [storefront asset provenance](../storefront/README.md#assets) for capture details. Moving these images does not refresh them to a newer release.
 
