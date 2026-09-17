@@ -16,7 +16,8 @@ extends RefCounted
 ## point. Sunk contributions already in the pot stay in the pot; unmatched
 ## refunds, all-in caps and split pots follow PokerRound's existing rules.
 ##
-## Budget caps are hard: max_worlds, max_depth and time_budget_ms. A candidate
+## World/depth counts are capped; the time deadline is cooperative between
+## bounded work units. A candidate
 ## batch is only compared over complete worlds, so partial worlds are dropped
 ## rather than biasing one action. All randomness is a local RNG.
 

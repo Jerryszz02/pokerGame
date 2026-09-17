@@ -7,7 +7,7 @@ const PROFILE_VERSION := 2
 static func default_profile() -> Dictionary:
 	return {
 		"version": PROFILE_VERSION,
-		"settings": {"ai_count": 3, "difficulty": "medium", "initial_stack": 1000, "small_blind": 10, "big_blind": 20, "mode": "free", "show_hints": false, "pause_each_hand": true, "sound_enabled": true, "music_volume": 0.18, "sound_volume": 0.7, "fast_mode": false, "language": "system"},
+		"settings": {"ai_count": 3, "difficulty": "medium", "initial_stack": 1000, "small_blind": 10, "big_blind": 20, "mode": "free", "show_hints": false, "pause_each_hand": true, "opponent_personality": MatchConfig.OPPONENT_PERSONALITY_DEFAULT, "sound_enabled": true, "music_volume": 0.18, "sound_volume": 0.7, "fast_mode": false, "language": "system"},
 		"stats": {"total_hands": 0, "total_net_profit": 0, "total_win_hands": 0, "max_single_hand_win": 0}
 	}
 
@@ -59,7 +59,7 @@ static func normalize_profile(profile: Dictionary) -> Dictionary:
 		normalized.settings.music_volume = _safe_volume(settings.get("music_volume"), 0.18 if normalized.settings.sound_enabled else 0.0)
 		normalized.settings.sound_volume = _safe_volume(settings.get("sound_volume"), 0.7)
 		var safe := MatchConfig.normalize(settings)
-		for key in ["initial_stack", "small_blind", "big_blind", "mode", "show_hints", "pause_each_hand"]:
+		for key in ["initial_stack", "small_blind", "big_blind", "mode", "show_hints", "pause_each_hand", "opponent_personality"]:
 			normalized.settings[key] = safe[key]
 		for key in safe:
 			if settings.has(key) and (typeof(settings[key]) != typeof(normalized.settings[key]) or settings[key] != normalized.settings[key]):

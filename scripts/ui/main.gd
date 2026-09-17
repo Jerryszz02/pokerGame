@@ -114,6 +114,8 @@ var current_mode := "free"
 var pending_match_config: Dictionary = MatchConfig.DEFAULTS.duplicate(true)
 var mode_config_panel: Control
 var mode_config_notice: Label
+var personality_options: OptionButton
+var personality_group: Control
 var practice_store: PracticeStore
 var tutorial_controller: TutorialController
 var practice_views: PracticeViews
@@ -217,6 +219,8 @@ func _clear() -> void:
 	if practice_views != null: practice_views._cancel_replay_analysis()
 	raise_slider = null
 	raise_button = null
+	personality_options = null
+	personality_group = null
 	for child in get_children():
 		if child == sound_player:
 			continue
@@ -368,6 +372,28 @@ func _build_difficulty_options() -> OptionButton:
 	difficulty_options.custom_minimum_size = MENU_SELECTION_SIZE
 	_apply_field_style(difficulty_options)
 	return difficulty_options
+
+## Whole-table opponent style. The five presets keep their existing IDs and
+## labels; `default` and `random` preserve the legacy per-difficulty behavior.
+## Simple hides the control without discarding the remembered selection.
+func _build_personality_options() -> OptionButton:
+	personality_options = OptionButton.new()
+	personality_options.name = "OpponentPersonalityOptions"
+	for index in range(MatchConfig.OPPONENT_PERSONALITIES.size()):
+		personality_options.add_item(GameLocalization.personality_label(MatchConfig.OPPONENT_PERSONALITIES[index]), index)
+	var selected := MatchConfig.OPPONENT_PERSONALITIES.find(str(pending_match_config.get("opponent_personality", MatchConfig.OPPONENT_PERSONALITY_DEFAULT)))
+	personality_options.select(selected if selected >= 0 else 0)
+	personality_options.custom_minimum_size = MENU_SELECTION_SIZE
+	personality_options.item_selected.connect(func(index: int):
+		pending_match_config.opponent_personality = MatchConfig.OPPONENT_PERSONALITIES[index]
+	)
+	_apply_field_style(personality_options)
+	return personality_options
+
+func _update_personality_group_visibility() -> void:
+	if not is_instance_valid(personality_group):
+		return
+	personality_group.visible = str(pending_match_config.get("difficulty", "medium")) != "simple"
 
 func _build_sound_toggle() -> Control:
 	sound_toggle = CheckBox.new()
@@ -567,6 +593,10 @@ func _on_start_pressed() -> void:
 			difficulty = "hell"
 	profile.settings.ai_count = int(ai_count_spin.value)
 	profile.settings.difficulty = difficulty
+	if is_instance_valid(personality_options):
+		var personality_id := personality_options.get_selected_id()
+		if personality_id >= 0 and personality_id < MatchConfig.OPPONENT_PERSONALITIES.size():
+			pending_match_config.opponent_personality = MatchConfig.OPPONENT_PERSONALITIES[personality_id]
 	last_recorded_hand_number = 0
 	last_seen_event_fingerprint = ""
 	last_rendered_pot = -1
@@ -623,6 +653,19 @@ func _show_mode_config(mode: String) -> void:
 	box.add_child(title)
 	box.add_child(_config_row(GameLocalization.present("AI 对手"), _build_ai_spin()))
 	box.add_child(_config_row(GameLocalization.present("难度"), _build_difficulty_options()))
+	personality_group = VBoxContainer.new()
+	personality_group.name = "OpponentPersonalityGroup"
+	personality_group.add_theme_constant_override("separation", 4)
+	personality_group.add_child(_config_row(GameLocalization.present("对手风格"), _build_personality_options()))
+	var personality_hint := Label.new()
+	personality_hint.name = "OpponentPersonalityHint"
+	personality_hint.text = tr("所选风格应用于所有对手。默认：普通为基础风格，困难为随机风格；随机：每位对手独立分配。")
+	personality_hint.add_theme_color_override("font_color", _muted_color())
+	personality_hint.add_theme_font_size_override("font_size", FONT_SMALL)
+	personality_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	personality_group.add_child(personality_hint)
+	box.add_child(personality_group)
+	_update_personality_group_visibility()
 	var stack := OptionButton.new()
 	stack.name = "InitialStackOptions"
 	for stack_value in MatchConfig.STACKS:
@@ -681,7 +724,9 @@ func _show_mode_config(mode: String) -> void:
 		_update_config_notice()
 	)
 	ai_count_spin.value_changed.connect(func(value): pending_match_config.ai_count = int(value))
-	difficulty_options.item_selected.connect(func(index): pending_match_config.difficulty = ["simple", "medium", "hard", "hell"][index])
+	difficulty_options.item_selected.connect(func(index):
+		pending_match_config.difficulty = ["simple", "medium", "hard", "hell"][index]
+		_update_personality_group_visibility())
 	actions.add_child(start)
 	var cancel := _command_button(GameLocalization.present("取消"), COLOR_ACTION, _white_color())
 	cancel.name = "ConfigCancelButton"

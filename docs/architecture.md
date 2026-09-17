@@ -60,7 +60,7 @@ Difficulty behavior:
 - Medium: preflop ranges and bounded postflop range/EV comparison.
 - Hard: preflop ranges and more postflop simulation/history detail with less choice noise.
 
-Medium/hard accept a supplied personality through the seat's `personality` field. Existing menu behavior remains compatible: only hard assigns random presets automatically; custom profile selectors belong to the separate product-mode work. The four style fields are `aggression`, `looseness`, `bluff_rate`, and `call_tolerance`; mathematical parameter combinations do not establish distinct or stronger opponents.
+Medium/hard accept a supplied personality through the seat's `personality` field. Free-play and practice setup expose one whole-table opponent-style selector for medium and hard; the five shipped `PersonalityProfiles` IDs apply a named preset to every AI seat as an independent copy, `random` draws per seat, and `default` preserves the legacy behavior. Simple hides the selector without discarding the remembered choice. The selection is stored as the additive, validated `opponent_personality` config field on `MatchConfig`/`LocalProfile`; configs and hand histories without it remain valid and normalize to `default`. Difficulty still owns effort/noise, and personality presets only change the four style fields `aggression`, `looseness`, `bluff_rate`, and `call_tolerance`; mathematical parameter combinations do not establish distinct or stronger opponents.
 
 The model does not search future betting streets or opponent reraises. Its `analysis` describes estimates under stated assumptions, not a proven best move or GTO advice. Passing mathematical/behavior tests does not establish expert-level playing strength.
 

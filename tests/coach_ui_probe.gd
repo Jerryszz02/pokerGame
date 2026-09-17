@@ -32,8 +32,10 @@ func probe(viewport: Vector2i, locale: String) -> void:
 	scene._show_mode_config("practice")
 	scene.ai_count_spin.value = 1
 	scene.difficulty_options.select(3)
+	scene.personality_options.select(MatchConfig.OPPONENT_PERSONALITIES.find("Rock"))
 	scene._on_start_pressed()
 	check(scene.game.difficulty == "hell" and scene.profile.settings.difficulty == "hell","Hell selector starts and persists Hell difficulty")
+	check(scene.game.players[1].personality.name == "Rock","Hell respects the merged opponent style selector")
 	scene.paused = true
 	scene.practice_views.stats()
 	await frames()

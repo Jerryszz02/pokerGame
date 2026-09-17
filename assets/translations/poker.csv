@@ -481,3 +481,12 @@ The game waits while Settings and reference panels are open. Completed hands can
 估计接近,Similar estimates,估计接近
 存在估计差异,Estimated difference,存在估计差异
 低权益投入：%d 次；达到名义跟注门槛 %d 次；低于门槛 %d 次。全下运气：%+.2f BB，合格 %d 手。,Low-equity investments: %d; at nominal call threshold: %d; below threshold: %d. All-in luck: %+.2f BB across %d qualifying hands.,低权益投入：%d 次；达到名义跟注门槛 %d 次；低于门槛 %d 次。全下运气：%+.2f BB，合格 %d 手。
+对手风格,Opponent style,对手风格
+默认,Default,默认
+随机,Random,随机
+紧凶,Tight-Aggressive,紧凶
+松凶,Loose-Aggressive,松凶
+跟注站,Calling Station,跟注站
+岩石,Rock,岩石
+均衡,Balanced,均衡
+所选风格应用于所有对手。默认：普通为基础风格，困难为随机风格；随机：每位对手独立分配。,"The selected style applies to all opponents. Default: standard play on Medium, random styles on Hard. Random: each opponent gets a random style.",所选风格应用于所有对手。默认：普通为基础风格，困难为随机风格；随机：每位对手独立分配。
