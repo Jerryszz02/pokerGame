@@ -31,6 +31,8 @@ func _run() -> void:
 	_test_blind_rotation_after_elimination()
 	_test_profile_recovery()
 	_test_local_profile_roundtrip()
+	_test_opponent_personality_config()
+	_test_opponent_personality_seating()
 	_test_ai_profiles_and_actions()
 	_test_current_ai_action_event()
 	_test_ai_sampling_and_difficulty_profiles()
@@ -315,6 +317,7 @@ func _test_local_profile_roundtrip() -> void:
 	profile.settings.ai_count = 5
 	profile.settings.difficulty = "hard"
 	profile.settings.sound_enabled = false
+	profile.settings.opponent_personality = "CallingStation"
 	profile.stats.total_hands = 12
 	profile.stats.total_net_profit = -40
 	profile.stats.total_win_hands = 4
@@ -323,10 +326,82 @@ func _test_local_profile_roundtrip() -> void:
 	var loaded := LocalProfileScript.load_profile(path)
 	_assert(loaded.settings.ai_count == 5, "profile should restore AI count")
 	_assert(loaded.settings.difficulty == "hard", "profile should restore difficulty")
+	_assert(loaded.settings.opponent_personality == "CallingStation", "profile should restore opponent personality")
 	_assert(not bool(loaded.settings.sound_enabled), "profile should restore sound toggle")
 	_assert(loaded.stats.total_hands == 12, "profile should restore total hands")
 	_assert(loaded.stats.total_net_profit == -40, "profile should restore net profit")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+func _test_opponent_personality_config() -> void:
+	_assert(MatchConfig.DEFAULTS.opponent_personality == MatchConfig.OPPONENT_PERSONALITY_DEFAULT, "config defaults to the legacy behavior")
+	for preset in ["TightAggressive", "LooseAggressive", "CallingStation", "Rock", "Balanced"]:
+		_assert(MatchConfig.OPPONENT_PERSONALITIES.has(preset), "selector exposes preset: " + preset)
+		_assert(PersonalityProfiles.PROFILES.has(preset), "selector preset matches shipped profile: " + preset)
+	var missing := MatchConfig.normalize({"ai_count": 2})
+	_assert(missing.opponent_personality == "default", "missing opponent personality normalizes to default")
+	for value in [null, 7, 1.5, ["Rock"], {"name": "Rock"}, &"Rock", "NotAPreset", ""]:
+		var raw := MatchConfig.DEFAULTS.duplicate(true)
+		raw.opponent_personality = value
+		var normalized := MatchConfig.normalize(raw)
+		_assert(normalized.opponent_personality == "default", "invalid opponent personality normalizes safely: " + str(value))
+		_assert(not MatchConfig.validate(raw), "invalid opponent personality is rejected: " + str(value))
+	var legacy := MatchConfig.DEFAULTS.duplicate(true)
+	legacy.erase("opponent_personality")
+	_assert(MatchConfig.validate(legacy), "legacy config without the field stays valid")
+	var explicit := MatchConfig.DEFAULTS.duplicate(true)
+	explicit.opponent_personality = "Rock"
+	_assert(MatchConfig.validate(explicit), "supported opponent personality validates")
+	var invalid := MatchConfig.DEFAULTS.duplicate(true)
+	invalid.opponent_personality = "NotAPreset"
+	_assert(not MatchConfig.validate(invalid), "unknown opponent personality is rejected")
+	var legacy_profile := LocalProfileScript.normalize_profile({"settings": {"ai_count": 2}})
+	_assert(legacy_profile.settings.opponent_personality == "default", "old profile settings receive the default")
+	_assert(str(legacy_profile.get("notice", "")).is_empty(), "missing field does not report a fallback")
+	var recovered := LocalProfileScript.normalize_profile({"settings": {"opponent_personality": 7}})
+	_assert(recovered.settings.opponent_personality == "default", "invalid stored personality recovers to default")
+	_assert(not str(recovered.get("notice", "")).is_empty(), "invalid stored personality reports its fallback")
+
+func _test_opponent_personality_seating() -> void:
+	for preset in ["TightAggressive", "LooseAggressive", "CallingStation", "Rock", "Balanced"]:
+		for difficulty in ["medium", "hard"]:
+			var game := PokerRound.new()
+			game.start_new_match(3, difficulty, {"opponent_personality": preset})
+			var names := {}
+			for i in range(1, game.players.size()):
+				var seat: Dictionary = game.players[i]
+				var personality: Dictionary = seat.personality
+				_assert(str(personality.get("name", "")) == preset, "%s %s seat uses the named preset" % [difficulty, preset])
+				names[personality.get("name")] = true
+				var effective := AiDecision._profile_for(seat)
+				_assert(str(effective.get("difficulty", "")) == difficulty, "named preset keeps the %s difficulty" % difficulty)
+				_assert(float(effective.get("model_effort", -1)) == float(PersonalityProfiles.difficulty_defaults(difficulty).model_effort), "difficulty owns %s model effort" % difficulty)
+				_assert(is_equal_approx(float(effective.get("action_noise", -1.0)), float(PersonalityProfiles.difficulty_defaults(difficulty).action_noise)), "difficulty owns %s action noise" % difficulty)
+			_assert(names.size() == 1, "named preset applies to every AI seat")
+	# Seats must not share the same profile instance.
+	var copies := PokerRound.new()
+	copies.start_new_match(3, "medium", {"opponent_personality": "Rock"})
+	copies.players[1].personality.aggression = 0.01
+	_assert(copies.players[2].personality.aggression != 0.01, "each seat receives an independent profile copy")
+	# Default preserves the legacy per-difficulty behavior.
+	var medium_default := PokerRound.new()
+	medium_default.start_new_match(3, "medium")
+	for i in range(1, medium_default.players.size()):
+		_assert(medium_default.players[i].personality.is_empty(), "medium default keeps no explicit personality")
+	var hard_default := PokerRound.new()
+	hard_default.start_new_match(3, "hard")
+	for i in range(1, hard_default.players.size()):
+		_assert(not hard_default.players[i].personality.is_empty(), "hard default randomizes a personality per seat")
+		_assert(PersonalityProfiles.PROFILES.has(str(hard_default.players[i].personality.get("name", ""))), "hard random personality is a shipped preset")
+	# Random draws independently per seat and simple ignores any remembered choice.
+	var medium_random := PokerRound.new()
+	medium_random.start_new_match(5, "medium", {"opponent_personality": "random"})
+	for i in range(1, medium_random.players.size()):
+		_assert(not medium_random.players[i].personality.is_empty(), "medium random assigns a personality per seat")
+		_assert(PersonalityProfiles.PROFILES.has(str(medium_random.players[i].personality.get("name", ""))), "medium random profile is a shipped preset")
+	var simple := PokerRound.new()
+	simple.start_new_match(3, "simple", {"opponent_personality": "LooseAggressive"})
+	for i in range(1, simple.players.size()):
+		_assert(simple.players[i].personality.is_empty(), "simple ignores any remembered personality selection")
 
 func _test_ai_profiles_and_actions() -> void:
 	var game := PokerRound.new()
