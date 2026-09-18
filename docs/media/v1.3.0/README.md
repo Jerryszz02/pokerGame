@@ -1,8 +1,8 @@
 # v1.3.0 devlog media
 
-Prepared on 2026-09-18. **The user resumed preparation of the unpublished draft.** These assets do not indicate a released build. The release source now declares version `1.3.0`; package upload and storefront verification are recorded in the release delivery report.
+Prepared on 2026-09-18 for the original unpublished draft. The [public Devlog](https://jerryszz02.itch.io/poker-game/devlog/1668455/pokergame-130-know-your-play-choose-your-challenge) is now accessible without authentication; its metadata records publication on 2026-09-18 at 15:06 UTC. Assets alone do not establish a released build: package upload and storefront verification are recorded in the [release delivery report](../../releases/1.3.0.md).
 
-## Draft materials
+## Materials and publication history
 
 - [English Devlog](../../releases/1.3.0-devlog.md)
 - [HTML body](../../releases/1.3.0-devlog.html), currently using local image paths
@@ -10,10 +10,10 @@ Prepared on 2026-09-18. **The user resumed preparation of the unpublished draft.
 - Title: `PokerGame 1.3.0 — Know your play, choose your challenge`
 - itch.io type: Major Update or Launch; language: English; tag: `v1.3.0`
 - The title pattern, short introduction, level-three feature headings, images immediately before their sections, and closing feedback invitation follow the previous Devlogs. The preview reuses `poker-room-background.png` and the established dark green, ivory, and brass palette. The game page's existing theme and banner should be retained.
-- Saved itch.io draft: [1668455](https://itch.io/dashboard/post/1668455/edit). The owner preview displayed **DRAFT**, all six feature sections and eight images. No post was published or scheduled.
-- Native Chrome uploads are blocked by a disabled Open button in the macOS file picker; browser control also reports a request-header policy error. The body therefore embeds original screenshots from immutable public GitHub commit `8e10c4b5c92c7a349c1d1eae31c29abf77697277`. All eight hosted gameplay screenshots were verified byte-for-byte against local SHA-256. The cover was subsequently corrected in review and remains a separate upload. The custom cover upload is still pending.
+- Original draft delivery: [1668455](https://itch.io/dashboard/post/1668455/edit). The owner preview displayed **DRAFT**, all six feature sections and eight images. That preparation task did not publish or schedule the post. The later public page was verified during this documentation sync.
+- At draft preparation, native Chrome uploads were blocked by a disabled Open button in the macOS file picker and a browser request-header policy error. The body therefore embeds original screenshots from immutable public GitHub commit `8e10c4b5c92c7a349c1d1eae31c29abf77697277`; all eight were then verified byte-for-byte against local SHA-256. The cover was subsequently corrected in review, with its separate upload still pending at draft handoff. The current public page has cover-image metadata and retains all eight hosted screenshot references; this pass did not revalidate the uploaded cover against the local file.
 - [Copy-ready platform HTML](../../releases/1.3.0-devlog-itch.html) includes these hosted image URLs. The themed local preview uses local image paths.
-- v1.3.0 packages have been built and uploaded; see [release delivery](../../releases/1.3.0.md). The user handles Devlog publication. The cover uses the version without an availability slogan.
+- v1.3.0 packages have been built and uploaded; see [release delivery](../../releases/1.3.0.md). The cover uses the version without an availability slogan. Future Devlogs still follow the unpublished-draft handoff required by [AGENTS.md](../../../AGENTS.md#devlog-requirements).
 
 ## Difference from v1.2.0
 
