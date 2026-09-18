@@ -1,6 +1,6 @@
 {
   "source_commit": "6a69c5f02ded81d7d042abe8733a608d1798d0e2",
-  "status": "prepared; unpublished draft delivery in progress",
+  "status": "itch.io draft 1668455 saved; custom cover upload pending",
   "images": [
     {
       "file": "cover.png",
@@ -56,5 +56,7 @@
       "height": 1000,
       "sha256": "85304bbe2c499ca8705d2b1cdfd8af6d3b0da3a2a415b6022ea15cd516dadf75"
     }
-  ]
+  ],
+  "draft_url": "https://itch.io/dashboard/post/1668455/edit",
+  "image_host_commit": "8e10c4b5c92c7a349c1d1eae31c29abf77697277"
 }
