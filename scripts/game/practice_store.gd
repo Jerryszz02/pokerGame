@@ -50,6 +50,9 @@ func load() -> Dictionary:
 		if not state.ledger.has(record.id) or not state.ledger[record.id].has("created_at"):
 			state.ledger[record.id] = _ledger_entry(record)
 			_unlock_hand(state, state.ledger[record.id])
+		# A durable enriched hand can repair metadata after an interrupted write.
+		if record.has("style") and not state.ledger[record.id].has("style"):
+			state.ledger[record.id].style = record.style.duplicate(true)
 	return state.duplicate(true)
 
 func commit_hand(record: Dictionary) -> bool:
@@ -131,6 +134,18 @@ func mark_replay_complete(id: String) -> bool:
 	next.achievements.replay_first = {"name": "第一次完整回放", "source": "回放"}
 	return _commit_state(next)
 
+func update_style(id: String, style: Dictionary) -> bool:
+	if not _can_write() or not _safe_id(id) or not PlayerStyle.validate(style): return false
+	if not state.ledger.has(id): return false
+	var next := state.duplicate(true)
+	next.ledger[id].style = style.duplicate(true)
+	if _records.has(id):
+		var record: Dictionary = _records[id].duplicate(true)
+		record.style = style.duplicate(true)
+		if not _atomic_write(base_path.path_join("hand_%s.json" % id), record): return false
+		_records[id] = record
+	return _commit_state(next)
+
 func finish_match(match_id: String, outcome: String, config: Dictionary = {}) -> bool:
 	if not _can_write() or not _safe_id(match_id) or not ["won", "lost", "left"].has(outcome):
 		return false
@@ -155,10 +170,12 @@ func statistics(filters: Dictionary = {}) -> Dictionary:
 		"showdown_wins": 0, "uncontested_wins": 0, "rank_counts": {}, "rank_win_counts": {},
 		"rank_exclusive_counts": {}, "rank_split_counts": {}, "completed_matches": 0,
 		"won_matches": 0, "lost_matches": 0, "left_matches": 0,
-		"peak_stack": 0, "peak_entry_multiple": 0.0}
+		"peak_stack": 0, "peak_entry_multiple": 0.0, "style": PlayerStyle.empty()}
+	var style_records: Array = []
 	for entry in state.ledger.values():
 		if not _matches_filters(entry.config, entry.assistance_viewed, filters, str(entry.get("created_at", ""))):
 			continue
+		if entry.has("style") and PlayerStyle.validate(entry.style): style_records.append(entry.style)
 		out.hands += 1
 		var net: int = entry.net_change
 		var bb: int = entry.config.big_blind
@@ -189,6 +206,7 @@ func statistics(filters: Dictionary = {}) -> Dictionary:
 		out["%s_matches" % entry.outcome] += 1
 		if entry.outcome != "left":
 			out.completed_matches += 1
+	if not style_records.is_empty(): out.style = PlayerStyle.merge(style_records)
 	return out
 
 func migrate_legacy(profile: Dictionary) -> Dictionary:
@@ -203,12 +221,14 @@ func migrate_legacy(profile: Dictionary) -> Dictionary:
 	return state.legacy_stats.duplicate(true)
 
 func _ledger_entry(record: Dictionary) -> Dictionary:
-	return {"id": record.id, "match_id": record.match_id, "created_at": record.created_at, "config": record.config.duplicate(true),
+	var entry := {"id": record.id, "match_id": record.match_id, "created_at": record.created_at, "config": record.config.duplicate(true),
 		"assistance_viewed": record.assistance_viewed, "net_change": record.net_change,
 		"split": record.split, "exclusive_win": record.exclusive_win,
 		"showdown_win": record.showdown_win, "uncontested_win": record.uncontested_win,
 		"rank_value": record.rank_value, "rank_name": record.rank_name, "peak_stack": record.peak_stack,
 		"hand_start_stack": int(record.starting_stacks[0])}
+	if record.has("style") and PlayerStyle.validate(record.style): entry.style = record.style.duplicate(true)
+	return entry
 
 func _unlock_hand(next: Dictionary, entry: Dictionary) -> void:
 	var source := "辅助练习" if entry.assistance_viewed else "独立对局"
@@ -346,6 +366,7 @@ func _valid_ledger(value: Variant) -> bool:
 			return false
 	if value.has("hand_start_stack") and not value.hand_start_stack is int:
 		return false
+	if value.has("style") and not PlayerStyle.validate(value.style): return false
 	return value.get("rank_name") is String
 
 func _valid_record(value: Variant) -> bool:
@@ -355,6 +376,7 @@ func _valid_record(value: Variant) -> bool:
 		return false
 	if not value.get("created_at") is String or not value.get("net_changes") is Dictionary or not value.get("starting_stacks") is Array:
 		return false
+	if value.has("style") and not PlayerStyle.validate(value.style): return false
 	var count: int = value.config.ai_count + 1
 	if value.starting_stacks.size() != count:
 		return false

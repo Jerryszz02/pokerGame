@@ -1,6 +1,12 @@
 class_name PokerRound
 extends RefCounted
 
+## Captured before-action context is attached to each successful action frame.
+## Simulation clones switch these flags off so rollouts pay no recording cost.
+## The neutral snapshot is game-owned; the AI layer's CoachContext is only a
+## compatibility facade, so the rules engine never depends on AI coaching code.
+const DecisionSnapshotScript := preload("res://scripts/game/decision_snapshot.gd")
+
 var players: Array = []
 var community_cards: Array = []
 var deck := Deck.new()
@@ -44,6 +50,13 @@ var _assistance_viewed := false
 var _hand_created_at := ""
 var _completed_record: Dictionary = {}
 var _hand_peak_stack := 0
+## Recording switches. Real games keep all four on; simulation clones disable
+## them so a bounded rollout never pays for context capture, frame snapshots,
+## human event text or growing public history.
+var capture_decision_context := true
+var record_frames := true
+var record_events := true
+var record_public_history := true
 
 func _init() -> void:
 	shuffle_rng.randomize()
@@ -145,24 +158,31 @@ func apply_action(action_type: String, amount: int = 0, action_note: String = ""
 	var actor_stack_before: int = player.stack
 	if not legal.actions.has(action_type):
 		return false
+	# Captured BEFORE any mutation and only after legality passed, so a failed
+	# action never gets a decision context attached.
+	var decision_context := {}
+	if capture_decision_context:
+		decision_context = DecisionSnapshotScript.capture(self, actor_index)
 	# Public before-state for strategy history. Only successful actions reach
 	# the append below, and hidden cards/notes/personality never enter it.
-	var observation := {
-		"hand": hand_number,
-		"actor": actor_index,
-		"street": stage,
-		"board_before": CardUtil.clone_cards(community_cards),
-		"action": action_type,
-		"pot_before": total_pot(),
-		"to_call_before": get_to_call(actor_index),
-		"stack_before": int(player.stack),
-		"bet_before": current_bet,
-		"actor_bet_before": int(player.current_bet),
-		"actor_total_before": int(player.total_bet),
-		"big_blind": big_blind,
-		"button": button_index,
-		"active_count": active_player_count()
-	}
+	var observation := {}
+	if record_public_history:
+		observation = {
+			"hand": hand_number,
+			"actor": actor_index,
+			"street": stage,
+			"board_before": CardUtil.clone_cards(community_cards),
+			"action": action_type,
+			"pot_before": total_pot(),
+			"to_call_before": get_to_call(actor_index),
+			"stack_before": int(player.stack),
+			"bet_before": current_bet,
+			"actor_bet_before": int(player.current_bet),
+			"actor_total_before": int(player.total_bet),
+			"big_blind": big_blind,
+			"button": button_index,
+			"active_count": active_player_count()
+		}
 	match action_type:
 		TableState.ACTION_FOLD:
 			player.status = TableState.STATUS_FOLDED
@@ -193,16 +213,20 @@ func apply_action(action_type: String, amount: int = 0, action_note: String = ""
 			player.last_action_note = action_note
 		_:
 			return false
-	observation["paid"] = int(observation.stack_before) - int(player.stack)
-	observation["raise_to"] = int(player.current_bet) if (action_type == TableState.ACTION_RAISE or action_type == TableState.ACTION_ALL_IN) else 0
-	observation["increased_current_bet"] = current_bet > int(observation.bet_before)
-	observation["all_in"] = player.status == TableState.STATUS_ALL_IN or int(player.stack) <= 0
-	observation["is_all_in_call"] = action_type == TableState.ACTION_ALL_IN and not bool(observation.increased_current_bet)
-	observation["pot_after"] = total_pot()
-	public_action_history.append(observation)
+	if not observation.is_empty():
+		observation["paid"] = int(observation.stack_before) - int(player.stack)
+		observation["raise_to"] = int(player.current_bet) if (action_type == TableState.ACTION_RAISE or action_type == TableState.ACTION_ALL_IN) else 0
+		observation["increased_current_bet"] = current_bet > int(observation.bet_before)
+		observation["all_in"] = player.status == TableState.STATUS_ALL_IN or int(player.stack) <= 0
+		observation["is_all_in_call"] = action_type == TableState.ACTION_ALL_IN and not bool(observation.increased_current_bet)
+		observation["pot_after"] = total_pot()
+		public_action_history.append(observation)
 	_record_action_event(actor_index, action_type, amount, action_note)
 	player.last_action_bet = current_bet
+	var action_frame_index := _hand_frames.size()
 	_append_frame("action", "%s %s" % [player.name, _action_label(action_type, amount, player)], {"actor": actor_index, "type": action_type, "amount": amount, "paid": actor_stack_before - int(player.stack), "raise_to": player.current_bet, "note": action_note})
+	if not decision_context.is_empty() and action_frame_index < _hand_frames.size():
+		_hand_frames[action_frame_index]["decision_context"] = decision_context
 	var action_stage := stage
 	_after_state_change()
 	if stage == action_stage and stage != TableState.STAGE_HAND_OVER:
@@ -662,6 +686,8 @@ func _action_label(action_type: String, amount: int, player: Dictionary) -> Stri
 	return action_type
 
 func _record_event(event_type: String, text: String) -> void:
+	if not record_events:
+		return
 	if event_log.size() > 0 and event_log[event_log.size() - 1].text == text:
 		return
 	event_log.append({"type": event_type, "text": text, "hand": hand_number})
@@ -716,6 +742,8 @@ func _build_completed_record() -> Dictionary:
 	}
 
 func _append_frame(frame_type: String, label: String, action: Dictionary) -> void:
+	if not record_frames:
+		return
 	if not players.is_empty():
 		_hand_peak_stack = maxi(_hand_peak_stack, int(players[0].stack))
 	var snapshots := []

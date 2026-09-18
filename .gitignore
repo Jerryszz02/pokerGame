@@ -10,3 +10,6 @@ export/
 
 __pycache__/
 *.pyc
+
+# Private configuration belongs to the local coach service, not Godot exports.
+.env.local
