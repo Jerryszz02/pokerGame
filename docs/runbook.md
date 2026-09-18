@@ -21,6 +21,12 @@ $GodotBinary = python tools/bootstrap_godot.py --templates
 
 本机历史 Mono 编辑器仍在 `/Applications/Godot_mono.app/Contents/MacOS/Godot`，需要本机 .NET 配置；发布构建不依赖它。新 worktree 必须先导入，`verify.py` 和 `build_release.py` 都会执行该步骤。
 
+## 本地规则复盘
+
+文字复盘有内置的本地规则替代方案，无需密钥或启动服务即可使用。行动数值分析完成后，界面立即显示“本地规则分析”：从最多 12 个决定中选出最多 3 个重点，按已有的配对采样误差区分明确差异、估值接近和样本不足，并结合行动及加注尺度生成建议。规则只使用行动前局面产生的数值，不使用最终输赢或全知视角信息。缺少可靠数值的旧牌谱仍显示不可用。
+
+云端请求期间保留本地文字，返回有效结果后自动替换；断连、超时、限流、凭据不可用或响应校验失败时保留本地解读。失败冷却仍为一分钟，之后重开回放可再次尝试云端。
+
 ## Cloudflare 文字复盘服务
 
 `services/coach-worker/` 提供与本机服务相同的 `/review` JSON 接口，用 Cloudflare Workers 和一个 SQLite Durable Object 托管。选择 Workers Free 即可，无需常驻服务器。DeepSeek 的 API 调用仍按提供方计费；本项目不自动升级 Cloudflare 付费方案。
@@ -45,7 +51,7 @@ python3 tools/configure_coach_worker.py
 
 全局额度由固定名称的 Durable Object 保存：整个服务每分钟最多 6 次、滚动 24 小时默认最多 100 次新上游请求，失败也计数。缓存命中不计入新请求；成功结果缓存一小时，失败冷却一分钟，缓存最多 128 项。额度在请求发送前持久预留，服务实例重启不会重置。`MAX_DAILY_REQUESTS` 是运营者配置，允许 1–1000 的整数，非法配置会拒绝调用；玩家不能更改它。调整限额需要同时评估 DeepSeek 费用和免费资源额度。
 
-服务只接受固定版本的数值摘要，不接受自由提示词、上游地址、模型或玩家密钥。Web 来源用 `ALLOWED_ORIGINS` 精确列出，当前 itch.io 内嵌游戏来源是 `https://html.itch.zone`；桌面客户端可以不带 `Origin`。CORS 不提供身份认证，匿名玩家共享全局额度，单个调用者可能耗尽它。额度耗尽、上游失败或文字不符合校验时，游戏保留本地数值复盘。
+服务只接受固定版本的数值摘要，不接受自由提示词、上游地址、模型或玩家密钥。Web 来源用 `ALLOWED_ORIGINS` 精确列出，当前 itch.io 内嵌游戏来源是 `https://html.itch.zone`；桌面客户端可以不带 `Origin`。CORS 不提供身份认证，匿名玩家共享全局额度，单个调用者可能耗尽它。额度耗尽、上游失败或文字不符合校验时，游戏保留本地数值和规则文字复盘。
 
 Cloudflare 服务代码、依赖和本地开发配置由 `.gdignore` 与显式导出资源清单隔离。CI 仅运行固定响应测试和部署打包检查，不读取密钥、不真实调用 DeepSeek，也不自动部署。
 

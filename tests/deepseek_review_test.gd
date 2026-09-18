@@ -87,6 +87,7 @@ func _check_replay_wiring() -> void:
 		scene.practice_views.tick(0.0)
 		await process_frame
 	check(fake.calls == 1,"local completion automatically requests prose exactly once")
+	check(_prose(scene).contains(GameLocalization.present("本地规则分析")) and _prose(scene).contains("BB"),"local prose is already visible while the service is pending")
 	check(scene.find_child("DeepSeekReplay",true,false) == null and scene.find_child("ReplayAnalysis",true,false) == null,"replay needs no analysis or generation buttons")
 	var request := fake._request
 	scene.practice_views._request_text_review()
@@ -98,6 +99,32 @@ func _check_replay_wiring() -> void:
 	scene.practice_views.open_replay(record,false)
 	await process_frame
 	check(fake.calls == 1 and scene.find_child("ReplayTextReviewBody",true,false).get_child_count() == 4,"reopening the same hand reuses numeric and prose results")
+	var service_url: String = fake.service_url
+	fake.service_url = ""
+	var no_url_calls: int = fake.calls
+	scene.practice_views.open_replay(record,false)
+	check(fake.calls == no_url_calls and scene.practice_views._text_review_token == -1 and _prose(scene).contains("BB"),"unconfigured service immediately uses local prose without a request")
+	check(_prose(scene).contains(GameLocalization.present("本地规则分析")),"offline prose is not labeled as cloud AI output")
+	fake.service_url = service_url
+	fake._cache.clear()
+	fake.dispatch_error = ERR_CANT_CONNECT
+	scene.practice_views.open_replay(record,false)
+	check(scene.practice_views._text_review_token == -1 and _prose(scene).contains("BB"),"immediate dispatch failure retains local prose")
+	fake.dispatch_error = OK
+	for failure in [[HTTPRequest.RESULT_CANT_CONNECT,0,""], [HTTPRequest.RESULT_TIMEOUT,0,""], [HTTPRequest.RESULT_SUCCESS,429,"private response data"], [HTTPRequest.RESULT_SUCCESS,503,"private response data"], [HTTPRequest.RESULT_SUCCESS,200,"not JSON"], [HTTPRequest.RESULT_BODY_SIZE_LIMIT_EXCEEDED,200,""]]:
+		fake._cache.clear()
+		scene.practice_views.open_replay(record,false)
+		fake._request.request_completed.emit(failure[0],failure[1],PackedStringArray(),str(failure[2]).to_utf8_buffer())
+		check(scene.practice_views._text_review_token == -1 and _prose(scene).contains("BB") and _prose(scene).contains(GameLocalization.present("本地规则分析")),"transport/status/invalid-response failure keeps useful local prose")
+		check(not _prose(scene).contains("private response data") and not _prose(scene).contains(GameLocalization.present("正在尝试云端解读，完成后将自动更新。")),"failure stops the pending notice and never displays server error bodies")
+	var failed_calls: int = fake.calls
+	scene.practice_views.open_replay(record,false)
+	await process_frame
+	check(fake.calls == failed_calls and _prose(scene).contains(GameLocalization.present("本地规则分析")),"failure cooldown also retains the local explanation")
+	for key in fake._cache: fake._cache[key].expires = 0
+	scene.practice_views.open_replay(record,false)
+	fake.respond(fake._request,fake.sent)
+	check(fake.calls == failed_calls+1 and scene.find_child("ReplayTextReviewBody",true,false).get_child_count() == 4,"after cooldown a recovered service replaces fallback with validated prose")
 	fake._cache.clear()
 	scene.practice_views.open_replay(record,false)
 	check(fake._request != null,"uncached replay starts a new request")
@@ -108,5 +135,14 @@ func _check_replay_wiring() -> void:
 	var calls: int = fake.calls
 	scene.practice_views.open_replay(older,false)
 	check(fake.calls == calls and scene.practice_views._review_results.is_empty(),"legacy replay without reliable facts never calls the service")
+	check(not _prose(scene).contains("BB"),"legacy replay never fabricates a local written review")
 	scene.queue_free()
 	await process_frame
+
+func _prose(scene: Node) -> String:
+	var body := scene.find_child("ReplayTextReviewBody",true,false)
+	if body == null: return ""
+	var text := ""
+	for child in body.get_children():
+		if child is Label: text += child.text + "\n"
+	return text
