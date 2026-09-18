@@ -11,9 +11,9 @@ Prepared on 2026-09-18. **The user resumed preparation of the unpublished draft.
 - itch.io type: Major Update or Launch; language: English; tag: `v1.3.0`
 - The title pattern, short introduction, level-three feature headings, images immediately before their sections, and closing feedback invitation follow the previous Devlogs. The preview reuses `poker-room-background.png` and the established dark green, ivory, and brass palette. The game page's existing theme and banner should be retained.
 - Saved itch.io draft: [1668455](https://itch.io/dashboard/post/1668455/edit). The owner preview displayed **DRAFT**, all six feature sections and eight images. No post was published or scheduled.
-- Native Chrome uploads are blocked by a disabled Open button in the macOS file picker; browser control also reports a request-header policy error. The body therefore embeds original screenshots from immutable public GitHub commit `8e10c4b5c92c7a349c1d1eae31c29abf77697277`. All nine hosted image responses, including the cover, were verified byte-for-byte against local SHA-256. The custom cover upload is still pending.
+- Native Chrome uploads are blocked by a disabled Open button in the macOS file picker; browser control also reports a request-header policy error. The body therefore embeds original screenshots from immutable public GitHub commit `8e10c4b5c92c7a349c1d1eae31c29abf77697277`. All eight hosted gameplay screenshots were verified byte-for-byte against local SHA-256. The cover was subsequently corrected in review and remains a separate upload. The custom cover upload is still pending.
 - [Copy-ready platform HTML](../../releases/1.3.0-devlog-itch.html) includes these hosted image URLs. The themed local preview uses local image paths.
-- Before publication: confirm v1.3.0 packages have been built and uploaded. The user handles publication. The cover intentionally does not say “out now”.
+- v1.3.0 packages have been built and uploaded; see [release delivery](../../releases/1.3.0.md). The user handles Devlog publication. The cover uses the version without an availability slogan.
 
 ## Difference from v1.2.0
 
