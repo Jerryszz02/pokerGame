@@ -1,0 +1,71 @@
+{
+  "source_commit": "6a69c5f02ded81d7d042abe8733a608d1798d0e2",
+  "status": "itch.io draft 1668455 saved; custom cover upload pending",
+  "images": [
+    {
+      "file": "cover.png",
+      "width": 1774,
+      "height": 887,
+      "sha256": "da7f73ada9c1287e3fa748bab70eb4aa5b0d6bff311dad70fe143159792d426d"
+    },
+    {
+      "file": "hell-difficulty.png",
+      "width": 1600,
+      "height": 1000,
+      "sha256": "43b414902640fe5a140679f6eb20a11ebce51da748769cbdeba2539c156e923a"
+    },
+    {
+      "file": "hell-table.png",
+      "width": 1600,
+      "height": 1000,
+      "sha256": "a09bd6885677775543835dfe755b903be7f584fd4c187f931b8a5581f907b746"
+    },
+    {
+      "file": "live-coach.png",
+      "width": 1600,
+      "height": 1000,
+      "sha256": "3cadc172767d98f550ce74ca13be4a503e6bab9389b63f2697ad01cb1352295c"
+    },
+    {
+      "file": "offline-review.png",
+      "width": 1600,
+      "height": 1000,
+      "sha256": "6ef073710474512f481e2bd4791dd805166569859a471fbfe3bafa058d17507d"
+    },
+    {
+      "file": "opponent-personalities.png",
+      "width": 1600,
+      "height": 1000,
+      "sha256": "8ec27528ef81c9af49f73274ae9f6ac682913188de0d57591d16af12634f26cb"
+    },
+    {
+      "file": "player-radar.png",
+      "width": 1600,
+      "height": 1000,
+      "sha256": "2a9cf7927cf554d0f450b259e96325b1f5ac3c4045b2adf7550ecbfc2b351beb"
+    },
+    {
+      "file": "replay-analysis.png",
+      "width": 1600,
+      "height": 1000,
+      "sha256": "7f5ccadecccd0a46738eeee21e4647bf6386dd78dab5003407e15713c97ae32f"
+    },
+    {
+      "file": "replay-overview.png",
+      "width": 1600,
+      "height": 1000,
+      "sha256": "85304bbe2c499ca8705d2b1cdfd8af6d3b0da3a2a415b6022ea15cd516dadf75"
+    }
+  ],
+  "draft_url": "https://itch.io/dashboard/post/1668455/edit",
+  "image_host_commit": "8e10c4b5c92c7a349c1d1eae31c29abf77697277",
+  "cover_edit": {
+    "rectangle": [
+      575,
+      500,
+      680,
+      65
+    ],
+    "outside_changed_pixels": 0
+  }
+}

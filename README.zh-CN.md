@@ -8,11 +8,11 @@
 
 桌上最多坐五名 AI 对手。你可以稳一点，等好牌再出手；也可以加注施压，看看谁愿意跟到底。至于全下之后会发生什么，得等牌翻开才知道。
 
-**[去 itch.io 游玩或下载](https://jerryszz02.itch.io/poker-game)** · **[去 GitHub 下载](https://github.com/Jerryszz02/pokerGame/releases/latest)**
+**[去 itch.io 游玩或下载](https://jerryszz02.itch.io/poker-game)** · **[GitHub 历史版本](https://github.com/Jerryszz02/pokerGame/releases/latest)**
 
-**单人离线 · 1 至 5 名 AI 对手 · 三档难度 · 中英文界面**
+**单人离线 · 1 至 5 名 AI 对手 · 四档难度 · 中英文界面**
 
-itch.io 已公开 **v1.2.0** 网页版和桌面下载，包含中英文切换、轻柔爵士背景音乐和牌桌音效；浏览器首次点击或按键后启用音频。截至 2026-09-11，GitHub Releases 的 latest 仍为 v1.1.0。详见[当前状态与验证](docs/planning/README.md)。
+itch.io 已公开 **v1.3.0** 网页版和桌面下载，包含中英文切换、轻柔爵士背景音乐和牌桌音效；浏览器首次点击或按键后启用音频。本次新增对手风格选择、地狱难度、本地教练、回放复盘和六维画像。GitHub Releases 暂时保留 v1.2.0，新版请从 itch.io 下载。详见[当前状态与验证](docs/planning/README.md)。
 
 ![河牌圈轮到你行动，可以弃牌、跟注或全下](docs/media/v1.0.0/river-decision.png)
 
@@ -22,7 +22,7 @@ itch.io 已公开 **v1.2.0** 网页版和桌面下载，包含中英文切换、
 
 开局可选每人 1,000、2,000、5,000 或 10,000 筹码，以及 5/10、10/20、25/50 或 50/100 盲注；一场内盲注固定。一手接一手地打，直到你赢下整桌，或者筹码归零。没有真钱下注，也不用注册账号。下载版可离线运行，网页版需联网加载。
 
-- **想单挑，还是坐满一桌？** 对手数量自己选，难度有简单、普通和困难三档。
+- **想单挑，还是坐满一桌？** 对手数量自己选，难度有简单、普通、困难和地狱四档。
 - **别指望每个对手都一样。** 困难模式里，有的谨慎，有的爱加注，也有的喜欢跟。留意他们怎么下注，再决定这一手怎么打。
 - **从入门到复盘。** 七课互动教程带你学会基本流程；练习模式可逐手暂停，结束后回放牌谱，查看本地统计和成就。
 - **节奏由你定。** 动作速度可以选普通或快速，需要离开一会儿就暂停。没看清刚才谁下了多少，打开牌局记录就能查。
@@ -42,16 +42,16 @@ itch.io 已公开 **v1.2.0** 网页版和桌面下载，包含中英文切换、
 
 ## 下载后就能开桌
 
-在 [itch.io](https://jerryszz02.itch.io/poker-game) 直接游玩网页版，或下载对应系统的 v1.2.0 ZIP 压缩包。[GitHub Releases](https://github.com/Jerryszz02/pokerGame/releases/latest) 当前仍提供旧版 v1.1.0 桌面包。玩游戏不需要安装 Godot、.NET，也不用下载源码。
+在 [itch.io](https://jerryszz02.itch.io/poker-game) 直接游玩网页版，或下载对应系统的 v1.3.0 ZIP 压缩包。[GitHub Releases](https://github.com/Jerryszz02/pokerGame/releases/latest) 当前仍提供旧版 v1.2.0 安装包。玩游戏不需要安装 Godot、.NET，也不用下载源码。
 
 | 系统 | 下载文件 | 怎么打开 |
 | --- | --- | --- |
-| Windows x64 | `PokerGame-1.2.0-windows-x64.zip` | 完整解压后，双击 `PokerGame.exe`。 |
-| macOS | `PokerGame-1.2.0-macos-universal.zip` | 解压后，打开 `PokerGame.app`。 |
+| Windows x64 | `poker-game-windows-x64.zip`（版本 1.3.0） | 完整解压后，双击 `PokerGame.exe`。 |
+| macOS | `poker-game-macos-universal.zip`（版本 1.3.0） | 解压后，打开 `PokerGame.app`。 |
 
 用鼠标操作，显示区域至少需要 **1280 × 720**。macOS 安装包包含 Apple Silicon 和 Intel 两个版本，其中 Intel Mac 尚未单独验证。
 
-Windows 版本未签名，macOS 版本未经 Apple 公证，第一次打开时可能遇到系统安全提示。请先阅读[发布说明](docs/releases/1.2.0.md)与 [itch.io 页面上的校验文件](https://jerryszz02.itch.io/poker-game)，再决定是否运行。
+Windows 版本未签名，macOS 版本未经 Apple 公证，第一次打开时可能遇到系统安全提示。请先阅读[发布说明与验证记录](docs/releases/1.3.0.md)，再决定是否运行。
 
 **打到一半要走？先暂停。** 设置和打完的手牌统计会保存在本机，但当前这场对局不能存档续玩。返回主菜单或退出游戏，就要重新开桌。
 
@@ -64,7 +64,7 @@ Windows 版本未签名，macOS 版本未经 Apple 公证，第一次打开时�
 <details>
 <summary><strong>想改点东西？从源码运行</strong></summary>
 
-v1.1.0 已包含教程、可配置筹码/盲注、牌谱回放和本地统计/成就。开发源码新增本地练习提示、回放决策分析、地狱难度与六维打法画像；打开回放后先根据数值生成本地规则解读，Cloudflare AI 服务可用时自动补充云端文字，否则保留可离线使用的本地复盘。玩家无需填写密钥或点击生成按钮。开发配置见[运行手册](docs/runbook.md)，口径和验收见[教练与雷达图方案](docs/planning/coach-radar-plan.md)。这些源码变化尚未更新已发布下载。当前源码与公开发布的区别见[状态与文档索引](docs/planning/README.md)。
+v1.1.0 已包含教程、可配置筹码/盲注、牌谱回放和本地统计/成就。v1.3.0 新增本地练习提示、回放决策分析、地狱难度与六维打法画像；打开回放后先根据数值生成本地规则解读，Cloudflare AI 服务可用时自动补充云端文字，否则保留可离线使用的本地复盘。玩家无需填写密钥或点击生成按钮。开发配置见[运行手册](docs/runbook.md)，口径和验收见[教练与雷达图方案](docs/planning/coach-radar-plan.md)。这些功能已包含在 itch.io 的 v1.3.0 下载中。当前源码与公开发布的区别见[状态与文档索引](docs/planning/README.md)。
 
 使用 Godot 4 和 GDScript 构建。发布版本使用 **Godot 4.7.2 standard**，无需 .NET。在 macOS/Linux 上运行以下命令。
 

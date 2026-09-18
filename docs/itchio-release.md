@@ -1,9 +1,8 @@
 # itch.io Web build and release
 
 This document describes the Godot Web export added for itch.io play-in-browser.
-As of the refreshed 2026-09-11 public-page check, **itch.io publishes v1.2.0**
-with a Run game embed, Windows/macOS ZIPs and a checksum file:
-<https://jerryszz02.itch.io/poker-game>. GitHub Releases still lists v1.1.0 as latest.
+As of 2026-09-18, **itch.io publishes v1.3.0** through the `web`, `windows-x64`, and `macos-universal` Butler channels:
+<https://jerryszz02.itch.io/poker-game>. See [release delivery and verification](releases/1.3.0.md). GitHub Releases retains v1.2.0.
 Browser audio and local persistence are implemented. The code waits for an input
 event to start Web audio, and saves use Godot's browser-local storage.
 
@@ -42,7 +41,8 @@ python3 tools/build_release.py --godot "$GODOT_BIN" --target macos
 
 A clean checkout is required for a release build. For an explicitly unverified
 local package add `--candidate`; the manifest records the actual checkout state.
-Version 1.2.0 is published on itch.io; do not overwrite existing release files.
+Version 1.3.0 is published through stable Butler channels on itch.io. Preserve
+previous release packages locally; a channel push replaces its current download.
 The user tried the local preview without reported issues on 2026-09-11. The public
 itch.io embed and v1.2.0 downloads were subsequently confirmed from the page.
 
