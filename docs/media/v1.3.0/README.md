@@ -32,7 +32,7 @@ Tutorials, achievements, browser play, languages, and audio were already include
 
 ## Real game captures
 
-All eight screenshots are unchanged 1600 × 1000 PNG viewport captures from the running Godot 4.7 Mono game with the Metal Mobile renderer. They were not generated, composited, translated, or retouched. Capture scripts and the isolated demonstration profile are retained under the ignored `export/devlog-v1.3.0/` directory in this worktree.
+All eight screenshots are unchanged 1600 × 1000 PNG viewport captures from the running Godot 4.7 Mono game with the Metal Mobile renderer. They were not generated, composited, translated, or retouched. The capture script, isolated demonstration profile and execution logs were kept only in the authoring worktree's ignored `export/devlog-v1.3.0/` directory. They are not distributed in this repository; a clean checkout contains the resulting screenshots and checksum manifest, not a reproducible capture harness.
 
 | File | Evidence |
 | --- | --- |
