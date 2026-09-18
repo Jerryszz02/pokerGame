@@ -1,6 +1,6 @@
 # v1.3.0 devlog media
 
-Prepared on 2026-09-18. **The user resumed preparation of the unpublished draft.** These assets do not indicate a released build. The source project still declares version `1.2.0`.
+Prepared on 2026-09-18. **The user resumed preparation of the unpublished draft.** These assets do not indicate a released build. The release source now declares version `1.3.0`; package upload and storefront verification are recorded in the release delivery report.
 
 ## Draft materials
 
@@ -51,10 +51,10 @@ The demonstration hands used freshly shuffled deals and scripted legal actions, 
 
 ## Cover
 
-`cover.png` is the promotional cover, distinct from gameplay evidence. It was created with the built-in `imagegen` tool from `../pokergame-banner.png`, using `../v1.2.0/cover.png` as a typography reference. The original artwork remains untouched. The subtitle is `v1.3.0`; it does not claim the release is available.
+`cover.png` is the promotional cover, distinct from gameplay evidence. Its replacement subtitle was generated with the built-in `imagegen` tool from `../pokergame-banner.png`. Only the interior rectangle `(x=575, y=500, width=680, height=65)` was copied into an exact original-banner copy with Godot `Image.blit_rect`. Decoded RGBA comparison verified zero changed pixels outside that rectangle; the original banner, border, main title, artwork and canvas dimensions remain unchanged. The subtitle is `v1.3.0`; it does not claim the release is available.
 
 Final edit prompt:
 
 > Use case: text-localization. Edit target: Image 1 is the original PokerGame banner. Image 2 is the prior v1.2.0 cover, provided ONLY as a reference for subtitle typography and placement. Create a matching v1.3.0 devlog cover by changing only the words inside the small gold-bordered subtitle plaque below the main PokerGame title. Replace the original 'OFFLINE TEXAS HOLD’EM' with the exact text 'v1.3.0'. Use the same gold cream pixel lettering, dark shadow, centered placement, and plaque seen in Image 2. Do NOT include 'out now' or any additional words. Keep original Image 1 composition, PokerGame main title, spade, ornate frames, green poker table, chips, cards, hanging lamp, safe, dark room, lighting, colors, textures and pixel-art style unchanged. Retain the original wide 2:1 aspect ratio and original dimensions if possible. This is a minimal text edit, not a redesign. Deliver a single clean PNG cover.
 
-The generated original remains under the task's `.codex/generated_images` directory. The workspace copy is the deliverable.
+The generated insert remains in the authoring task's local image output directory. The final workspace copy is the deliverable; the cover is a plaque-only composite, not the full regenerated image.

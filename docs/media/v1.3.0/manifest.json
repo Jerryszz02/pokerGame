@@ -6,7 +6,7 @@
       "file": "cover.png",
       "width": 1774,
       "height": 887,
-      "sha256": "4621ec7e8d342abb0837dc8f477c829762a3f4ca0a54e3aef7503763a1ad631f"
+      "sha256": "da7f73ada9c1287e3fa748bab70eb4aa5b0d6bff311dad70fe143159792d426d"
     },
     {
       "file": "hell-difficulty.png",
@@ -58,5 +58,14 @@
     }
   ],
   "draft_url": "https://itch.io/dashboard/post/1668455/edit",
-  "image_host_commit": "8e10c4b5c92c7a349c1d1eae31c29abf77697277"
+  "image_host_commit": "8e10c4b5c92c7a349c1d1eae31c29abf77697277",
+  "cover_edit": {
+    "rectangle": [
+      575,
+      500,
+      680,
+      65
+    ],
+    "outside_changed_pixels": 0
+  }
 }
