@@ -328,7 +328,7 @@ func open_replay(record: Dictionary, from_table: bool) -> void:
 	perspective.name = "ReplayOmniscientToggle"
 	perspective.text = GameLocalization.present("全知视角（仅此已结束手牌，包含已弃牌底牌）")
 	perspective.add_theme_font_size_override("font_size",16)
-	perspective.toggled.connect(func(value: bool): _cancel_replay_analysis(); replay_all = value; _render_replay_frame())
+	perspective.toggled.connect(func(value: bool): replay_all = value; _render_replay_frame())
 	page.body.add_child(perspective)
 	replay_body = VBoxContainer.new()
 	replay_body.add_theme_constant_override("separation",8)
@@ -348,8 +348,6 @@ func open_replay(record: Dictionary, from_table: bool) -> void:
 	controls.add_child(_button(GameLocalization.present("播放"),"ReplayPlay",func(): replay_playing = true))
 	controls.add_child(_button(GameLocalization.present("暂停"),"ReplayPause",func(): replay_playing = false))
 	controls.add_child(_button(GameLocalization.present("下一动作"),"ReplayNext",func(): _seek(replay_index+1)))
-	controls.add_child(_button(GameLocalization.present("分析本手"),"ReplayAnalysis",_start_replay_analysis))
-	controls.add_child(_button(GameLocalization.present("DeepSeek 文字复盘"),"DeepSeekReplay",_request_text_review))
 	var stages := {}
 	for i in range(replay.frames.size()):
 		var stage: String = replay.frames[i].stage
@@ -360,6 +358,7 @@ func open_replay(record: Dictionary, from_table: bool) -> void:
 	page.footer.add_child(_button(GameLocalization.present("分析说明"),"ReplayAnalysisInfo",func(): host._show_text_popup(GameLocalization.present("复盘分析"),GameLocalization.present("分析只使用每个行动前保存的局面、实际行动和中性范围；全知视角不会改变建议。旧牌谱如果没有行动前局面会显示不可用。"),"ReplayAnalysisPopup")))
 	page.footer.add_child(_button(GameLocalization.present("返回牌桌") if from_table else GameLocalization.present("返回记录"),"ReplayCloseButton",_close_replay))
 	_render_replay_frame()
+	_start_replay_analysis()
 
 func _render_replay_frame() -> void:
 	if not is_instance_valid(replay_body): return
@@ -391,7 +390,6 @@ func _render_replay_frame() -> void:
 
 func _seek(index: int) -> void:
 	replay_playing = false
-	_cancel_replay_analysis()
 	replay_index = clampi(index,0,replay.frames.size()-1)
 	_render_replay_frame()
 
@@ -408,7 +406,7 @@ func _start_replay_analysis() -> void:
 		_review_scope = ""
 		return
 	replay_playing = false
-	replay_notice.text = GameLocalization.present("正在分析本手牌；回放已暂停。")
+	replay_notice.text = GameLocalization.present("正在分析本手牌，文字解读会自动补充。")
 	_review_next()
 
 func _review_next() -> void:
@@ -475,43 +473,35 @@ func _render_replay_analysis() -> void:
 	else: recap += "\n" + GameLocalization.present("现有样本没有区分出明确差异；不要把最高估值当成唯一正确行动。")
 	replay_notice.text = recap
 	analysis_body.add_child(_label(GameLocalization.present("数值是收益均值 ± 一个采样标准误差，不是保赢范围。中性范围和后续行动模型均为近似；深度耗尽后按过牌/跟注推进摊牌，不代表最优策略。"),14,host._muted_color()))
-	analysis_body.add_child(_label(GameLocalization.present("可选：DeepSeek 文字复盘会发送本地分析摘要，费用由你的 Key 承担。"),14,host._muted_color()))
 	_text_review_body = VBoxContainer.new()
-	_text_review_body.name = "DeepSeekReviewBody"
+	_text_review_body.name = "ReplayTextReviewBody"
 	analysis_body.add_child(_text_review_body)
+	_text_review_scope = ""
+	_request_text_review()
 
 func _text_scope() -> String:
-	return str(replay.get("id", "")) + ":" + TranslationServer.get_locale() + ":" + JSON.stringify(_review_results).sha256_text()
+	return str(replay.get("id", "")) + ":" + TranslationServer.get_locale() + ":" + JSON.stringify(DeepSeekReview.make_facts(_review_results)).sha256_text()
 
 func _request_text_review() -> void:
-	if _text_review_token >= 0: return
-	if not _review_scope.is_empty() or _review_results.is_empty() or not is_instance_valid(_text_review_body):
-		replay_notice.text = GameLocalization.present("请先点击分析本手，等待本地分析完成。")
-		return
-	if not host.deepseek_review.has_key():
-		host._show_deepseek_settings()
-		return
+	if _text_review_token >= 0 or _text_review_scope == _text_scope(): return
+	if not _review_scope.is_empty() or _review_results.is_empty() or not is_instance_valid(_text_review_body): return
 	_clear_children(_text_review_body)
 	_text_review_scope = _text_scope()
 	_text_review_token = host.deepseek_review.request_review(_review_results, TranslationServer.get_locale())
-	_text_review_body.add_child(_label(GameLocalization.present("正在请求 DeepSeek；离开回放会取消等待。") if _text_review_token >= 0 else GameLocalization.present("无法开始请求；本地分析仍可使用。"),16))
-	var button := host.find_child("DeepSeekReplay", true, false) as Button
-	if button != null: button.disabled = _text_review_token >= 0
+	_text_review_body.add_child(_label(GameLocalization.present("正在生成复盘解读……") if _text_review_token >= 0 else GameLocalization.present("文字解读暂时不可用，本地分析已保留。"),16))
 
 func _on_text_review_result(token: int, result: Dictionary) -> void:
 	if token != _text_review_token or _text_review_scope != _text_scope() or not is_instance_valid(_text_review_body) or host.find_child("ReplayPanel",true,false) == null: return
 	_text_review_token = -1
-	var button := host.find_child("DeepSeekReplay", true, false) as Button
-	if button != null: button.disabled = false
 	_clear_children(_text_review_body)
 	if not result.get("available", false):
-		var errors := {"credentials":"密钥验证失败，请到设置中的 AI 复盘更新。", "balance":"DeepSeek 账户余额不足。", "rate_limit":"DeepSeek 请求过于频繁，请稍后手动重试。", "invalid_response":"返回内容未通过本地校验，已保留本地分析。"}
-		_text_review_body.add_child(_label(GameLocalization.present(errors.get(result.get("reason", ""), "DeepSeek 暂时不可用；本地分析仍可使用。")),16))
+		_text_review_body.add_child(_label(GameLocalization.present("文字解读暂时不可用，本地分析已保留。"),16))
 		return
-	_text_review_body.add_child(_label(GameLocalization.present("DeepSeek 生成的练习建议；数值以本地分析为准。"),16,host.COLOR_BRASS))
+	_text_review_body.add_child(_label(GameLocalization.present("复盘解读"),18,host.COLOR_BRASS))
+	_text_review_body.add_child(_label(GameLocalization.present("AI 生成的练习建议；数值以本地分析为准。"),14,host._muted_color()))
 	for item in result.items:
 		_text_review_body.add_child(_label(GameLocalization.present("决定 %d") % int(item.decision_id),16))
-		# Provider prose is plain text, not BBCode, markup, or executable content.
+		# Service prose is plain text, not BBCode, markup, or executable content.
 		_text_review_body.add_child(_label(item.explanation + "\n" + item.next_step,16))
 
 func tick(delta: float) -> void:
@@ -536,9 +526,6 @@ func _close_replay() -> void:
 		history()
 
 func _cancel_replay_analysis() -> void:
-	if _text_review_token >= 0 and is_instance_valid(_text_review_body):
-		_clear_children(_text_review_body)
-		_text_review_body.add_child(_label(GameLocalization.present("已取消 DeepSeek 等待；可以手动重试。"),16))
 	_review_generation += 1
 	_review_scope = ""
 	_review_token = -1
@@ -547,8 +534,6 @@ func _cancel_replay_analysis() -> void:
 	_text_review_token = -1
 	_text_review_scope = ""
 	host.deepseek_review.cancel()
-	var button := host.find_child("DeepSeekReplay", true, false) as Button
-	if button != null: button.disabled = false
 
 func finish() -> void:
 	_cancel_replay_analysis()

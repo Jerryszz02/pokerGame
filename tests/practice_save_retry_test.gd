@@ -9,6 +9,7 @@ func _init() -> void:
 
 func _run() -> void:
 	var scene := MainScene.instantiate()
+	scene.deepseek_review.service_url = ""
 	scene.profile_path = scratch.path_join("profile.cfg")
 	DirAccess.make_dir_recursive_absolute(scratch)
 	get_root().add_child(scene)

@@ -1,27 +1,12 @@
 class_name DeepSeekReview
 extends Node
-## Session-only credentials; only explicit replay requests may use the network.
-## Local rules and numerical analysis remain authoritative.
+## The client sends numerical facts to the owner's service; credentials stay there.
 signal completed(token: int, result: Dictionary)
-const ENDPOINT := "https://api.deepseek.com/chat/completions"
-const MODEL := "deepseek-flash"
 const ACTIONS := ["fold", "check", "call", "raise", "all_in"]
-var _api_key := ""
+var service_url := str(ProjectSettings.get_setting("coach/service_url", ""))
 var _generation := 0
 var _request: HTTPRequest
-
-func has_key() -> bool:
-	return not _api_key.is_empty()
-
-func set_session_key(value: String) -> bool:
-	var clean := value.strip_edges()
-	if not clean.is_empty():
-		if clean.length() < 16 or clean.length() > 512: return false
-		for index in clean.length():
-			if clean.unicode_at(index) < 33 or clean.unicode_at(index) > 126: return false
-	cancel()
-	_api_key = clean
-	return true
+var _cache: Dictionary = {}
 
 func cancel() -> void:
 	_generation += 1
@@ -32,41 +17,43 @@ func cancel() -> void:
 
 func _exit_tree() -> void:
 	cancel()
-	_api_key = ""
 
 func request_review(results: Array, locale: String) -> int:
 	cancel()
 	var facts := make_facts(results)
-	if not has_key() or facts.is_empty() or not is_inside_tree(): return -1
+	if service_url.is_empty() or facts.is_empty() or not is_inside_tree(): return -1
 	var token := _generation
+	var body := JSON.stringify(make_payload(facts, locale))
+	var cache_key := (service_url + body).sha256_text()
+	if _cache.has(cache_key) and _cache[cache_key].expires > Time.get_ticks_msec():
+		_deliver_cached.call_deferred(token, _cache[cache_key].result.duplicate(true))
+		return token
 	_request = HTTPRequest.new()
 	_request.timeout = 30.0
 	_request.body_size_limit = 262144
 	_request.max_redirects = 0
 	add_child(_request)
-	_request.request_completed.connect(_on_completed.bind(token, facts, _request))
-	var body := JSON.stringify(make_payload(facts, locale))
-	var headers := PackedStringArray(["Content-Type: application/json", "Authorization: Bearer " + _api_key])
-	if _dispatch_request(_request, headers, body) != OK:
+	_request.request_completed.connect(_on_completed.bind(token, facts, _request, cache_key))
+	if _dispatch_request(_request, PackedStringArray(["Content-Type: application/json"]), body) != OK:
 		cancel()
 		return -1
 	return token
 
-func _dispatch_request(request: HTTPRequest, headers: PackedStringArray, body: String) -> Error:
-	return request.request(ENDPOINT, headers, HTTPClient.METHOD_POST, body)
+func _deliver_cached(token: int, result: Dictionary) -> void:
+	if token == _generation: completed.emit(token, result)
 
-func _on_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray, token: int, facts: Array, request: HTTPRequest) -> void:
+func _dispatch_request(request: HTTPRequest, headers: PackedStringArray, body: String) -> Error:
+	return request.request(service_url, headers, HTTPClient.METHOD_POST, body)
+
+func _on_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray, token: int, facts: Array, request: HTTPRequest, cache_key: String) -> void:
 	if token != _generation or request != _request: return
 	_request = null
 	request.queue_free()
-	var response := {"available": false, "reason": "network"}
-	if result == HTTPRequest.RESULT_SUCCESS:
-		if code == 200: response = validate_response(body, facts)
-		elif code in [401, 403]: response.reason = "credentials"
-		elif code == 402: response.reason = "balance"
-		elif code == 429: response.reason = "rate_limit"
-		else: response.reason = "provider"
-	# Never expose raw response bodies, request headers, or credentials in errors.
+	var response := {"available": false, "reason": "unavailable"}
+	if result == HTTPRequest.RESULT_SUCCESS and code == 200:
+		response = validate_response(body, facts)
+	_cache[cache_key] = {"result": response.duplicate(true), "expires": Time.get_ticks_msec() + (3600000 if response.available else 60000)}
+	while _cache.size() > 64: _cache.erase(_cache.keys()[0])
 	completed.emit(token, response)
 
 static func make_facts(results: Array) -> Array:
@@ -93,28 +80,13 @@ static func make_facts(results: Array) -> Array:
 	return facts
 
 static func make_payload(facts: Array, locale: String) -> Dictionary:
-	var language := "English" if locale.begins_with("en") else "Simplified Chinese"
-	var instructions := "Write a brief poker practice explanation in %s using ONLY supplied local-analysis facts. " % language
-	instructions += "Return JSON only: {\"items\":[{\"decision_id\":1,\"actual_action\":\"call\",\"alternative_action\":\"fold\",\"assessment\":\"compare\",\"explanation\":\"Short qualitative explanation\",\"next_step\":\"Short practice suggestion\"}]}. "
-	instructions += "Choose one to three distinct supplied decisions. Copy decision_id, actual_action, alternative_action and assessment exactly from that decision. "
-	instructions += "Each text must be at most 180 characters. Do not write numbers, percentages, card names, imagined holdings, outcomes, or actions other than the two supplied actions in either text. "
-	instructions += "The UI supplies all numeric values. These are approximate neutral-range sampled EVs, not optimal play. For close, acknowledge unresolved sampling uncertainty and do not call the action a mistake. For compare, invite comparison of sizing and future risk. Never guarantee success."
-	return {"model": MODEL, "stream": false, "thinking": {"type": "disabled"}, "max_tokens": 1200,
-		"response_format": {"type": "json_object"},
-		"messages": [{"role": "system", "content": instructions}, {"role": "user", "content": JSON.stringify({"decisions": facts})}]}
+	return {"analysis_version": CoachAnalysis.VERSION,
+		"locale": "en" if locale.begins_with("en") else "zh_CN", "decisions": facts}
 
 static func validate_response(body: PackedByteArray, facts: Array) -> Dictionary:
 	var invalid := {"available": false, "reason": "invalid_response"}
 	if body.size() > 262144: return invalid
-	var envelope: Variant = _parse_json(body.get_string_from_utf8())
-	if not envelope is Dictionary: return invalid
-	var choices: Variant = envelope.get("choices")
-	if not choices is Array or choices.size() != 1 or not choices[0] is Dictionary: return invalid
-	var choice: Dictionary = choices[0]
-	if choice.get("finish_reason") != "stop" or not choice.get("message") is Dictionary: return invalid
-	var content: Variant = choice.message.get("content")
-	if not content is String or content.strip_edges().is_empty() or content.length() > 6000: return invalid
-	var parsed: Variant = _parse_json(content)
+	var parsed: Variant = _parse_json(body.get_string_from_utf8())
 	if not parsed is Dictionary or not parsed.get("items") is Array: return invalid
 	if parsed.items.is_empty() or parsed.items.size() > 3: return invalid
 	var output: Array = []

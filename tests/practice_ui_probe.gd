@@ -26,6 +26,7 @@ func _probe(viewport: Vector2i) -> void:
 	root.size = viewport
 	DisplayServer.window_set_size(viewport)
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
+	scene.deepseek_review.service_url = ""
 	scene.profile_path = OS.get_cache_dir().path_join("poker-practice-ui-%s-%d/profile.cfg" % [run_id,viewport.x])
 	DirAccess.make_dir_recursive_absolute(scene.profile_path.get_base_dir())
 	root.add_child(scene)

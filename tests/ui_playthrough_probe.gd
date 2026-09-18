@@ -35,6 +35,7 @@ func _playthrough(viewport_size: Vector2i) -> void:
 			break
 		await process_frame
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
+	scene.deepseek_review.service_url = ""
 	scene.profile_path = "user://poker_ui_playthrough_probe.cfg"
 	# Pin legacy Chinese-copy fixtures; localization_ui_probe covers English.
 	var language_fixture := LocalProfile.load_profile(scene.profile_path)

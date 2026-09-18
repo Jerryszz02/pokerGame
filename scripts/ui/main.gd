@@ -474,15 +474,7 @@ func _settings_panel(popup: PopupPanel, in_match: bool) -> Control:
 	credits.pressed.connect(func():
 		popup.hide()
 		_show_text_popup(GameLocalization.present("音频署名"), AUDIO_CREDITS, "AudioCreditsPopup"))
-	var services := HBoxContainer.new()
-	credits.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	services.add_child(credits)
-	var ai_settings := _command_button(GameLocalization.present("AI 复盘"), COLOR_ACTION, _white_color())
-	ai_settings.name = "DeepSeekSettingsButton"
-	ai_settings.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	ai_settings.pressed.connect(func(): popup.hide(); _show_deepseek_settings())
-	services.add_child(ai_settings)
-	box.add_child(services)
+	box.add_child(credits)
 	if in_match and current_mode == "practice":
 		var hints := CheckBox.new()
 		hints.text = tr("显示提示入口（尚无分析结果）")
@@ -505,66 +497,6 @@ func _settings_panel(popup: PopupPanel, in_match: bool) -> Control:
 		if in_match: _render_table())
 	box.add_child(close_button)
 	return panel
-
-func _show_deepseek_settings() -> void:
-	var popup := PopupPanel.new()
-	popup.name = "DeepSeekSettingsPopup"
-	popup.theme = theme
-	popup.size = Vector2i(640, 470)
-	popup.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL_DARK, _edge_color(), 2, 2, Vector2(20, 16)))
-	add_child(popup)
-	popup.popup_hide.connect(func(): popup.queue_free())
-	var scroll := ScrollContainer.new()
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	popup.add_child(scroll)
-	var box := VBoxContainer.new()
-	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.add_theme_constant_override("separation", 14)
-	scroll.add_child(box)
-	var title := Label.new()
-	title.text = GameLocalization.present("DeepSeek 个人密钥")
-	title.add_theme_font_size_override("font_size", 24)
-	title.add_theme_color_override("font_color", COLOR_BRASS)
-	box.add_child(title)
-	var description := Label.new()
-	description.text = GameLocalization.present("API Key 只保留到本次游戏关闭，不写入存档或打包文件。点击回放中的 DeepSeek 文字复盘时，才向 DeepSeek 发送本地分析摘要，费用由你的 Key 承担。不会发送完整牌谱或对手底牌。")
-	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	description.add_theme_font_size_override("font_size", 17)
-	box.add_child(description)
-	var input := LineEdit.new()
-	input.name = "DeepSeekKeyInput"
-	input.secret = true
-	input.placeholder_text = GameLocalization.present("在此粘贴你的 DeepSeek API Key")
-	input.custom_minimum_size.y = 42
-	input.max_length = 512
-	_apply_field_style(input)
-	box.add_child(input)
-	var status := Label.new()
-	status.name = "DeepSeekKeyStatus"
-	status.text = GameLocalization.present("本次会话已配置密钥。") if deepseek_review.has_key() else GameLocalization.present("尚未配置；本地分析可以正常使用。")
-	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	box.add_child(status)
-	var save := _command_button(GameLocalization.present("用于本次会话"), COLOR_ACTION, _white_color())
-	save.name = "DeepSeekKeySave"
-	save.pressed.connect(func():
-		if input.text.strip_edges().is_empty() or not deepseek_review.set_session_key(input.text):
-			status.text = GameLocalization.present("请粘贴有效的 API Key，不要包含空格或换行。")
-			return
-		input.text = ""
-		popup.hide())
-	box.add_child(save)
-	var clear_key := _command_button(GameLocalization.present("清除会话密钥"), COLOR_ACTION, _white_color())
-	clear_key.name = "DeepSeekKeyClear"
-	clear_key.pressed.connect(func():
-		deepseek_review.set_session_key("")
-		input.text = ""
-		status.text = GameLocalization.present("尚未配置；本地分析可以正常使用。"))
-	box.add_child(clear_key)
-	var close := _command_button(GameLocalization.present("关闭"), COLOR_ACTION, _white_color())
-	close.pressed.connect(func(): input.text = ""; popup.hide())
-	box.add_child(close)
-	popup.popup_centered(Vector2i(640, 470))
-	input.grab_focus()
 
 func _language_row(popup: PopupPanel, in_match: bool) -> Control:
 	var options := OptionButton.new()

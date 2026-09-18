@@ -4,7 +4,7 @@
 
 PokerGame is an offline Texas Hold'em practice game built with Godot 4 and GDScript. The player faces 1-5 local AI opponents. Poker rules, AI decisions, local profile persistence, and UI rendering are kept separate so visual work does not become a second source of poker state.
 
-Desktop play is offline; the Web build loads assets over HTTP(S), then runs rules and opponent AI locally. The unreleased source optionally calls DeepSeek for replay prose only after a player supplies a session-only key and explicitly requests it. There is no multiplayer backend, shared API key, Steamworks integration, game account, real-money wagering, game telemetry, or third-party poker library. Current source and public release status are tracked in [the planning index](planning/README.md).
+Desktop play is offline; the Web build loads assets over HTTP(S), then runs rules and opponent AI locally. The unreleased source automatically requests replay prose from an owner-operated service after local decision analysis. Only `tools/coach_service.py` reads the owner's `.env.local` and calls DeepSeek; the Godot client contains a public service URL and no provider credentials. The current service binds to loopback for local development; public hosting is not configured. There is no multiplayer backend, Steamworks integration, game account, real-money wagering, game telemetry, or third-party poker library. Current source and public release status are tracked in [the planning index](planning/README.md).
 
 ## Runtime Flow
 
@@ -133,3 +133,11 @@ The default UI font is the bundled Noto Sans SC with an explicit weight-400 `Fon
 `export_presets.cfg` explicitly lists script and asset roots, including global classes that selected-scene export does not reliably discover. `tools/bootstrap_godot.py` verifies the official Godot 4.7.2 standard editor/templates against SHA-512; `tools/build_release.py` builds versioned ZIPs, hashes them, and runs a native package self-test outside the source checkout. The self-test is a fixed internal diagnostic (`--headless -- --self-test`), not support for arbitrary external scripts. It uses a separate cache profile and does not run in a graphical game.
 
 Release requirements live in [planning/release-plan.md](planning/release-plan.md); build logs, manifests, CI and actual packaged runs establish implementation and verification state. Update this document with changes to these mechanisms.
+
+## Written Replay Review
+
+Opening a replay starts the bounded local analysis queue automatically. `DeepSeekReview` sends at most twelve allowlisted numerical decision summaries and the selected language to the URL in `coach/service_url`. There are no player key fields or generation buttons. Seeking and omniscient-view changes preserve the request; leaving a replay cancels the client wait and invalidates stale callbacks. The client caches up to 64 results for an hour and failed requests for a minute. No service request is made when local analysis is unavailable.
+
+The Python standard-library service accepts only versioned numerical summaries, constructs its own fixed prompt/model request, and keeps credentials out of responses and logs. It serializes provider calls, coalesces matching in-flight requests, caches up to 128 results, and bounds request size, output size, tokens and per-process request counts. The current loopback-only listener accepts native clients and the documented local preview origins. CORS is not authentication; public hosting will require a separate deployment and access-control decision.
+
+Both service and client validate decision references and qualitative output before display. Provider text cannot replace local EV values or poker actions. Missing configuration, transport errors, rejected output or exhausted limits leave the local analysis visible. These prose filters are conservative checks, not a proof that every natural-language statement is correct. See the [local service setup](runbook.md#本机文字复盘服务).

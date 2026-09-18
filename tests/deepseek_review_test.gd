@@ -1,28 +1,18 @@
 extends SceneTree
+const FakeClient := preload("res://tests/replay_review_fixture.gd")
 var failures := 0
-class FakeClient extends DeepSeekReview:
-	var calls := 0
-	var sent: Dictionary = {}
-	var authenticated := false
-	func _dispatch_request(_request: HTTPRequest, headers: PackedStringArray, body: String) -> Error:
-		calls += 1
-		sent = JSON.parse_string(body)
-		authenticated = headers.size() == 2 and headers[1].begins_with("Authorization: Bearer ")
-		return OK
-
 func _init() -> void: call_deferred("_run")
 func check(ok: bool, message: String) -> void:
 	if not ok: failures += 1; push_error(message)
-func envelope(items: Variant, finish: String = "stop") -> PackedByteArray:
-	return JSON.stringify({"choices":[{"finish_reason":finish,"message":{"content":JSON.stringify({"items":items})}}]}).to_utf8_buffer()
+func envelope(items: Variant) -> PackedByteArray:
+	return JSON.stringify({"items":items}).to_utf8_buffer()
 func _run() -> void:
 	var numerical := {"available":true,"actual":{"action_type":"call","amount":20,"ev_bb":0.2},"best":{"action_type":"fold","amount":0,"ev_bb":0.3},"gap_bb":0.1,"close":true,"uncertainty_available":true,"world_count":32,"depth":8,"opponent_hole_cards":["secret"]}
 	var facts := DeepSeekReview.make_facts([numerical,{"available":false}])
 	check(facts.size() == 1 and not JSON.stringify(facts).contains("secret"),"only allowlisted numerical facts leave the local analyzer")
 	check(DeepSeekReview.make_facts([{"available":true}]).is_empty(),"incomplete numerical results are not sent")
-	var payload := DeepSeekReview.make_payload(facts,"en")
-	check(payload.model == DeepSeekReview.MODEL and payload.response_format.type == "json_object" and payload.stream == false,"bounded non-streaming JSON contract")
-	check(payload.thinking.type == "disabled" and payload.max_tokens == 1200,"bounded text-only generation")
+	var payload := DeepSeekReview.make_payload(facts,"en_US")
+	check(payload == {"analysis_version":CoachAnalysis.VERSION,"locale":"en","decisions":facts},"service receives facts and locale, never a provider prompt or key")
 	var item := {"decision_id":1,"actual_action":"call","alternative_action":"fold","assessment":"close","explanation":"The estimates remain close.","next_step":"Review the sampling uncertainty before deciding."}
 	check(DeepSeekReview.validate_response(envelope([item]),facts).available,"validated qualitative explanation is accepted")
 	for field in ["decision_id","actual_action","alternative_action","assessment"]:
@@ -31,20 +21,20 @@ func _run() -> void:
 	for text in ["Expect 90% wins.","Raise now.","保证获胜", "<b>advice</b>", "Calling was a mistake."]:
 		var bad := item.duplicate();bad.explanation = text
 		check(not DeepSeekReview.validate_response(envelope([bad]),facts).available,"reject unsupported numbers, actions, guarantees or markup")
-	check(not DeepSeekReview.validate_response(envelope([item],"length"),facts).available,"reject truncated output even when JSON happens to parse")
 	check(not DeepSeekReview.validate_response(envelope([]),facts).available,"empty output is unavailable")
 	check(not DeepSeekReview.validate_response(envelope([item,item]),facts).available,"duplicate decision references are rejected")
 	check(not DeepSeekReview.validate_response("not json".to_utf8_buffer(),facts).available,"malformed output is unavailable")
 	var client := FakeClient.new()
+	client.automatic = false
 	root.add_child(client)
-	check(client.request_review([numerical],"en") == -1 and client.calls == 0,"no key means no outbound request")
-	check(not client.set_session_key("bad\r\nheader"),"header-injection input rejected")
-	check(client.set_session_key("fixture-not-a-real-key") and client.calls == 0,"saving a key alone never uses the network")
+	client.service_url = ""
+	check(client.request_review([numerical],"en") == -1 and client.calls == 0,"no service URL means no outbound request")
+	client.service_url = "http://127.0.0.1:8062/review"
 	var received: Array = []
 	client.completed.connect(func(token: int,result: Dictionary): received.append({"token":token,"result":result}))
 	var first := client.request_review([numerical],"en")
 	var old_request := client._request
-	check(client.authenticated and not JSON.stringify(client.sent).contains("fixture-not-a-real-key"),"key stays in authorization header, outside prompt")
+	check(client.sent_headers == PackedStringArray(["Content-Type: application/json"]),"client never sends provider authorization")
 	check(old_request.timeout == 30.0 and old_request.max_redirects == 0 and old_request.body_size_limit == 262144,"transport limits and redirect boundary")
 	client.cancel()
 	var second := client.request_review([numerical],"en")
@@ -52,26 +42,34 @@ func _run() -> void:
 	check(received.is_empty() and second > first,"late cancelled completion cannot escape")
 	client._request.request_completed.emit(HTTPRequest.RESULT_SUCCESS,200,PackedStringArray(),envelope([item]))
 	check(received.size() == 1 and received[0].token == second and received[0].result.available,"current completion delivered once")
+	var calls: int = client.calls
+	var cached := client.request_review([numerical],"en")
+	await process_frame
+	check(client.calls == calls and received[-1].token == cached and received[-1].result.available,"reopening uses a validated cached response without a network call")
+	var before := received.size()
 	client.request_review([numerical],"en")
-	client._request.request_completed.emit(HTTPRequest.RESULT_SUCCESS,401,PackedStringArray(),"private response data".to_utf8_buffer())
-	check(received[-1].result == {"available":false,"reason":"credentials"},"provider error bodies are never displayed")
-	client.request_review([numerical],"en")
-	client.set_session_key("")
-	check(not client.has_key() and client._request == null,"clearing a key cancels pending requests")
+	client.cancel()
+	await process_frame
+	check(received.size() == before,"cancelled deferred cache result cannot escape")
+	client.request_review([numerical],"zh_CN")
+	client._request.request_completed.emit(HTTPRequest.RESULT_SUCCESS,503,PackedStringArray(),"private response data".to_utf8_buffer())
+	check(received[-1].result == {"available":false,"reason":"unavailable"},"service error bodies are never displayed")
+	calls = client.calls
+	client.request_review([numerical],"zh_CN")
+	await process_frame
+	check(client.calls == calls,"failed service has a retry cooldown")
 	client.queue_free()
 	await process_frame
-	var fresh := FakeClient.new()
-	check(not fresh.has_key(),"a new session starts without credentials")
-	fresh.free()
-	await _check_replay_wiring(numerical,item)
+	await _check_replay_wiring()
 	if failures == 0: print("DeepSeek review tests passed.")
 	quit(failures)
 
-func _check_replay_wiring(numerical: Dictionary, item: Dictionary) -> void:
+func _check_replay_wiring() -> void:
 	var scene: Control = load("res://scenes/main.tscn").instantiate()
 	scene.profile_path = OS.get_cache_dir().path_join("deepseek-fixture-%d.cfg" % Time.get_ticks_usec())
 	scene.deepseek_review.free()
 	var fake := FakeClient.new()
+	fake.automatic = false
 	scene.deepseek_review = fake
 	root.add_child(scene)
 	scene.set_process(false)
@@ -81,21 +79,34 @@ func _check_replay_wiring(numerical: Dictionary, item: Dictionary) -> void:
 		if game.stage == TableState.STAGE_HAND_OVER: break
 		var legal := game.get_legal_actions(game.current_player_index)
 		game.apply_action(TableState.ACTION_CHECK if legal.actions.has(TableState.ACTION_CHECK) else TableState.ACTION_CALL)
-	scene.practice_views.open_replay(game.completed_hand_record(),false)
-	scene.practice_views._review_results = [numerical]
-	scene.practice_views._render_replay_analysis()
-	fake.set_session_key("fixture-not-a-real-key")
+	var record := game.completed_hand_record()
+	scene.practice_views.open_replay(record,false)
+	check(not scene.practice_views._review_scope.is_empty(),"opening replay starts analysis automatically")
+	var deadline := Time.get_ticks_msec()+15000
+	while not scene.practice_views._review_scope.is_empty() and Time.get_ticks_msec()<deadline:
+		scene.practice_views.tick(0.0)
+		await process_frame
+	check(fake.calls == 1,"local completion automatically requests prose exactly once")
+	check(scene.find_child("DeepSeekReplay",true,false) == null and scene.find_child("ReplayAnalysis",true,false) == null,"replay needs no analysis or generation buttons")
+	var request := fake._request
 	scene.practice_views._request_text_review()
-	scene.practice_views._request_text_review()
-	check(fake.calls == 1,"repeated clicks cannot create concurrent paid requests")
-	scene.practice_views._seek(0)
-	check(fake._request == null and scene.practice_views._text_review_token == -1,"seeking cancels the text request and resets the UI")
-	scene.practice_views._request_text_review()
-	fake._request.request_completed.emit(HTTPRequest.RESULT_SUCCESS,200,PackedStringArray(),envelope([item]))
-	check(scene.find_child("DeepSeekReviewBody",true,false).get_child_count() == 3,"validated response reaches the replay UI")
-	check(not scene.find_child("DeepSeekReplay",true,false).disabled,"response restores the explicit retry action")
-	scene.practice_views._request_text_review()
+	scene.practice_views._seek(1)
+	scene.find_child("ReplayOmniscientToggle",true,false).button_pressed = true
+	check(fake.calls == 1 and fake._request == request,"seeking and perspective changes preserve the single pending review")
+	fake.respond(request,fake.sent)
+	check(scene.find_child("ReplayTextReviewBody",true,false).get_child_count() == 4,"validated prose appears automatically in replay")
+	scene.practice_views.open_replay(record,false)
+	await process_frame
+	check(fake.calls == 1 and scene.find_child("ReplayTextReviewBody",true,false).get_child_count() == 4,"reopening the same hand reuses numeric and prose results")
+	fake._cache.clear()
+	scene.practice_views.open_replay(record,false)
+	check(fake._request != null,"uncached replay starts a new request")
 	scene.practice_views._close_replay()
-	check(fake._request == null,"leaving the replay cancels the text request")
+	check(fake._request == null and scene.practice_views._text_review_token == -1,"leaving replay cancels waiting")
+	var older := record.duplicate(true)
+	for frame in older.frames: frame.erase("decision_context")
+	var calls: int = fake.calls
+	scene.practice_views.open_replay(older,false)
+	check(fake.calls == calls and scene.practice_views._review_results.is_empty(),"legacy replay without reliable facts never calls the service")
 	scene.queue_free()
 	await process_frame

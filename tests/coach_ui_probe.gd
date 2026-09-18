@@ -1,4 +1,5 @@
 extends SceneTree
+const ReviewFixture := preload("res://tests/replay_review_fixture.gd")
 var failures := 0
 var evidence := ""
 func _init() -> void: call_deferred("_run")
@@ -21,6 +22,8 @@ func _run() -> void:
 func probe(viewport: Vector2i, locale: String) -> void:
 	root.size = viewport
 	var scene: Control = load("res://scenes/main.tscn").instantiate()
+	scene.deepseek_review.free()
+	scene.deepseek_review = ReviewFixture.new()
 	var profile := LocalProfile.default_profile()
 	profile.settings.language = locale
 	profile.settings.sound_enabled = false
@@ -29,23 +32,10 @@ func probe(viewport: Vector2i, locale: String) -> void:
 	LocalProfile.save_profile(profile,scene.profile_path)
 	root.add_child(scene)
 	await frames()
-	check(not scene.deepseek_review.has_key(),"fresh game has no persisted API key")
-	scene._show_deepseek_settings()
+	scene._show_settings_popup()
 	await frames()
-	var key_popup: PopupPanel = scene.find_child("DeepSeekSettingsPopup",true,false)
-	var key_input: LineEdit = scene.find_child("DeepSeekKeyInput",true,false)
-	check(key_input.secret and key_input.text.is_empty(),"API key field is masked and never prepopulated")
-	check(key_popup.size.x <= viewport.x and key_popup.size.y <= viewport.y,"key dialog fits viewport")
-	if locale == "en": check_english(key_popup)
-	await capture("deepseek-key-%s-%dx%d" % [locale,viewport.x,viewport.y])
-	key_input.text = "fixture-not-a-real-key"
-	scene.find_child("DeepSeekKeySave",true,false).pressed.emit()
-	await frames()
-	check(scene.deepseek_review.has_key(),"explicit save configures session key")
-	scene._save_profile()
-	check(not FileAccess.get_file_as_string(scene.profile_path).contains("fixture-not-a-real-key"),"key never enters profile storage")
+	check(scene.find_child("DeepSeekSettingsButton",true,false) == null and scene.find_child("DeepSeekKeyInput",true,false) == null,"settings has no player credential UI")
 	scene._show_mode_config("practice")
-	check(scene.deepseek_review.has_key(),"session key survives menu navigation")
 	scene.ai_count_spin.value = 1
 	scene.difficulty_options.select(3)
 	scene.personality_options.select(MatchConfig.OPPONENT_PERSONALITIES.find("Rock"))
@@ -89,7 +79,6 @@ func probe(viewport: Vector2i, locale: String) -> void:
 	scene._render_table()
 	var record: Dictionary = scene.game.completed_hand_record()
 	scene.practice_views.open_replay(record,true)
-	scene.practice_views._start_replay_analysis()
 	deadline = Time.get_ticks_msec()+15000
 	while not scene.practice_views._review_scope.is_empty() and Time.get_ticks_msec()<deadline: await process_frame
 	check(scene.practice_views._review_scope.is_empty() and scene.practice_views._review_results.size() > 0,"actual replay completes asynchronous decision sequence")
@@ -103,7 +92,10 @@ func probe(viewport: Vector2i, locale: String) -> void:
 	check(scene.practice_views._review_results == saved and analysis.get_child_count()>0,"seeking and omniscient view preserve isolated advice")
 	scene.practice_views._start_replay_analysis()
 	check(scene.practice_views._review_scope.is_empty(),"repeated analysis reuses bounded cached numerical results")
-	check(scene.find_child("DeepSeekReplay",true,false) != null,"replay exposes explicit network action")
+	await frames()
+	check(scene.find_child("DeepSeekReplay",true,false) == null and scene.find_child("ReplayAnalysis",true,false) == null,"replay has no extra generation buttons")
+	check(scene.find_child("ReplayTextReviewBody",true,false).get_child_count() == 4,"automatic prose is visible")
+	check(scene.deepseek_review.calls == 1,"repeated analysis reuses prose")
 	check(scene.practice_store.statistics().hands == stats_before,"replay analysis never counts a hand twice")
 	await frames()
 	var scroll: ScrollContainer = scene.find_child("ReplayPanelScroll",true,false)
@@ -111,6 +103,9 @@ func probe(viewport: Vector2i, locale: String) -> void:
 	await frames()
 	if locale == "en": check_english(scene)
 	await capture("review-%s-%dx%d" % [locale,viewport.x,viewport.y])
+	scroll.ensure_control_visible(scene.find_child("ReplayTextReviewBody",true,false))
+	await frames()
+	await capture("review-text-%s-%dx%d" % [locale,viewport.x,viewport.y])
 	scene.practice_views._close_replay()
 	deadline = Time.get_ticks_msec()+15000
 	while (scene.coach_service.is_busy() or not scene._style_queue.is_empty()) and Time.get_ticks_msec()<deadline: await process_frame

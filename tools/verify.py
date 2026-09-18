@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 import re
 import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -27,6 +28,7 @@ def main():
     parser.add_argument('--windowed', action='store_true')
     args = parser.parse_args()
     run([args.godot, '--headless', '--path', ROOT, '--import'], timeout=600, log_name='import')
+    run([sys.executable, ROOT / 'tools/test_coach_service.py', '--godot', args.godot], log_name='coach_service')
     checks = [
         ('localization_test.gd', 'Localization tests passed.'),
         ('localization_ui_probe.gd', 'Localization UI probes passed.'),

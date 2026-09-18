@@ -21,6 +21,32 @@ $GodotBinary = python tools/bootstrap_godot.py --templates
 
 本机历史 Mono 编辑器仍在 `/Applications/Godot_mono.app/Contents/MacOS/Godot`，需要本机 .NET 配置；发布构建不依赖它。新 worktree 必须先导入，`verify.py` 和 `build_release.py` 都会执行该步骤。
 
+## 本机文字复盘服务
+
+服务由开发者提供密钥，玩家无需设置。首次在项目根目录复制 `.env.example` 为 `.env.local`，仅在私有文件填写：
+
+```dotenv
+DEEPSEEK_API_KEY=你的密钥
+```
+
+`.env.local` 已被 Git 和全部导出预设排除，不要放进 `export/` 或静态服务器目录。macOS/Linux 建议 `chmod 600 .env.local`。服务每次请求重新读取文件，保存密钥后无需重启；不会读取开发工具或其他项目的凭据。
+
+在项目根目录启动（Python 3.9+，仅使用标准库）：
+
+```sh
+python3 tools/coach_service.py
+```
+
+游戏当前公开配置为 `project.godot` 中的 `coach/service_url="http://127.0.0.1:8062/review"`。启动游戏，结束一手并打开回放，即自动完成本地行动分析和文字解读。Web 预览支持 `http://127.0.0.1:8060`、`http://127.0.0.1:8061` 及对应 `localhost` 地址。可访问 `http://127.0.0.1:8062/health` 查看 `ready`，它只检查文件格式，不验证账户余额或上游可用性。
+
+服务使用 DeepSeek 官方 `deepseek-flash` 非思考 JSON 输出。单次最多 12 个决定、1200 输出 tokens，输入上限 16 KiB，上游响应上限 256 KiB，连接读写超时 25 秒；Godot 总等待上限 30 秒。禁用上游重定向和自动重试，每分钟最多 6 次新上游请求、每个服务进程滚动 24 小时默认最多 100 次（启动参数 `--max-daily-requests` 可调整）。计数包含失败尝试，重启会重置计数；这不是持久的账户花费上限。成功缓存一小时、失败冷却一分钟；重复查看和并发相同摘要复用结果。
+
+当前阶段只监听本机，尚未配置生产部署。以后面向玩家发布时，再部署共享服务并把游戏配置改为对应 HTTPS 地址；密钥仍保留在服务端。不要将当前开发服务直接公开为无认证公网代理。真实 API 联调需要你填入密钥；自动测试使用本地固定响应，不会消耗真实额度。
+
+```sh
+python3 tools/test_coach_service.py
+```
+
 ## 自动检查
 
 ```sh

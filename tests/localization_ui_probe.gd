@@ -19,6 +19,7 @@ func _run() -> void:
 	var path := OS.get_cache_dir().path_join("poker_language_%d.cfg" % Time.get_ticks_usec())
 	Profile.save_profile(profile,path)
 	main = load("res://scenes/main.tscn").instantiate()
+	main.deepseek_review.service_url = ""
 	main.profile_path = path
 	root.add_child(main)
 	await frames()
