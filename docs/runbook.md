@@ -47,7 +47,7 @@ python3 tools/configure_coach_worker.py
 
 最后一个命令通过标准输入把密钥上传到 Worker Secret；不把值放进命令行参数或打印出来。在独立 worktree 部署时，可通过 `--env-file /absolute/path/to/.env.local` 指定原有私有文件。修改本机文件后，必须重新运行配置命令，云端才会更新；云端不会访问开发电脑的文件。不要把真实密钥写进 Wrangler 配置、GitHub Actions、Godot 配置或游戏资源。
 
-当前 `project.godot` 的 `coach/service_url` 已配置为 `https://pokergame-coach.jerryszz02.workers.dev/review`。迁移账号时将其设为 Wrangler 实际返回的 HTTPS 地址加 `/review`，重新运行或导出游戏。`/health` 的 `ready` 仅表明服务端密钥配置有效，不代表余额、上游或游戏完整流程已验证。部署状态和实际验收见 [Cloudflare 实施记录](planning/cloudflare-coach-plan.md)。
+当前 `project.godot` 的 `coach/service_url` 已配置为 `https://pokergame-coach.jerryszz02.workers.dev/review`。迁移账号时将其设为 Wrangler 实际返回的 HTTPS 地址加 `/review`，重新运行或导出游戏。`/health` 的 `ready` 仅表明服务端密钥配置有效，不代表余额、上游或游戏完整流程已验证。游戏包的渠道与运行验收边界见 [1.3.0 发布记录](releases/1.3.0.md#verification-and-limits)。
 
 全局额度由固定名称的 Durable Object 保存：整个服务每分钟最多 6 次、滚动 24 小时默认最多 100 次新上游请求，失败也计数。缓存命中不计入新请求；成功结果缓存一小时，失败冷却一分钟，缓存最多 128 项。额度在请求发送前持久预留，服务实例重启不会重置。`MAX_DAILY_REQUESTS` 是运营者配置，允许 1–1000 的整数，非法配置会拒绝调用；玩家不能更改它。调整限额需要同时评估 DeepSeek 费用和免费资源额度。
 
@@ -58,6 +58,8 @@ Cloudflare 服务代码、依赖和本地开发配置由 `.gdignore` 与显式�
 部署与本地 Worker 测试统一固定 `compatibility_date=2026-08-22`。测试依赖固定版本，`sharp` override 更新开发工具间接依赖的安全修复；它不会打包进线上 Worker。运行 `npm ci` 即可使用已验证的锁文件。
 
 网络边界：2026-09-18 本机直连 `workers.dev` 超时，通过已有系统代理可访问。原生 Godot 不会自动沿用浏览器的系统代理；实机验收在独立探针中为 HTTPRequest 同时配置 HTTP 和 HTTPS 代理，生产代码未硬编码这台电脑的代理。面向需要直连的网络发布前，应绑定一个实际可访问的自有域名并重新验收；不要把本次代理联调当作所有网络均可直连的证明。
+
+部署验收记录（2026-09-18）：Worker 版本 `f4d3e599-74fd-4485-b70c-72951f1dbcfb` 通过真实 Godot → Cloudflare → DeepSeek 联调，一手牌的四个决定产生三段文字，同一摘要的缓存请求也成功。该记录使用上述代理环境；浏览器内的完整云端复盘和无代理直连仍待验证。资源为一个 Worker 与一个 SQLite Durable Object，采用 Free 兼容配置；当时 OAuth 权限不含账单读取，因此不把部署成功当作账户费用审计。
 
 ## 本机文字复盘服务
 
@@ -226,7 +228,7 @@ Developer ID 需要开发者计划资格，常规会员价格为 99 USD/年（�
 
 ## 中英文与音频
 
-语言方案与本轮验收见 [中英文与音频记录](planning/bilingual-audio-plan.md)。`assets/translations/poker.csv` 是翻译源；编辑后需运行 Godot import，再验证两个语言资源进入 Windows、macOS 和 Web 三个导出预设。`poker_profile.cfg` 中的 `language` 为 `system / zh_CN / en`；旧设置默认跟随系统，语言不改变牌局规则或玩家数据 ID。
+`assets/translations/poker.csv` 是翻译源；编辑后需运行 Godot import，再验证两个语言资源进入 Windows、macOS 和 Web 三个导出预设。`poker_profile.cfg` 中的 `language` 为 `system / zh_CN / en`；旧设置默认跟随系统，语言不改变牌局规则或玩家数据 ID。旧牌谱优先由结构化数据生成本地化展示，无法恢复的原文保持原样，不批量改写玩家文件；功能使用说明见 [玩家指南](player-guide.md#语言和音频自-120-起)。
 
 音频来自项目本地 `assets/audio/`，运行时不访问素材网站。`GameAudio` 节点在 UI 重建时保留，负责背景循环与动作音效；音乐和音效音量分别保存。Web 导出已有构建验证；首次输入解锁逻辑通过不代表浏览器音频与 itch 内嵌已完成验收。来源、署名和许可证位于 `THIRD_PARTY_NOTICES.md` 与 `assets/licenses/`，构建脚本会复制许可证到发行包。
 

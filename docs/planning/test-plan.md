@@ -1,6 +1,6 @@
 # PokerGame 测试计划
 
-> 范围说明（2026-09-10）：下文保留原型/首发回归基线，不代表已覆盖新的练习产品功能。新增模式、教程、配置、牌谱、统计和成就的计划验收见 [非 AI 算法功能规划](practice-product-plan.md#12-验收清单)；本轮只改文档，未执行游戏测试，实施时再补充对应测试。
+> 范围说明：下文保留原型/首发回归基线，练习产品和教练的现行检查入口见文末补充。测试要求与脚本存在不表示本次已运行；实际通过情况以对应提交的日志、CI 和发行记录为准。
 
 ## 文档目的
 
@@ -8,7 +8,7 @@
 
 本文件保留原型回归入口。2026-09-06 起进入稳定公开桌面首发，新增 CI、性能、长局、发行包和目标设备验收以 [release-plan.md](release-plan.md) R1–R9 为准；目标要求不是已通过记录。
 
-2026-09-10 算法升级增加独立范围、信息边界和收益数学验收，要求见 [ai-strategy-plan.md](ai-strategy-plan.md)。运行命令统一维护在 [runbook.md](../runbook.md)，不将风格差异或规则测试通过当作实战强度证明。
+算法升级的范围、信息边界和收益数学验收见[算法与教练回归](#算法与教练回归)。运行命令统一维护在 [runbook.md](../runbook.md)，不将风格差异或规则测试通过当作实战强度证明。
 
 ## 适用范围
 
@@ -181,4 +181,23 @@ Windows/macOS 构建和自检进入 `.github/workflows/desktop.yml`；CI 是否�
 
 ## 练习产品回归（2026-09-10）
 
-新增 `tests/practice_data_test.gd`、`tests/tutorial_test.gd`、`tests/practice_ui_probe.gd`，已接入 `tools/verify.py`；`--windowed` 同时执行新旧点击流。覆盖口径和实际结果见 [实施记录](practice-implementation.md)。
+`tests/practice_data_test.gd`、`tests/practice_save_retry_test.gd`、`tests/tutorial_test.gd`、`tests/practice_ui_probe.gd` 已接入 `tools/verify.py`；`--windowed` 同时执行新旧点击流。覆盖 80 组人数/筹码/盲注配置、教程正误与重练、合法动作、真实回放视角、损坏/未知版本保护、保存失败重试、容量限制、幂等统计、筛选和删除牌谱后保留累计。数据口径见[架构](../architecture.md#local-persistence-and-audio)，操作指标见 [UI 验收](ui-acceptance.md#练习产品页面2026-09-10)。
+
+## 中英文与音频回归
+
+`tests/localization_test.gd`、`tests/localization_ui_probe.gd`、`tests/audio_test.gd` 和 `tests/profile_save_debounce_test.gd` 已接入 `tools/verify.py`，覆盖翻译模板参数、语言切换/持久化、旧记录展示、音频资源与独立音量及保存防抖。导出后的资源检查与浏览器实际播放仍单独验证，命令和听感边界见 [Runbook](../runbook.md#中英文与音频)。
+
+## 算法与教练回归
+
+Godot 回归与本机服务测试已接入 `tools/verify.py`；Worker 使用独立的 `Coach Worker checks` CI。测试使用隔离数据和固定种子/提供方响应，验证实现边界；线上服务、听感和跨平台体验仍独立验收。
+
+| 检查入口 | 必须保留的覆盖 |
+| --- | --- |
+| `tests/test_ai_strategy.gd`、`tests/test_ai_observations.gd` | 169 类翻前范围、位置/价格/筹码尺度、阻断及联合抽样、解析边池收益、成功行动历史、快照深拷贝和隐藏信息不变性。 |
+| `tests/coach_core_test.gd` | 决策前上下文及 JSON 往返、再加注权、旧/缺字段记录降级、独立 RNG、共享样本与实际下注尺寸、采样误差/取消及地狱行动合法性。 |
+| `tests/coach_product_test.gd`、`tests/all_in_luck_test.gd` | 六维分母和门槛、强制盲注/全下跟注分类、统计筛选、幂等持久化、回放删除后累计保留、全下锁定资格、边池及退款。 |
+| `tests/coach_ui_probe.gd` | 实时提示与辅助记账、回放自动分析、旧回调失效、全知视角隔离、空样本与中英文窗口布局；`--windowed` 加跑可见窗口。 |
+| `tests/deepseek_review_test.gd`、`tests/local_replay_review_test.gd`、`tools/test_coach_service.py` | 有界数值摘要、决定引用/输出校验、本地规则文字、失败冷却与云端回退、Godot 到本机服务的 HTTP 契约；不以固定响应证明真实模型质量。 |
+| `services/coach-worker/test/` | Worker/SQLite Durable Object 的并发准入、重启持久额度、请求合并、缓存、失败计数、输入/输出限制、超时和来源校验；执行命令见 [Runbook](../runbook.md#cloudflare-文字复盘服务)。 |
+
+地狱、实时提示和回放的耗时用 `tests/coach_benchmark.gd` 记录具体机器、版本和样本；固定牌序、座位轮换的对战样本不自动证明强度提升。六维口径与信息边界见[架构](../architecture.md#coach-and-player-style)，浏览器和目标设备尚未完成的验收见[发布记录](../releases/1.3.0.md#verification-and-limits)。

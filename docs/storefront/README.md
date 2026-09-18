@@ -1,10 +1,10 @@
 # Player-facing storefront
 
-English copy and original PokerGame media for GitHub and itch.io. The game itself remains Simplified Chinese. No gameplay or release binary changes are part of this update.
+English copy and original PokerGame media for GitHub and itch.io. The current game supports English and Simplified Chinese, browser play, and offline Windows/macOS play. These files describe v1.3.0; editing them does not update itch.io or any release binary. Current release and runtime verification boundaries are in the [v1.3.0 release record](../releases/1.3.0.md).
 
 ## Design direction
 
-The audience is a player looking for a small offline poker game. The page’s job is to show what playing looks like and lead to the correct desktop download.
+The audience is a player looking for a small single-player poker game. The page’s job is to show what playing looks like and lead to browser play or the correct desktop download.
 
 - Palette: room `#07120F`, felt `#10251F`, brass `#D3AC59`, ivory `#F2E7CD`, muted text `#C4CDBF`.
 - Type: Georgia headings, Arial body; the title artwork supplies the pixel lettering. Body text stays readable instead of using a pixel font throughout.
@@ -55,23 +55,23 @@ The probe writes to `/tmp/poker_audit/`; inspect timestamps before choosing capt
 - Project: https://jerryszz02.itch.io/poker-game
 - Edit: https://itch.io/game/edit/4983610
 - Title: `PokerGame`
-- Tagline: `Offline Texas Hold’em in a late-night pixel poker room. Face 1–5 AI opponents. Chinese interface.`
+- Suggested tagline: `Texas Hold’em in a late-night pixel poker room. Face 1–5 AI opponents. Play in your browser or offline on desktop.`
 - Description: `description.html`.
 - Download instructions: `install.html`.
 - Genre: Card Game.
 - Suggested relevant tags: `poker`, `singleplayer`, `pixel-art`, `strategy`, `2d`.
-- Language metadata: Chinese (Simplified); English describes the page copy only.
+- Language metadata: English and Chinese (Simplified), both available in the game.
 - Preserve current price, release files, visibility, and AI-art disclosure.
 
 Upload the four screenshots, cover and banner to itch.io itself. `description.html` now contains the uploaded itch.io CDN URLs and can be pasted directly into the HTML editor. When replacing screenshots, update these absolute URLs after uploading. After saving, verify the public HTML retains all image `src` attributes and each image URL returns an image response. Do not publish relative local image paths. Keep a single content column with embedded gameplay screenshots if supported; otherwise keep the screenshots sidebar visible.
 
 Theme editor values: background `#07120F`, content background `#10251F`, text `#F2E7CD`, links/buttons `#D3AC59`. Background image: centered, cover, no repeat. Use readable, opaque content backing. Banner: `pokergame-banner.png`. Check desktop and narrow viewport rendering before saving.
 
-The existing download entries were external GitHub ZIP links when inspected. Native itch.io-hosted builds should be evaluated separately for indexing/discovery; this copy update does not move or replace the release files. See [itch.io indexing guidance](https://itch.io/docs/creators/getting-indexed).
+The public page was rechecked on 2026-09-18: it describes four difficulties, local coaching and radar, and offers `poker-game-windows-x64.zip` and `poker-game-macos-universal.zip`, both labeled Version 1.3.0, alongside browser play. These are itch.io-hosted Butler channels; GitHub Releases still provides v1.2.0. Download/channel provenance and remaining runtime checks are in the [release record](../releases/1.3.0.md). The local HTML is a reusable copy source, not evidence that a future edit has been saved on the platform.
 
 ## Local preview
 
-`preview.html` is a standalone approximation for reviewing the copy, images, palette, and narrow layouts. It does not replicate itch.io’s generated download/metadata controls and is not a separate deployed website.
+`preview.html` is a standalone approximation for reviewing the copy, images, palette, and narrow layouts. Its main copy mirrors `description.html`, substituting local files for the three hosted screenshots. Keep those two bodies in sync when changing copy; `install.html` supplies the separate platform download instructions. The preview does not replicate itch.io’s generated download/metadata controls and is not a separate deployed website.
 
 Open `preview.html` directly, or serve the repository:
 
