@@ -18,6 +18,7 @@ static func estimate_equity(hole_cards: Array, board: Array, opponent_count: int
 	return {
 		"win_rate": result.win_rate,
 		"tie_rate": result.tie_rate,
+		"tie_probability": result.tie_probability,
 		"equity": result.equity
 	}
 
@@ -35,11 +36,18 @@ static func sample_worlds(hole_cards: Array, board: Array, opponent_ranges: Arra
 
 ## Equity over already-sampled worlds. Shared with ActionEV so candidate
 ## actions are scored on the same sampled future.
+##
+## `tie_rate` is the split-equity share (a world where the hero ties k
+## opponents contributes 1/k) and stays compatible with the original API.
+## `tie_probability` is the DISTINCT event rate: the fraction of worlds where
+## the hero is not beaten and ties at least one opponent (each such world
+## counts once, however many opponents share it).
 static func evaluate_worlds(hole_cards: Array, worlds: Array) -> Dictionary:
 	if hole_cards.size() != 2 or worlds.is_empty():
-		return {"win_rate": 0.0, "tie_rate": 0.0, "equity": 0.0, "count": 0}
+		return {"win_rate": 0.0, "tie_rate": 0.0, "tie_probability": 0.0, "equity": 0.0, "count": 0}
 	var wins := 0.0
 	var ties := 0.0
+	var tie_events := 0.0
 	for world in worlds:
 		var board: Array = world.board
 		var opponents: Array = world.opponents
@@ -60,10 +68,12 @@ static func evaluate_worlds(hole_cards: Array, worlds: Array) -> Dictionary:
 			wins += 1.0
 		else:
 			ties += 1.0 / tied
+			tie_events += 1.0
 	var count := worlds.size()
 	return {
 		"win_rate": wins / count,
 		"tie_rate": ties / count,
+		"tie_probability": tie_events / count,
 		"equity": (wins + ties) / count,
 		"count": count
 	}

@@ -8,7 +8,7 @@ extends RefCounted
 ## supplied/user-provided custom fields can never trigger unbounded work.
 
 const DEFAULT_NAME := "Balanced"
-const DIFFICULTIES := ["simple", "medium", "hard"]
+const DIFFICULTIES := ["simple", "medium", "hard", "hell"]
 const MAX_SIMULATIONS := 4000
 const MAX_HISTORY := 40
 
@@ -151,6 +151,10 @@ static func difficulty_defaults(difficulty: String) -> Dictionary:
 	match _safe_difficulty(difficulty):
 		"simple":
 			return {"model_effort": 0, "history_detail": 0, "action_noise": 0.12, "simulation_count": 0}
+		"hell":
+			# Bounded effort for the finite-search seat; the search itself owns
+			# the hard world/depth/time caps.
+			return {"model_effort": 2, "history_detail": 20, "action_noise": 0.05, "simulation_count": 320}
 		"hard":
 			return {"model_effort": 2, "history_detail": 20, "action_noise": 0.05, "simulation_count": 320}
 		_:

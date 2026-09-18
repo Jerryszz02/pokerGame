@@ -32,7 +32,10 @@ static func decide(game: PokerRound, player_index: int, rng_override: RandomNumb
 		}
 	}
 	var chosen: Dictionary
-	if game.stage == TableState.STAGE_PREFLOP:
+	if str(profile.get("difficulty", "medium")) == "hell":
+		# Hell searches every street; simple/medium/hard branches stay untouched.
+		chosen = _decide_hell(game, player_index, legal, profile, rng, analysis)
+	elif game.stage == TableState.STAGE_PREFLOP:
 		chosen = _decide_preflop(game, player_index, legal, profile, rng, analysis)
 	elif str(profile.get("difficulty", "medium")) == "simple":
 		chosen = _decide_simple_postflop(game, player_index, legal, profile, rng, analysis)
@@ -55,6 +58,8 @@ static func profile_for_difficulty(difficulty: String) -> Dictionary:
 			}
 		"hard":
 			style = {"name": "Hard", "label": "困难"}
+		"hell":
+			style = {"name": "Hell", "label": "地狱"}
 		_:
 			style = {
 				"name": "Medium", "label": "中等", "aggression": 0.5,
@@ -191,13 +196,62 @@ static func _decide_ev_postflop(game: PokerRound, player_index: int, legal: Dict
 	var candidates: Array = result.get("candidates", [])
 	if candidates.is_empty() or (int(result.get("world_count", 0)) == 0 and bool(result.get("sampling_insufficient", false))):
 		# A fully rejected joint sampler has no evidence for an EV choice.
-		if legal.actions.has(TableState.ACTION_CHECK):
-			return _decision(TableState.ACTION_CHECK, 0, "采样不足，保守让牌")
-		if legal.actions.has(TableState.ACTION_FOLD):
-			return _decision(TableState.ACTION_FOLD, 0, "采样不足，保守弃牌")
-		return _fallback(legal)
+		return _conservative_fallback(legal)
 	var chosen := _choose_candidate(game, candidates, profile, rng)
 	return _decision(str(chosen.get("action_type", TableState.ACTION_CHECK)), int(chosen.get("amount", 0)), _candidate_label(chosen))
+
+# --- all streets: hell finite search ---------------------------------------
+
+## Hell runs the bounded FiniteSearch rollouts on every street and then reuses
+## the existing personality/noise candidate selection over the close options.
+## Insufficient evidence falls back to a safe legal action.
+static func _decide_hell(game: PokerRound, player_index: int, legal: Dictionary, profile: Dictionary, rng: RandomNumberGenerator, analysis: Dictionary) -> Dictionary:
+	var result := FiniteSearch.evaluate(game, player_index, {
+		"rng": rng,
+		"max_worlds": 16,
+		"max_depth": 8,
+		"time_budget_ms": 600
+	})
+	analysis["finite_search"] = {
+		"available": bool(result.get("available", false)),
+		"reason": str(result.get("reason", "")),
+		"world_count": int(result.get("world_count", 0)),
+		"depth_reached": int(result.get("depth_reached", 0)),
+		"cutoff_used": bool(result.get("cutoff_used", false)),
+		"assumptions": str(result.get("assumptions", "")),
+		"equity": result.get("equity", null),
+		"candidates": result.get("candidates", [])
+	}
+	return _resolve_hell(game, legal, result, profile, rng)
+
+## Resolve a finite-search result into a legal decision. A missing, exhausted or
+## candidate-less result uses the conservative check/fold-first policy so an
+## unproven Hell choice never spends chips; only a complete scored candidate set
+## reaches the existing personality/noise chooser.
+static func _resolve_hell(game: PokerRound, legal: Dictionary, result: Dictionary, profile: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
+	if not bool(result.get("available", false)):
+		return _conservative_fallback(legal)
+	var candidates: Array = result.get("candidates", [])
+	if candidates.is_empty():
+		return _conservative_fallback(legal)
+	var chosen := _choose_candidate(game, candidates, profile, rng)
+	if chosen.is_empty():
+		return _conservative_fallback(legal)
+	return _decision(str(chosen.get("action_type", TableState.ACTION_CHECK)), int(chosen.get("amount", 0)), _hell_label(chosen))
+
+static func _hell_label(candidate: Dictionary) -> String:
+	match str(candidate.get("action_type", "")):
+		TableState.ACTION_FOLD:
+			return "搜索弃牌"
+		TableState.ACTION_CHECK:
+			return "搜索让牌"
+		TableState.ACTION_CALL:
+			return "搜索跟注"
+		TableState.ACTION_RAISE:
+			return "搜索加注"
+		TableState.ACTION_ALL_IN:
+			return "搜索全下"
+	return "搜索行动"
 
 static func _choose_candidate(game: PokerRound, candidates: Array, profile: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
 	var big_blind := maxf(1.0, float(game.big_blind))
@@ -274,6 +328,16 @@ static func _candidate_label(candidate: Dictionary) -> String:
 	return "EV行动"
 
 # --- helpers ----------------------------------------------------------------
+
+## Insufficient evidence must never spend chips: prefer a free check, then a
+## fold, before the generic legality fallback. Shared by the postflop EV sampler
+## and Hell's finite search so both use the same conservative policy.
+static func _conservative_fallback(legal: Dictionary) -> Dictionary:
+	if legal.actions.has(TableState.ACTION_CHECK):
+		return _decision(TableState.ACTION_CHECK, 0, "采样不足，保守让牌")
+	if legal.actions.has(TableState.ACTION_FOLD):
+		return _decision(TableState.ACTION_FOLD, 0, "采样不足，保守弃牌")
+	return _fallback(legal)
 
 static func _fallback(legal: Dictionary) -> Dictionary:
 	var actions: Array = legal.actions

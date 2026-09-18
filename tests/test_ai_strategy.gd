@@ -25,6 +25,7 @@ func _run() -> void:
 	_test_action_ev_game()
 	_test_response_uses_current_board_only()
 	_test_decision_legal_and_bounded()
+	_test_hell_insufficient_evidence_fallback()
 	_test_preset_tendencies()
 	if failures == 0:
 		print("AI strategy tests passed.")
@@ -502,6 +503,64 @@ func _test_decision_legal_and_bounded() -> void:
 				_assert(int(action_ev.get("world_count", 0)) > 0, "hard postflop samples MonteCarlo worlds")
 				var equity := float(action_ev.get("equity", -1.0))
 				_assert(equity >= 0.0 and equity <= 1.0, "hard postflop equity is bounded")
+
+## Regression: when Hell's bounded search cannot produce a complete world it
+## must use the conservative check/fold-first policy and never spend chips on a
+## call it cannot justify. The unavailable result is forced deterministically by
+## pointing the table at another seat, so the check never depends on machine
+## timing.
+func _test_hell_insufficient_evidence_fallback() -> void:
+	var call_game := _hell_evidence_fixture(50, 100)
+	var call_legal := call_game.get_legal_actions(1)
+	_assert(call_legal.actions.has(TableState.ACTION_FOLD) and call_legal.actions.has(TableState.ACTION_CALL), "fixture exposes the stack-consuming call")
+	_assert(not call_legal.actions.has(TableState.ACTION_CHECK), "stack-consuming call has no free check")
+	var call_decision := AiDecision.decide(call_game, 1, _seeded(5))
+	var call_analysis: Dictionary = call_decision.get("analysis", {})
+	_assert(not bool(call_analysis.get("finite_search", {}).get("available", true)), "search really had no complete world")
+	_assert(str(call_decision.get("action_type", "")) == TableState.ACTION_FOLD, "zero-result Hell folds instead of spending the stack on a call")
+
+	var check_game := _hell_evidence_fixture(1000, 0)
+	var check_legal := check_game.get_legal_actions(1)
+	_assert(check_legal.actions.has(TableState.ACTION_CHECK), "fixture exposes the free check")
+	var check_decision := AiDecision.decide(check_game, 1, _seeded(5))
+	_assert(str(check_decision.get("action_type", "")) == TableState.ACTION_CHECK, "zero-result Hell takes the free check")
+
+	# Directly exercise an exhausted/no-complete-world result (completed == 0)
+	# and a candidate-less result, without any timing dependence.
+	var profile := AiDecision.profile_for_difficulty("hell")
+	var exhausted := {"available": false, "reason": "time_budget", "world_count": 0, "candidates": []}
+	var resolved_fold := AiDecision._resolve_hell(call_game, call_legal, exhausted, profile, _seeded(5))
+	_assert(str(resolved_fold.get("action_type", "")) == TableState.ACTION_FOLD, "exhausted no-world result folds a stack-consuming call")
+	var empty_candidates := {"available": true, "candidates": []}
+	var resolved_check := AiDecision._resolve_hell(check_game, check_legal, empty_candidates, profile, _seeded(5))
+	_assert(str(resolved_check.get("action_type", "")) == TableState.ACTION_CHECK, "candidate-less result keeps the free check")
+
+## Postflop Hell fixture whose finite search is deterministically unavailable:
+## the table points at seat 0 while seat 1 is asked, so no rollout ever runs.
+func _hell_evidence_fixture(hero_stack: int, opponent_bet: int) -> PokerRound:
+	var game := PokerRound.new()
+	game.shuffle_rng.seed = 31
+	game.start_new_match(1, "hell")
+	game.community_cards = game.deck.draw(3)
+	game.stage = TableState.STAGE_FLOP
+	game.min_raise = game.big_blind
+	game.current_bet = opponent_bet
+	for player in game.players:
+		player.current_bet = 0
+		player.total_bet = 0
+		player.has_acted = false
+		player.last_action_bet = 0
+		player.last_action = ""
+		player.status = TableState.STATUS_ACTIVE
+	game.players[1].stack = hero_stack
+	game.players[1].difficulty = "hell"
+	if opponent_bet > 0:
+		game.players[0].stack = 0
+		game.players[0].current_bet = opponent_bet
+		game.players[0].total_bet = opponent_bet
+		game.players[0].status = TableState.STATUS_ALL_IN
+	game.current_player_index = 0
+	return game
 
 func _test_preset_tendencies() -> void:
 	var samples := 240

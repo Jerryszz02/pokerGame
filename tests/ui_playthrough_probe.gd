@@ -13,6 +13,9 @@ func _init() -> void:
 
 func _run() -> void:
 	root.mode = Window.MODE_WINDOWED
+	# Keep popup focus under the probe, as in localization/practice probes.
+	# Native popups can be dismissed by unrelated desktop focus changes.
+	root.gui_embed_subwindows = true
 	DirAccess.make_dir_recursive_absolute(shot_dir)
 	for viewport_size in [Vector2i(1280, 720), Vector2i(1440, 900), Vector2i(1920, 1080)]:
 		await _playthrough(viewport_size)
@@ -32,6 +35,7 @@ func _playthrough(viewport_size: Vector2i) -> void:
 			break
 		await process_frame
 	var scene: Node = load("res://scenes/main.tscn").instantiate()
+	scene.deepseek_review.service_url = ""
 	scene.profile_path = "user://poker_ui_playthrough_probe.cfg"
 	# Pin legacy Chinese-copy fixtures; localization_ui_probe covers English.
 	var language_fixture := LocalProfile.load_profile(scene.profile_path)
