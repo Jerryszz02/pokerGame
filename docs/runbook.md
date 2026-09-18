@@ -80,6 +80,27 @@ python3 tools/serve_web.py --directory /tmp/pokergame-web --port 8060
 
 浏览器存档：Web 上 Godot `user://` 落在 IndexedDB，按浏览器、设备与源（scheme+host+port）隔离；换浏览器、隐私模式、清理站点数据或阻止存储都会使存档不可用；未发现 itch.io 云存档 API；启用/关闭 itch “SharedArrayBuffer support” 可能切换源并分离既有存档。现有存档格式、版本与迁移语义不变，本轮不新增存档功能。
 
+### Butler 上传
+
+`tools/upload_itch.py` 先校验本地构建清单与 ZIP，再调用官方 Butler 上传。认证由本地 `butler login` 或环境变量 `BUTLER_API_KEY` 处理。安装、登录与 push 说明见官方文档：[安装](https://itch.io/docs/butler/installing.html)、[登录](https://itch.io/docs/butler/login.html)、[push](https://itch.io/docs/butler/pushing.html)。
+
+```sh
+butler login
+```
+
+先从干净提交按上面的 Web/桌面命令构建；首次迁移时创建隐藏频道供检查：
+
+```sh
+python3 tools/upload_itch.py --target all --hidden --dry-run
+python3 tools/upload_itch.py --target all --hidden
+```
+
+目标映射：`web`→`web`、`windows`→`windows-x64`、`macos`→`macos-universal`；读取 `export/packages/<target-label>-manifest.json`，要求 JSON 对象、`target` 正确、`dirty` 严格为 `false`、版本合理、`commit` 为完整 Git SHA、文件名为 `PokerGame-<version>-<target-label>.zip` 且位于包目录内、字节数与 SHA-256 与实际文件一致；符号链接逃逸包目录会被拒绝。`--target all` 时三者版本与提交必须一致，`--expected-commit` 可再钉住提交。Web 包复用 `validate_web_archive` 复查根 `index.html`、必需成员与许可证。`--dry-run` 打印完整 Butler argv，不调用子进程、不需要安装/登录/网络；实际模式以列表 argv 调用 Butler，首个非零退出即停止并返回非零。`public_release_ready=false` 不阻止上传，也不会被修改。
+
+`--hidden` 仅用于创建新频道；官方 CLI 对已存在频道会报错。首次迁移保留现有手动上传文件，直到新频道通过验收。后续更新去掉 `--hidden`，上传完成后可能立即对玩家生效。上传后用 `butler status jerryszz02/poker-game:<channel>` 核对记录，并回到公开页面检查内嵌启动及下载内容。Butler 会重新打包 ZIP，下载 ZIP 的哈希不一定与本地输入包相同，应比对解压后的文件内容。新建 Web 频道需一次性选择“在浏览器中运行”并启用 **SharedArrayBuffer support**。
+
+GitHub Actions：设置仓库 secret `BUTLER_API_KEY`，在 `main` 手动运行 Desktop release checks 并启用 `upload_to_itch`（默认 `false`）。首次隐藏上传保留 `itch_hidden=true`；后续更新已有频道时关闭它。上传 job 等待 rules、desktop、web 全部成功，从同一次运行下载产物并校验提交一致后上传。普通 push/PR 构建不会上传，新提交也不会取消正在进行的上传。
+
 ## CI 与发布
 
 `.github/workflows/desktop.yml` 在 Linux 执行 headless 检查，在 Windows/macOS 分别导出并运行实际模板自检，并在 Linux 构建 Web 包、运行 `tools/test_web_release.py` 后上传包及日志。CI artifact 不等于公开 Release，也不能代替 R7 目标设备图形验证或浏览器/itch 验收。

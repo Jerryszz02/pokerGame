@@ -75,6 +75,122 @@ service worker. The manifest deliberately reports
 `browser_validation: not established by this script`, and it never claims macOS
 signing for the Web target.
 
+## Upload with the official Butler CLI
+
+`tools/upload_itch.py` is a local preflight wrapper around the official Butler
+client. It reads the `export/packages/` manifests produced by
+`tools/build_release.py`, re-validates every selected package, and only then runs
+`butler push ... --userversion ...`. Uploads to existing channels may become live
+immediately. Butler authenticates through
+its normal local login or the `BUTLER_API_KEY` environment variable. The script
+accepts no secret flags and inherits the environment unchanged.
+
+Install Butler and log in once, following the official documentation:
+
+- Installing: <https://itch.io/docs/butler/installing.html>
+- Login and API keys: <https://itch.io/docs/butler/login.html>
+- Push reference, including `--userversion` and `--hidden`:
+  <https://itch.io/docs/butler/pushing.html>
+
+```sh
+butler login
+butler version
+```
+
+Build from a clean checkout, then dry-run the upload. Packages made with
+`--candidate` from a dirty checkout are rejected. For the first migration, create
+hidden channels for review:
+
+```sh
+python3 tools/build_release.py --godot "$GODOT_BIN" --target web
+python3 tools/build_release.py --godot "$GODOT_BIN" --target windows
+python3 tools/build_release.py --godot "$GODOT_BIN" --target macos
+
+python3 tools/upload_itch.py --target all --hidden --dry-run
+python3 tools/upload_itch.py --target all --hidden
+```
+
+`--dry-run` performs the full local validation and prints the exact Butler argv
+without invoking Butler, so it needs no installation, login, network access, or
+API key. A real run stops at the first non-zero Butler exit and exits non-zero.
+The default `--packages-dir` is `export/packages`, the default `--project` is
+`jerryszz02/poker-game`, and the default `--butler` is `butler` on `PATH`.
+
+| `--target` | Channel | Manifest | Uploaded file |
+| --- | --- | --- | --- |
+| `web` | `web` | `web-manifest.json` | `PokerGame-<version>-web.zip` |
+| `windows` | `windows-x64` | `windows-x64-manifest.json` | `PokerGame-<version>-windows-x64.zip` |
+| `macos` | `macos-universal` | `macos-universal-manifest.json` | `PokerGame-<version>-macos-universal.zip` |
+
+Preflight requires each selected manifest to be a JSON object with the expected
+target, `dirty` exactly `false`, a sensible version, a full Git SHA in `commit`,
+a filename of exactly `PokerGame-<version>-<target-label>.zip` inside the
+packages directory, and a byte size and SHA-256 that match the file on disk. The
+package path is rejected if a symlink resolves outside the packages directory.
+With `--target all`, the three manifests must agree on one version and one
+source commit; `--expected-commit <sha>` pins the commit explicitly. Web ZIPs are
+re-opened with the same `validate_web_archive` check the build uses, so
+`index.html` and the game files must be at the root, with licenses under `licenses/`.
+A `public_release_ready: false` manifest is intentionally ignored and left
+unchanged: an upload is a candidate upload, not full public runtime verification.
+
+### New channels, `--hidden`, and updates
+
+`--hidden` forwards Butler's official `--hidden` flag, which creates a **new**
+channel that is not shown on the project page. Official Butler accepts `--hidden`
+only when the channel does not exist yet and errors for an existing channel, so
+it cannot be used to stage an update on a channel that is already live. For the
+first migration, create the new channel hidden, upload, and verify it before
+exposing it. Keep the existing manually uploaded files in place and unchanged
+until the new channel passes the checklist below; do not remove them earlier.
+
+A normal push to an **existing** channel updates that channel and can become
+visible to players as soon as the upload completes, while patch optimization
+continues in the background. For later updates, omit `--hidden` from the commands
+above after reviewing the packages and intended live update.
+
+### Verify the recorded build and the public page
+
+After a push, confirm what itch.io recorded with Butler, then run the real public
+checks:
+
+```sh
+butler status jerryszz02/poker-game:web
+butler status jerryszz02/poker-game:windows-x64
+butler status jerryszz02/poker-game:macos-universal
+```
+
+`butler status` only reports the build itch.io registered. Actual public checks
+still mean loading <https://jerryszz02.itch.io/poker-game> in a browser,
+confirming the embed boots inside the itch.io frame, and downloading each build.
+Butler treats the input ZIP as a directory and repackages downloads, so the
+downloaded ZIP's SHA-256 can differ from the local input ZIP. Compare extracted
+file contents with the validated local package; keep local ZIP checksums as
+build-input evidence.
+
+For a **new** Web channel, two itch.io page settings are chosen once, when the
+channel is first configured: the HTML file must be marked "This file will be
+played in the browser" so `index.html` is the entry point, and the
+**SharedArrayBuffer support** frame option must be enabled so the threaded
+export receives cross-origin isolation headers. Both settings persist for later
+pushes to the same channel.
+
+### GitHub Actions upload
+
+The repository's existing Desktop release checks workflow (`workflow_dispatch`)
+has two optional boolean inputs: `upload_to_itch` (default
+`false`) and `itch_hidden` (default `true`, for the first hidden-channel
+migration). Add `BUTLER_API_KEY` as a repository Actions secret, then run the
+workflow on `main` with `upload_to_itch` enabled. For subsequent updates to
+existing channels, disable `itch_hidden`.
+
+The upload job waits for rules, desktop, and web jobs to succeed, downloads the
+three artifacts from that same run, and checks every manifest against the run's
+commit before uploading. Ordinary `push` and `pull_request` builds do not upload.
+Upload runs queue separately, so a later code push does not cancel an upload
+between channels. The workflow installs official Butler 15.31.0 and prints
+`butler status` after uploading; public verification remains a separate step.
+
 ## Local preview
 
 Extract the Web ZIP and serve the directory over loopback with the isolation
@@ -124,7 +240,11 @@ References checked on 2026-09-11: [Godot Web persistence](https://docs.godotengi
 [itch.io APIs](https://itch.io/docs/api/overview), and
 [itch.io SharedArrayBuffer and origin changes](https://itch.io/t/2025776/experimental-sharedarraybuffer-support).
 
-## itch.io upload procedure (for subsequent releases)
+## Manual itch.io dashboard procedure
+
+The Butler CLI above is the preferred path for package uploads. Use this manual
+dashboard procedure for steps the CLI does not cover, such as the one-time HTML
+playable and SharedArrayBuffer settings, or when a fully manual upload is wanted.
 
 1. Open the project edit page: <https://itch.io/game/edit/4983610>.
 2. **HTML play-in-browser build:** upload `PokerGame-<version>-web.zip` as an HTML
@@ -138,8 +258,8 @@ References checked on 2026-09-11: [Godot Web persistence](https://docs.godotengi
    same page. Keep the existing Windows/macOS install copy accurate: Windows builds
    are unsigned, macOS builds are ad-hoc signed and not notarized.
 4. Keep the current public page, price, visibility, and release files unless a
-   separate, approved publishing step says otherwise. This repository does not
-   publish or upload for you.
+   separate, approved publishing step says otherwise. Building alone does not
+   upload; the CLI or optional Actions upload must be invoked explicitly.
 5. If the page previously linked to GitHub only, do not remove those links until the
    uploaded HTML build and download files pass the checklist below.
 
@@ -162,7 +282,7 @@ CI alone.
 | Tutorial progress persists | Complete a lesson, refresh, reopen the tutorial list | ☐ | ☐ | ☐ |
 | Stats and replays persist | Play a hand, refresh, open records/history and replay it | ☐ | ☐ | ☐ |
 | Actual itch iframe works | Load the itch.io game page (not the local server) and repeat the checks above inside the embed | ☐ | ☐ | ☐ |
-| Windows/macOS download buttons work | Download each ZIP from the page, verify SHA-256, extract and launch | ☐ | ☐ | ☐ |
+| Windows/macOS download buttons work | Download, compare extracted contents with the local package (ZIP SHA-256 only for unchanged manual uploads), and launch | ☐ | ☐ | ☐ |
 
 Known limits to keep in the page copy: browser compatibility depends on WebGL 2.0 and SharedArrayBuffer;
 the 1.2.0 source includes English / Simplified Chinese and local table audio; IndexedDB storage

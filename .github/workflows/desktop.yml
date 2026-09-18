@@ -4,11 +4,20 @@ on:
     branches: [main, agent/desktop-release]
   pull_request:
   workflow_dispatch:
+    inputs:
+      upload_to_itch:
+        description: Upload validated packages to itch.io (main only)
+        type: boolean
+        default: false
+      itch_hidden:
+        description: Create hidden channels (first upload only; existing channels reject this)
+        type: boolean
+        default: true
 permissions:
   contents: read
 concurrency:
-  group: desktop-${{ github.ref }}
-  cancel-in-progress: true
+  group: desktop-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.upload_to_itch && 'itch-upload' || 'checks' }}
+  cancel-in-progress: ${{ !(github.event_name == 'workflow_dispatch' && inputs.upload_to_itch) }}
 jobs:
   rules:
     runs-on: ubuntu-24.04
@@ -23,6 +32,7 @@ jobs:
           key: godot-4.7.2-${{ runner.os }}-${{ runner.arch }}
       - id: engine
         run: python tools/bootstrap_godot.py
+      - run: python -m unittest discover -s tools -p 'test_*.py'
       - run: python tools/verify.py --godot '${{ steps.engine.outputs.godot }}'
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -58,6 +68,63 @@ jobs:
           path: |
             export/packages
             export/logs
+  itch_upload:
+    name: Upload to itch.io
+    needs: [rules, packages, web]
+    if: github.event_name == 'workflow_dispatch' && inputs.upload_to_itch && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - name: Check upload credentials
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        run: |
+          if [ -z "$BUTLER_API_KEY" ]; then
+            echo 'Set the repository Actions secret BUTLER_API_KEY before requesting an upload.' >&2
+            exit 1
+          fi
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: desktop-windows
+          path: export
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: desktop-macos
+          path: export
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: web-package
+          path: export
+      - name: Validate all release packages
+        run: python tools/upload_itch.py --target all --expected-commit "$GITHUB_SHA" --dry-run
+      - name: Install official Butler
+        env:
+          BUTLER_VERSION: '15.31.0'
+        run: |
+          mkdir -p "$RUNNER_TEMP/butler"
+          curl --fail --location --retry 3 --connect-timeout 15 --max-time 180 \
+            "https://broth.itch.zone/butler/linux-amd64/$BUTLER_VERSION/archive/default" \
+            --output "$RUNNER_TEMP/butler.zip"
+          unzip -q "$RUNNER_TEMP/butler.zip" -d "$RUNNER_TEMP/butler"
+          chmod +x "$RUNNER_TEMP/butler/butler"
+          "$RUNNER_TEMP/butler/butler" version
+      - name: Upload validated packages
+        env:
+          BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+          ITCH_HIDDEN: ${{ inputs.itch_hidden }}
+        run: |
+          args=(--target all --expected-commit "$GITHUB_SHA" --butler "$RUNNER_TEMP/butler/butler")
+          if [ "$ITCH_HIDDEN" = true ]; then
+            args+=(--hidden)
+          fi
+          python tools/upload_itch.py "${args[@]}"
+          "$RUNNER_TEMP/butler/butler" status jerryszz02/poker-game
   web:
     runs-on: ubuntu-24.04
     steps:
