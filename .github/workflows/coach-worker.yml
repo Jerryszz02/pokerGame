@@ -1,0 +1,33 @@
+name: Coach Worker checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: coach-worker-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  coach-worker:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      CLOUDFLARE_SEND_METRICS: 'false'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: services/coach-worker/package-lock.json
+      - run: python3 -m unittest discover -s tools -p 'test_configure_coach_worker.py'
+      - run: npm ci
+        working-directory: services/coach-worker
+      - run: npm run typecheck
+        working-directory: services/coach-worker
+      - run: npm test
+        working-directory: services/coach-worker
+      - run: npm run deploy:dry-run
+        working-directory: services/coach-worker

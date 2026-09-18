@@ -28,6 +28,7 @@ AI 已有 169 类翻前范围、根据当手公开行动估计对手范围、加
 | 文档 | 职责 |
 | --- | --- |
 | [coach-radar-plan.md](coach-radar-plan.md) | 六维画像、可见状态、有限深度模拟、本机文字复盘服务和本轮验收。 |
+| [cloudflare-coach-plan.md](cloudflare-coach-plan.md) | Cloudflare 文字复盘服务、密钥配置、持久限额和部署验收。 |
 | [bilingual-audio-plan.md](bilingual-audio-plan.md) | 中英文切换、音频资源与该轮验收记录。 |
 | [../itchio-release.md](../itchio-release.md) | Web 构建、浏览器存储与 itch.io 发布验收表。 |
 | [ai-strategy-plan.md](ai-strategy-plan.md) | 起手范围、公开行动推断、行动收益模型及性能与训练边界。 |
