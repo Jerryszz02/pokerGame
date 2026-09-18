@@ -1,0 +1,17 @@
+name = "pokergame-coach"
+main = "src/index.ts"
+compatibility_date = "2026-08-22"
+workers_dev = true
+send_metrics = false
+observability.enabled = false
+
+[vars]
+ALLOWED_ORIGINS = "http://127.0.0.1:8060,http://127.0.0.1:8061,http://localhost:8060,http://localhost:8061,https://html.itch.zone,https://jerryszz02.itch.io"
+MAX_DAILY_REQUESTS = "100"
+
+[durable_objects]
+bindings = [{ name = "COACH_COORDINATOR", class_name = "ReviewCoordinator" }]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ReviewCoordinator"]
