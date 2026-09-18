@@ -41,6 +41,7 @@ def main():
         ('test_ai_observations.gd', 'AI observation tests passed.'),
         ('coach_core_test.gd', 'Coach core tests passed.'),
         ('coach_product_test.gd', 'Coach product tests passed.'),
+        ('deepseek_review_test.gd', 'DeepSeek review tests passed.'),
         ('all_in_luck_test.gd', 'All-in luck tests passed.'),
         ('coach_ui_probe.gd', 'Coach UI probes passed.'),
         ('rules_soak.gd', 'Rules soak passed:'),

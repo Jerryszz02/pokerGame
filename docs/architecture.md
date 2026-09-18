@@ -4,7 +4,7 @@
 
 PokerGame is an offline Texas Hold'em practice game built with Godot 4 and GDScript. The player faces 1-5 local AI opponents. Poker rules, AI decisions, local profile persistence, and UI rendering are kept separate so visual work does not become a second source of poker state.
 
-Desktop play is offline; the Web build loads assets over HTTP(S), then runs rules and AI locally. There is no multiplayer backend, external AI API, LLM, Steamworks integration, game account, real-money wagering, game telemetry, or third-party poker library. Current source and public release status are tracked in [the planning index](planning/README.md).
+Desktop play is offline; the Web build loads assets over HTTP(S), then runs rules and opponent AI locally. The unreleased source optionally calls DeepSeek for replay prose only after a player supplies a session-only key and explicitly requests it. There is no multiplayer backend, shared API key, Steamworks integration, game account, real-money wagering, game telemetry, or third-party poker library. Current source and public release status are tracked in [the planning index](planning/README.md).
 
 ## Runtime Flow
 

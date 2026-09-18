@@ -70,7 +70,7 @@ The game and this page include AI-generated artwork. Gameplay screenshots show t
 <details>
 <summary><strong>For developers: run from source</strong></summary>
 
-Tutorials, configurable stacks/blinds, saved replays and local statistics/achievements are included in v1.1.0. The unreleased source adds local practice coaching, replay decision analysis, Hell difficulty and a descriptive six-axis player radar. See the [coach/radar plan and verification](docs/planning/coach-radar-plan.md); these source changes do not update previously published downloads. For current source and release boundaries, see the [status and documentation index](docs/planning/README.md).
+Tutorials, configurable stacks/blinds, saved replays and local statistics/achievements are included in v1.1.0. The unreleased source adds local practice coaching, replay decision analysis, Hell difficulty and a descriptive six-axis player radar. Optional DeepSeek replay prose uses your own key under Settings → AI review, kept only for the current session and called only when requested. See the [coach/radar plan and verification](docs/planning/coach-radar-plan.md); these source changes do not update previously published downloads. For current source and release boundaries, see the [status and documentation index](docs/planning/README.md).
 
 Built with Godot 4 and GDScript. Release builds use **Godot 4.7.2 standard**, with no .NET requirement. On macOS/Linux:
 
