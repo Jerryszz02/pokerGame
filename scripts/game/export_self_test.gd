@@ -42,6 +42,8 @@ func run(scene: Node) -> int:
 				var move := TableState.ACTION_CALL if legal.has(TableState.ACTION_CALL) else TableState.ACTION_CHECK
 				var review := CoachAnalysis.review(context, {"action_type": move}, {"max_worlds": 16, "max_depth": 8, "seed": 1709, "time_budget_ms": 600})
 				_check(bool(review.get("available", false)), "export contains working finite search")
+				var prose := LocalReplayReview.generate(DeepSeekReview.make_facts([review]), "en")
+				_check(bool(prose.get("available", false)) and prose.get("source") == "local", "export contains working offline written review")
 				print("Package coach timing: ", JSON.stringify({"platform": OS.get_name(), "seats": opponents + 1, "live_ms": live.get("elapsed_ms", -1), "live_worlds": live.get("world_count", 0), "review_ms": review.get("elapsed_ms", -1), "review_worlds": review.get("world_count", 0), "depth": review.get("depth", 0)}))
 			var steps := 0
 			while scene.game.stage != TableState.STAGE_HAND_OVER and steps < 300:

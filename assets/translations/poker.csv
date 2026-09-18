@@ -496,3 +496,7 @@ The game waits while Settings and reference panels are open. Completed hands can
 复盘解读,Written review,复盘解读
 AI 生成的练习建议；数值以本地分析为准。,AI-generated practice suggestions. Refer to local analysis for numbers.,AI 生成的练习建议；数值以本地分析为准。
 决定 %d,Decision %d,决定 %d
+本地规则分析,Local rule-based review,本地规则分析
+根据本地收益估值和固定规则生成；不需要联网。,Generated from local return estimates and fixed rules. Works offline.,根据本地收益估值和固定规则生成；不需要联网。
+正在尝试云端解读，完成后将自动更新。,Requesting a cloud review. This will update when it is ready.,正在尝试云端解读，完成后将自动更新。
+云端解读不可用，已使用本地规则分析。,Cloud review is unavailable. Showing the local rule-based review.,云端解读不可用，已使用本地规则分析。

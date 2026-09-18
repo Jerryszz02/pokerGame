@@ -106,6 +106,17 @@ func probe(viewport: Vector2i, locale: String) -> void:
 	scroll.ensure_control_visible(scene.find_child("ReplayTextReviewBody",true,false))
 	await frames()
 	await capture("review-text-%s-%dx%d" % [locale,viewport.x,viewport.y])
+	scene.deepseek_review.service_url = ""
+	scene.practice_views.open_replay(record,true)
+	await frames()
+	var local_prose: VBoxContainer = scene.find_child("ReplayTextReviewBody",true,false)
+	check(local_prose != null and local_prose.get_child_count() >= 5,"offline replay shows a written local explanation")
+	check(local_prose.get_child(0).text == GameLocalization.present("本地规则分析"),"offline source is visible in both languages")
+	scroll = scene.find_child("ReplayPanelScroll",true,false)
+	scroll.scroll_vertical += roundi(local_prose.get_global_rect().position.y - scroll.get_global_rect().position.y)
+	await frames()
+	if locale == "en": check_english(scene)
+	await capture("review-local-%s-%dx%d" % [locale,viewport.x,viewport.y])
 	scene.practice_views._close_replay()
 	deadline = Time.get_ticks_msec()+15000
 	while (scene.coach_service.is_busy() or not scene._style_queue.is_empty()) and Time.get_ticks_msec()<deadline: await process_frame

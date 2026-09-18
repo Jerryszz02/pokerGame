@@ -3,6 +3,7 @@ extends RefCounted
 ## Read-only product views; only the tutorial's private controller owns a game.
 const RadarChartScript := preload("res://scripts/ui/radar_chart.gd")
 const CoachServiceScript := preload("res://scripts/ai/coach_service.gd")
+const LocalReplayReviewScript := preload("res://scripts/ai/local_replay_review.gd")
 var host: Control
 var tutorial: TutorialController
 var replay: Dictionary = {}
@@ -485,20 +486,29 @@ func _text_scope() -> String:
 func _request_text_review() -> void:
 	if _text_review_token >= 0 or _text_review_scope == _text_scope(): return
 	if not _review_scope.is_empty() or _review_results.is_empty() or not is_instance_valid(_text_review_body): return
-	_clear_children(_text_review_body)
 	_text_review_scope = _text_scope()
 	_text_review_token = host.deepseek_review.request_review(_review_results, TranslationServer.get_locale())
-	_text_review_body.add_child(_label(GameLocalization.present("正在生成复盘解读……") if _text_review_token >= 0 else GameLocalization.present("文字解读暂时不可用，本地分析已保留。"),16))
+	# Show useful offline prose immediately, including throughout the HTTP wait.
+	_render_text_review(_local_text_review(), _text_review_token >= 0)
+
+func _local_text_review() -> Dictionary:
+	return LocalReplayReviewScript.generate(DeepSeekReview.make_facts(_review_results), TranslationServer.get_locale())
 
 func _on_text_review_result(token: int, result: Dictionary) -> void:
 	if token != _text_review_token or _text_review_scope != _text_scope() or not is_instance_valid(_text_review_body) or host.find_child("ReplayPanel",true,false) == null: return
 	_text_review_token = -1
+	_render_text_review(result if result.get("available", false) else _local_text_review())
+
+func _render_text_review(result: Dictionary, pending: bool = false) -> void:
 	_clear_children(_text_review_body)
 	if not result.get("available", false):
-		_text_review_body.add_child(_label(GameLocalization.present("文字解读暂时不可用，本地分析已保留。"),16))
+		_text_review_body.add_child(_label(GameLocalization.present("正在生成复盘解读……") if pending else GameLocalization.present("文字解读暂时不可用，本地分析已保留。"),16))
 		return
-	_text_review_body.add_child(_label(GameLocalization.present("复盘解读"),18,host.COLOR_BRASS))
-	_text_review_body.add_child(_label(GameLocalization.present("AI 生成的练习建议；数值以本地分析为准。"),14,host._muted_color()))
+	var local: bool = result.get("source", "") == "local"
+	_text_review_body.add_child(_label(GameLocalization.present("本地规则分析") if local else GameLocalization.present("复盘解读"),18,host.COLOR_BRASS))
+	_text_review_body.add_child(_label(GameLocalization.present("根据本地收益估值和固定规则生成；不需要联网。") if local else GameLocalization.present("AI 生成的练习建议；数值以本地分析为准。"),14,host._muted_color()))
+	if local:
+		_text_review_body.add_child(_label(GameLocalization.present("正在尝试云端解读，完成后将自动更新。") if pending else GameLocalization.present("云端解读不可用，已使用本地规则分析。"),14,host._muted_color()))
 	for item in result.items:
 		_text_review_body.add_child(_label(GameLocalization.present("决定 %d") % int(item.decision_id),16))
 		# Service prose is plain text, not BBCode, markup, or executable content.

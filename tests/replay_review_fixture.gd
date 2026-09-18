@@ -4,11 +4,13 @@ var calls := 0
 var sent: Dictionary = {}
 var sent_headers := PackedStringArray()
 var automatic := true
+var dispatch_error: Error = OK
 
 func _dispatch_request(request: HTTPRequest, headers: PackedStringArray, body: String) -> Error:
 	calls += 1
 	sent = JSON.parse_string(body)
 	sent_headers = headers
+	if dispatch_error != OK: return dispatch_error
 	if automatic: respond.call_deferred(request, sent)
 	return OK
 
