@@ -3,7 +3,9 @@ extends RefCounted
 
 ## Captured before-action context is attached to each successful action frame.
 ## Simulation clones switch these flags off so rollouts pay no recording cost.
-const CoachContextScript := preload("res://scripts/ai/coach_context.gd")
+## The neutral snapshot is game-owned; the AI layer's CoachContext is only a
+## compatibility facade, so the rules engine never depends on AI coaching code.
+const DecisionSnapshotScript := preload("res://scripts/game/decision_snapshot.gd")
 
 var players: Array = []
 var community_cards: Array = []
@@ -160,7 +162,7 @@ func apply_action(action_type: String, amount: int = 0, action_note: String = ""
 	# action never gets a decision context attached.
 	var decision_context := {}
 	if capture_decision_context:
-		decision_context = CoachContextScript.capture(self, actor_index)
+		decision_context = DecisionSnapshotScript.capture(self, actor_index)
 	# Public before-state for strategy history. Only successful actions reach
 	# the append below, and hidden cards/notes/personality never enter it.
 	var observation := {}
