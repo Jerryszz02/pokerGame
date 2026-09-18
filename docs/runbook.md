@@ -21,11 +21,45 @@ $GodotBinary = python tools/bootstrap_godot.py --templates
 
 本机历史 Mono 编辑器仍在 `/Applications/Godot_mono.app/Contents/MacOS/Godot`，需要本机 .NET 配置；发布构建不依赖它。新 worktree 必须先导入，`verify.py` 和 `build_release.py` 都会执行该步骤。
 
-## 本机文字复盘服务
+## 本地规则复盘
 
 文字复盘有内置的本地规则替代方案，无需密钥或启动服务即可使用。行动数值分析完成后，界面立即显示“本地规则分析”：从最多 12 个决定中选出最多 3 个重点，按已有的配对采样误差区分明确差异、估值接近和样本不足，并结合行动及加注尺度生成建议。规则只使用行动前局面产生的数值，不使用最终输赢或全知视角信息。缺少可靠数值的旧牌谱仍显示不可用。
 
-下面的服务用于可选的云端文字解读。请求期间保留本地文字，云端返回有效结果后自动替换；断连、超时、限流、凭据不可用或响应校验失败时保留本地解读。失败冷却仍为一分钟，之后重开回放可再次尝试云端。
+云端请求期间保留本地文字，返回有效结果后自动替换；断连、超时、限流、凭据不可用或响应校验失败时保留本地解读。失败冷却仍为一分钟，之后重开回放可再次尝试云端。
+
+## Cloudflare 文字复盘服务
+
+`services/coach-worker/` 提供与本机服务相同的 `/review` JSON 接口，用 Cloudflare Workers 和一个 SQLite Durable Object 托管。选择 Workers Free 即可，无需常驻服务器。DeepSeek 的 API 调用仍按提供方计费；本项目不自动升级 Cloudflare 付费方案。
+
+首次部署需要 Node.js 22、开发者自己的 Cloudflare 账号，以及根目录私有 `.env.local` 中的 `DEEPSEEK_API_KEY`。先在服务目录安装、验证并部署：
+
+```sh
+cd services/coach-worker
+npm ci
+npm run typecheck
+npm test
+npm run deploy:dry-run
+npx wrangler login
+npx wrangler deploy
+cd ../..
+python3 tools/configure_coach_worker.py
+```
+
+最后一个命令通过标准输入把密钥上传到 Worker Secret；不把值放进命令行参数或打印出来。在独立 worktree 部署时，可通过 `--env-file /absolute/path/to/.env.local` 指定原有私有文件。修改本机文件后，必须重新运行配置命令，云端才会更新；云端不会访问开发电脑的文件。不要把真实密钥写进 Wrangler 配置、GitHub Actions、Godot 配置或游戏资源。
+
+当前 `project.godot` 的 `coach/service_url` 已配置为 `https://pokergame-coach.jerryszz02.workers.dev/review`。迁移账号时将其设为 Wrangler 实际返回的 HTTPS 地址加 `/review`，重新运行或导出游戏。`/health` 的 `ready` 仅表明服务端密钥配置有效，不代表余额、上游或游戏完整流程已验证。部署状态和实际验收见 [Cloudflare 实施记录](planning/cloudflare-coach-plan.md)。
+
+全局额度由固定名称的 Durable Object 保存：整个服务每分钟最多 6 次、滚动 24 小时默认最多 100 次新上游请求，失败也计数。缓存命中不计入新请求；成功结果缓存一小时，失败冷却一分钟，缓存最多 128 项。额度在请求发送前持久预留，服务实例重启不会重置。`MAX_DAILY_REQUESTS` 是运营者配置，允许 1–1000 的整数，非法配置会拒绝调用；玩家不能更改它。调整限额需要同时评估 DeepSeek 费用和免费资源额度。
+
+服务只接受固定版本的数值摘要，不接受自由提示词、上游地址、模型或玩家密钥。Web 来源用 `ALLOWED_ORIGINS` 精确列出，当前 itch.io 内嵌游戏来源是 `https://html.itch.zone`；桌面客户端可以不带 `Origin`。CORS 不提供身份认证，匿名玩家共享全局额度，单个调用者可能耗尽它。额度耗尽、上游失败或文字不符合校验时，游戏保留本地数值和规则文字复盘。
+
+Cloudflare 服务代码、依赖和本地开发配置由 `.gdignore` 与显式导出资源清单隔离。CI 仅运行固定响应测试和部署打包检查，不读取密钥、不真实调用 DeepSeek，也不自动部署。
+
+部署与本地 Worker 测试统一固定 `compatibility_date=2026-08-22`。测试依赖固定版本，`sharp` override 更新开发工具间接依赖的安全修复；它不会打包进线上 Worker。运行 `npm ci` 即可使用已验证的锁文件。
+
+网络边界：2026-09-18 本机直连 `workers.dev` 超时，通过已有系统代理可访问。原生 Godot 不会自动沿用浏览器的系统代理；实机验收在独立探针中为 HTTPRequest 同时配置 HTTP 和 HTTPS 代理，生产代码未硬编码这台电脑的代理。面向需要直连的网络发布前，应绑定一个实际可访问的自有域名并重新验收；不要把本次代理联调当作所有网络均可直连的证明。
+
+## 本机文字复盘服务
 
 服务由开发者提供密钥，玩家无需设置。首次在项目根目录复制 `.env.example` 为 `.env.local`，仅在私有文件填写：
 
@@ -41,11 +75,11 @@ DEEPSEEK_API_KEY=你的密钥
 python3 tools/coach_service.py
 ```
 
-游戏当前公开配置为 `project.godot` 中的 `coach/service_url="http://127.0.0.1:8062/review"`。启动游戏，结束一手并打开回放，即自动完成本地行动分析和文字解读。Web 预览支持 `http://127.0.0.1:8060`、`http://127.0.0.1:8061` 及对应 `localhost` 地址。可访问 `http://127.0.0.1:8062/health` 查看 `ready`，它只检查文件格式，不验证账户余额或上游可用性。
+需要直接测试 Python 本机服务时，将 `project.godot` 中的 `coach/service_url` 暂时设为 `http://127.0.0.1:8062/review`。启动游戏，结束一手并打开回放，即自动完成本地行动分析和文字解读。Web 预览支持 `http://127.0.0.1:8060`、`http://127.0.0.1:8061` 及对应 `localhost` 地址。可访问 `http://127.0.0.1:8062/health` 查看 `ready`，它只检查文件格式，不验证账户余额或上游可用性。测试后恢复公开服务地址。
 
 服务使用 DeepSeek 官方 `deepseek-flash` 非思考 JSON 输出。单次最多 12 个决定、1200 输出 tokens，输入上限 16 KiB，上游响应上限 256 KiB，连接读写超时 25 秒；Godot 总等待上限 30 秒。禁用上游重定向和自动重试，每分钟最多 6 次新上游请求、每个服务进程滚动 24 小时默认最多 100 次（启动参数 `--max-daily-requests` 可调整）。计数包含失败尝试，重启会重置计数；这不是持久的账户花费上限。成功缓存一小时、失败冷却一分钟；重复查看和并发相同摘要复用结果。
 
-当前阶段只监听本机，尚未配置生产部署。以后面向玩家发布时，再部署共享服务并把游戏配置改为对应 HTTPS 地址；密钥仍保留在服务端。不要将当前开发服务直接公开为无认证公网代理。真实 API 联调需要你填入密钥；自动测试使用本地固定响应，不会消耗真实额度。
+Python 开发服务只监听本机；公网使用上面的 Worker。真实 API 联调需要开发者配置密钥；自动测试使用本地固定响应，不会消耗真实额度。
 
 ```sh
 python3 tools/test_coach_service.py
