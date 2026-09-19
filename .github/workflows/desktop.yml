@@ -33,6 +33,7 @@ jobs:
       - id: engine
         run: python tools/bootstrap_godot.py
       - run: python -m unittest discover -s tools -p 'test_*.py'
+      - run: node tools/test_web_loader.js
       - run: python tools/verify.py --godot '${{ steps.engine.outputs.godot }}'
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -139,6 +140,9 @@ jobs:
       - id: engine
         run: python tools/bootstrap_godot.py --templates
       - run: python -m unittest discover -s tools -p 'test_web_release.py'
+      - run: python -m pip install -r tools/requirements-web.txt
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - run: node tools/test_web_loader.js
       - run: python tools/build_release.py --godot '${{ steps.engine.outputs.godot }}' --target web
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

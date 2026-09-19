@@ -12,6 +12,7 @@ import tempfile
 import zipfile
 from verify import ROOT, run
 from bootstrap_godot import VERSION
+from prepare_web import stage_project, optimize_assets
 
 TARGET_PRESETS = {'windows': 'Windows Desktop', 'macos': 'macOS', 'web': 'Web'}
 TARGET_LABELS = {'windows': 'windows-x64', 'macos': 'macos-universal', 'web': 'web'}
@@ -48,7 +49,11 @@ def sha256(path):
 def runtime_fingerprint():
     config = (ROOT / 'export_presets.cfg').read_text()
     roots = re.search(r'export_files=PackedStringArray\(([^\n]+)\)', config).group(1)
-    paths = re.findall(r'"(res://[^"]+)"', roots) + ['res://project.godot', 'res://export_presets.cfg']
+    paths = re.findall(r'"(res://[^"]+)"', roots) + [
+        'res://project.godot', 'res://export_presets.cfg',
+        'res://tools/web_shell.html', 'res://tools/prepare_web.py',
+        'res://tools/requirements-web.txt', 'res://tools/build_release.py',
+    ]
     digest = hashlib.sha256()
     for resource in sorted(paths):
         digest.update((resource + '\n' + sha256(ROOT / resource[6:]) + '\n').encode())
@@ -159,6 +164,7 @@ def main():
     parser.add_argument('--godot', required=True)
     parser.add_argument('--target', choices=['windows', 'macos', 'web'], required=True)
     parser.add_argument('--candidate', action='store_true', help='Allow a dirty local candidate; record it in the manifest.')
+    parser.add_argument('--ffmpeg', default='ffmpeg', help='Web-only music encoder executable.')
     args = parser.parse_args()
     godot = str(Path(args.godot).resolve())
     engine = subprocess.check_output([godot, '--version'], text=True).strip()
@@ -174,11 +180,19 @@ def main():
     web = target == 'web'
     export_root = ROOT / 'export'
     export_root.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix=target + '-', dir=export_root) as temporary_export:
+    with tempfile.TemporaryDirectory(prefix=target + '-', dir=export_root) as temporary_export, \
+            tempfile.TemporaryDirectory(prefix='pokergame-web-source-') as temporary_project:
         raw = Path(temporary_export)
         output = raw / output_name(target)
-        run([godot, '--headless', '--path', ROOT, '--import'], timeout=600, log_name='import-' + target)
-        run([godot, '--headless', '--path', ROOT, '--export-release', export_preset(target), output], timeout=900, log_name='export-' + target)
+        project = ROOT
+        optimization = None
+        if web:
+            project = Path(temporary_project)
+            stage_project(ROOT, project)
+            optimization = optimize_assets(project, args.ffmpeg)
+            print(json.dumps({'web_assets': optimization}), flush=True)
+        run([godot, '--headless', '--path', project, '--import'], timeout=600, log_name='import-' + target)
+        run([godot, '--headless', '--path', project, '--export-release', export_preset(target), output], timeout=900, log_name='export-' + target)
         if runtime_fingerprint() != source_sha256:
             raise RuntimeError('Runtime sources changed during import/export; inspect and commit before rebuilding.')
         if not args.candidate and subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT, text=True).strip():
@@ -231,6 +245,8 @@ def main():
             'filename': package.name, 'sha256': sha256(package), 'bytes': package.stat().st_size,
             'public_release_ready': False,
         }
+        if web:
+            manifest['web_asset_optimization'] = optimization
         (packages / f'{label}-manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
         (packages / f'{label}-SHA256SUMS.txt').write_text(f'{manifest["sha256"]}  {package.name}\n')
         print(json.dumps(manifest, indent=2))

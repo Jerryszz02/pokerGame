@@ -29,8 +29,42 @@ GODOT_BIN="$(python3 tools/bootstrap_godot.py --templates)"
 Build the Web candidate ZIP:
 
 ```sh
+python3 -m pip install -r tools/requirements-web.txt
+# Install FFmpeg with your package manager (apt-get install ffmpeg / brew install ffmpeg).
 python3 tools/build_release.py --godot "$GODOT_BIN" --target web
 ```
+
+If FFmpeg is not on PATH, pass `--ffmpeg /absolute/path/to/ffmpeg`. Web builds stage
+an isolated project, generate a static weight-400 font with all 30,890 character
+mappings retained, and transcode the complete music track from 320 to 96 kbps.
+Original assets and desktop builds are unchanged. The manifest records before/after
+asset sizes. FontTools and FFmpeg are build dependencies only; no browser downloads
+or runtime third-party services are added.
+
+The Web preset uses `tools/web_shell.html` for bilingual download progress,
+startup status, connection errors and a same-page Retry button. A 20-second lack
+of progress shows a nonfatal warning; it does not cancel a slow download. Retry
+reloads only the game frame and does not clear local saves. Test the loader with
+`node tools/test_web_loader.js`.
+
+On 2026-09-20, the published v1.3.0 frame still served 44,051,552 bytes of PCK
+and 38,820,072 bytes of WASM before HTTP decoding. Its gzip transfers were
+41,132,840 and 10,643,501 bytes respectively. Chrome showed
+`ERR_CONNECTION_CLOSED` for both while the default splash remained visible.
+Two simultaneous bounded downloads measured about 119 KB/s (PCK) and 66 KB/s
+(WASM), timing out at 55 seconds. These measurements identify a slow/failing
+download path on the tested connection, not a universal itch.io speed or an AI
+startup stall. Gzip and isolation headers were already present. Smaller assets
+and loader recovery need a fresh public-frame check after deployment; local
+verification alone does not establish that CDN delivery has recovered.
+
+The first local optimized candidate reduced the Web ZIP from 52,146,416 to
+38,846,693 bytes (25.5%) and the uncompressed PCK from 44,051,552 to 29,754,624
+bytes. WASM was unchanged. Godot import, audio and bilingual UI probes passed;
+Chrome reached the Chinese main menu. A local server returning HTTP 503 for
+`index.pck` produced the new connection error/Retry view, and after restoring
+the file, clicking Retry reached the menu. This is local candidate evidence;
+the public itch.io frame has not been replaced by this change.
 
 Build (or rebuild) the desktop candidates with the same script:
 
