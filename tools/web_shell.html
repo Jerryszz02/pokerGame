@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<meta name="color-scheme" content="dark">
+		<title>$GODOT_PROJECT_NAME</title>
+		<style>
+html, body {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	height: 100%;
+}
+
+body {
+	color: #f4f1ea;
+	background: radial-gradient(circle at 50% 38%, #1d4d3b 0%, #103126 52%, #071a13 100%);
+	overflow: hidden;
+	touch-action: none;
+	font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+#canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+	outline: none;
+}
+
+#loading-overlay {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	padding: 1.25rem;
+	background: inherit;
+	z-index: 10;
+}
+
+#loading-overlay .loading-card {
+	box-sizing: border-box;
+	width: min(30rem, 100%);
+	padding: 1.5rem 1.5rem 1.25rem;
+	border: 1px solid rgba(212, 175, 55, 0.45);
+	border-radius: 0.9rem;
+	background: rgba(7, 26, 19, 0.92);
+	box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, 0.55);
+	text-align: center;
+}
+
+.loading-suits {
+	color: #d4af37;
+	font-size: 1.05rem;
+	letter-spacing: 0.45em;
+}
+
+.loading-suits .red {
+	color: #d9534f;
+}
+
+#loading-title {
+	margin: 0.35rem 0 0.75rem;
+	color: #f6e7b4;
+	font-size: 1.45rem;
+	letter-spacing: 0.08em;
+}
+
+#loading-status {
+	margin: 0 0 0.75rem;
+	font-size: 1rem;
+	line-height: 1.4;
+}
+
+#loading-progress {
+	width: 100%;
+	height: 0.6rem;
+	accent-color: #d4af37;
+}
+
+#loading-detail {
+	min-height: 1.1rem;
+	margin: 0.55rem 0 0;
+	color: #b9c9c0;
+	font-size: 0.82rem;
+	line-height: 1.35;
+}
+
+#loading-notice {
+	margin: 0.8rem 0 0;
+	color: #ffd479;
+	font-size: 0.9rem;
+	line-height: 1.4;
+}
+
+#retry-button {
+	margin-top: 0.9rem;
+	padding: 0.55rem 1.5rem;
+	border: 0;
+	border-radius: 0.5rem;
+	background: #d4af37;
+	color: #071a13;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+#retry-button:focus-visible,
+#canvas:focus-visible,
+#loading-overlay:focus-visible {
+	outline: 3px solid #7fe0b0;
+	outline-offset: 2px;
+}
+
+#error-details {
+	margin-top: 1rem;
+	color: #a9bcb1;
+	text-align: left;
+}
+
+#error-details summary {
+	cursor: pointer;
+}
+
+#error-text {
+	margin: 0.5rem 0 0;
+	white-space: pre-wrap;
+	word-break: break-word;
+	font-size: 0.78rem;
+}
+
+[hidden] {
+	display: none !important;
+}
+		</style>
+		$GODOT_HEAD_INCLUDE
+	</head>
+	<body>
+		<canvas id="canvas" tabindex="0">
+			Your browser does not support the canvas tag.
+		</canvas>
+
+		<noscript>
+			Please enable JavaScript to play PokerGame.
+		</noscript>
+
+		<div id="loading-overlay" role="status" aria-live="polite" aria-busy="true" tabindex="0">
+			<div class="loading-card">
+				<div class="loading-suits" aria-hidden="true">&#9824; <span class="red">&#9829;</span> <span class="red">&#9830;</span> &#9827;</div>
+				<h1 id="loading-title">$GODOT_PROJECT_NAME</h1>
+				<p id="loading-status"></p>
+				<progress id="loading-progress" max="100" value="0" aria-label="Download progress"></progress>
+				<p id="loading-detail"></p>
+				<p id="loading-notice" role="alert" hidden></p>
+				<button id="retry-button" type="button" hidden>Retry</button>
+				<details id="error-details" hidden>
+					<summary id="error-summary">Technical details</summary>
+					<pre id="error-text"></pre>
+				</details>
+			</div>
+		</div>
+
+		<script id="poker-web-loader">
+// Self-contained PokerGame loading shell. No external resources, no network calls
+// beyond the exported Godot files, and no dependency on a JavaScript framework.
+(function () {
+	'use strict';
+
+	var GODOT_CONFIG = $GODOT_CONFIG;
+	var GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+	var GODOT_URL = "$GODOT_URL";
+
+	// A stalled transfer or a slow startup shows an actionable, non-fatal warning.
+	var SLOW_MS = 20000;
+	var WATCHDOG_MS = 1000;
+
+	var STRINGS = {
+		en: {
+			tag: 'en',
+			initial: 'Loading PokerGame\u2026',
+			downloading: 'Downloading game files\u2026',
+			starting: 'Download complete. Starting the game\u2026',
+			cached: 'Tip: on your next visit the browser can reuse cached files and start faster.',
+			bytesNote: 'Resource size after decompression; network transfer size may be smaller.',
+			slow: 'Still downloading \u2014 the connection looks slow or interrupted. You can keep waiting, or retry.',
+			stall: 'The files are ready, but the game is taking longer than expected to start. You can keep waiting, or retry.',
+			retry: 'Retry',
+			details: 'Technical details',
+			missing: 'Your browser is missing features PokerGame needs to run in a browser.',
+			connection: 'The game files could not be downloaded because the connection was interrupted or blocked. Check your connection and try again.',
+			script: 'The game startup script could not be loaded. Check your connection and try again.',
+			generic: 'Something went wrong while starting PokerGame. Please try again.'
+		},
+		zh: {
+			tag: 'zh-CN',
+			initial: '\u6b63\u5728\u52a0\u8f7d PokerGame\u2026',
+			downloading: '\u6b63\u5728\u4e0b\u8f7d\u6e38\u620f\u8d44\u6e90\u2026',
+			starting: '\u4e0b\u8f7d\u5b8c\u6210\uff0c\u6b63\u5728\u542f\u52a8\u6e38\u620f\u2026',
+			cached: '\u63d0\u793a\uff1a\u4e0b\u6b21\u8bbf\u95ee\u65f6\u6d4f\u89c8\u5668\u53ef\u590d\u7528\u7f13\u5b58\u6587\u4ef6\uff0c\u542f\u52a8\u66f4\u5feb\u3002',
+			bytesNote: '此处显示解压后的资源大小，实际网络下载量可能更小。',
+			slow: '\u4ecd\u5728\u4e0b\u8f7d\u2014\u2014\u7f51\u7edc\u4f3c\u4e4e\u7f13\u6162\u6216\u4e2d\u65ad\u3002\u60a8\u53ef\u4ee5\u7ee7\u7eed\u7b49\u5f85\uff0c\u6216\u91cd\u8bd5\u3002',
+			stall: '\u8d44\u6e90\u5df2\u5c31\u7eea\uff0c\u4f46\u6e38\u620f\u542f\u52a8\u65f6\u95f4\u6bd4\u9884\u671f\u66f4\u957f\u3002\u60a8\u53ef\u4ee5\u7ee7\u7eed\u7b49\u5f85\uff0c\u6216\u91cd\u8bd5\u3002',
+			retry: '\u91cd\u8bd5',
+			details: '\u6280\u672f\u7ec6\u8282',
+			missing: '\u60a8\u7684\u6d4f\u89c8\u5668\u7f3a\u5c11\u8fd0\u884c PokerGame \u6240\u9700\u7684\u7279\u6027\u3002',
+			connection: '\u6e38\u620f\u6587\u4ef6\u4e0b\u8f7d\u5931\u8d25\uff0c\u8fde\u63a5\u53ef\u80fd\u5df2\u4e2d\u65ad\u6216\u88ab\u62e6\u622a\u3002\u8bf7\u68c0\u67e5\u7f51\u7edc\u540e\u91cd\u8bd5\u3002',
+			script: '\u6e38\u620f\u542f\u52a8\u811a\u672c\u52a0\u8f7d\u5931\u8d25\u3002\u8bf7\u68c0\u67e5\u7f51\u7edc\u540e\u91cd\u8bd5\u3002',
+			generic: '\u542f\u52a8 PokerGame \u65f6\u51fa\u73b0\u95ee\u9898\uff0c\u8bf7\u91cd\u8bd5\u3002'
+		}
+	};
+
+	function chooseLanguage() {
+		var locale = '';
+		try {
+			locale = (navigator && (navigator.language || navigator.userLanguage)) || '';
+		} catch (err) {
+			locale = '';
+		}
+		return /^zh\b/i.test(locale) ? STRINGS.zh : STRINGS.en;
+	}
+
+	var t = chooseLanguage();
+
+	var overlay = document.getElementById('loading-overlay');
+	var statusEl = document.getElementById('loading-status');
+	var progressEl = document.getElementById('loading-progress');
+	var detailEl = document.getElementById('loading-detail');
+	var noticeEl = document.getElementById('loading-notice');
+	var retryEl = document.getElementById('retry-button');
+	var detailsEl = document.getElementById('error-details');
+	var detailsSummaryEl = document.getElementById('error-summary');
+	var detailsTextEl = document.getElementById('error-text');
+
+	var finished = false;
+	var fatal = false;
+	var downloadComplete = false;
+	var lastProgressBytes = 0;
+	var watchdogId = null;
+	var lastActivity = nowMs();
+	var warned = false;
+	var listeners = [];
+
+	function nowMs() {
+		try {
+			if (typeof performance !== 'undefined' && performance && typeof performance.now === 'function') {
+				return performance.now();
+			}
+		} catch (err) {
+			// Fall through to Date.
+		}
+		return Date.now();
+	}
+
+	function errorText(err) {
+		if (err === null || err === undefined) {
+			return 'Unknown error';
+		}
+		if (typeof err === 'string') {
+			return err;
+		}
+		if (typeof err.message === 'string' && err.message) {
+			return err.message;
+		}
+		try {
+			return String(err);
+		} catch (stringifyErr) {
+			return 'Unknown error';
+		}
+	}
+
+	function classify(err) {
+		var message = errorText(err);
+		if (/ERR_CONNECTION|ERR_NETWORK|ERR_INTERNET|ERR_NAME_NOT_RESOLVED|ERR_ADDRESS_UNREACHABLE|Failed to fetch|network\s*error|Load failed|Failed loading file|connection reset|connection closed|offline|404|not found/i.test(message)) {
+			return 'connection';
+		}
+		return 'generic';
+	}
+
+	function setText(el, text) {
+		if (el) {
+			el.textContent = text;
+		}
+	}
+
+	function show(el) {
+		if (el) {
+			el.hidden = false;
+		}
+	}
+
+	function hide(el) {
+		if (el) {
+			el.hidden = true;
+		}
+	}
+
+	function setBusy(percent) {
+		if (!progressEl) {
+			return;
+		}
+		if (percent === null) {
+			progressEl.removeAttribute('value');
+			progressEl.removeAttribute('max');
+		} else {
+			progressEl.max = 100;
+			progressEl.value = percent;
+		}
+	}
+
+	function listen(target, type, handler) {
+		target.addEventListener(type, handler);
+		listeners.push([target, type, handler]);
+	}
+
+	function removeListeners() {
+		while (listeners.length > 0) {
+			var entry = listeners.pop();
+			try {
+				entry[0].removeEventListener(entry[1], entry[2]);
+			} catch (err) {
+				// Nothing else to do during teardown.
+			}
+		}
+	}
+
+	function clearWatchdog() {
+		if (watchdogId !== null) {
+			clearInterval(watchdogId);
+			watchdogId = null;
+		}
+	}
+
+	function showWarning(kind) {
+		setText(noticeEl, kind === 'stall' ? t.stall : t.slow);
+		show(noticeEl);
+		setText(retryEl, t.retry);
+		show(retryEl);
+	}
+
+	function noteActivity() {
+		lastActivity = nowMs();
+		if (warned) {
+			warned = false;
+			hide(noticeEl);
+			hide(retryEl);
+		}
+	}
+
+	function startWatchdog() {
+		if (watchdogId !== null) {
+			return;
+		}
+		lastActivity = nowMs();
+		warned = false;
+		watchdogId = setInterval(function () {
+			if (fatal || finished || warned) {
+				return;
+			}
+			if (nowMs() - lastActivity >= SLOW_MS) {
+				warned = true;
+				showWarning(downloadComplete ? 'stall' : 'slow');
+			}
+		}, WATCHDOG_MS);
+	}
+
+	function onProgress(current, total) {
+		if (fatal || finished) {
+			return;
+		}
+		if (!downloadComplete && Number.isFinite(current) && current > 0 && current !== lastProgressBytes) {
+			lastProgressBytes = current;
+			noteActivity();
+		}
+		if (typeof current === 'number' && typeof total === 'number' && total > 0) {
+			var percent = Math.max(0, Math.min(100, Math.floor((current / total) * 100)));
+			setBusy(percent);
+			if (!downloadComplete) {
+				var loadedMb = (current / (1024 * 1024)).toFixed(1);
+				var totalMb = (total / (1024 * 1024)).toFixed(1);
+				setText(statusEl, t.downloading + ' ' + percent + '% \u00b7 ' + loadedMb + ' MB / ' + totalMb + ' MB');
+				setText(detailEl, t.bytesNote);
+			}
+			if (current >= total && !downloadComplete) {
+				downloadComplete = true;
+				setBusy(100);
+				setText(statusEl, t.starting);
+				setText(detailEl, t.cached);
+				lastActivity = nowMs();
+			}
+		} else if (!downloadComplete) {
+			setBusy(null);
+			setText(statusEl, t.initial);
+			setText(detailEl, t.bytesNote);
+		}
+	}
+
+	function onSuccess() {
+		if (fatal) {
+			return;
+		}
+		finished = true;
+		clearWatchdog();
+		removeListeners();
+		hide(noticeEl);
+		if (overlay && typeof overlay.remove === 'function') {
+			overlay.remove();
+		} else {
+			hide(overlay);
+		}
+	}
+
+	function showFatal(kind, err, extraLines) {
+		if (fatal || finished) {
+			return;
+		}
+		fatal = true;
+		overlay.setAttribute('aria-busy', 'false');
+		clearWatchdog();
+		removeListeners();
+		setBusy(null);
+		setText(statusEl, t[kind] || t.generic);
+		hide(progressEl);
+		setText(detailEl, '');
+		hide(noticeEl);
+		setText(retryEl, t.retry);
+		show(retryEl);
+		setText(detailsSummaryEl, t.details);
+		var lines = ['kind: ' + kind, 'message: ' + errorText(err), 'script: ' + GODOT_URL];
+		if (extraLines && extraLines.length) {
+			lines = lines.concat(extraLines);
+		}
+		setText(detailsTextEl, lines.join('\n'));
+		show(detailsEl);
+		show(overlay);
+		if (retryEl && typeof retryEl.focus === 'function') {
+			try {
+				retryEl.focus();
+			} catch (focusErr) {
+				// Focusing is a nicety, not a requirement.
+			}
+		}
+	}
+
+	function beginStart() {
+		if (fatal || finished) {
+			return;
+		}
+		if (typeof Engine === 'undefined' || Engine === null) {
+			showFatal('script', new Error('Engine is not available; the startup script did not load.'));
+			return;
+		}
+		var missing = [];
+		try {
+			if (typeof Engine.getMissingFeatures === 'function') {
+				missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED }) || [];
+			}
+		} catch (missingErr) {
+			showFatal('generic', missingErr);
+			return;
+		}
+		if (missing.length > 0) {
+			showFatal('missing', new Error('Missing required browser features: ' + missing.join('; ')), ['missing features: ' + missing.join('; ')]);
+			return;
+		}
+		var engine;
+		try {
+			engine = new Engine(GODOT_CONFIG);
+		} catch (engineErr) {
+			showFatal('generic', engineErr);
+			return;
+		}
+		startWatchdog();
+		var started;
+		try {
+			started = engine.startGame({ onProgress: onProgress });
+		} catch (startErr) {
+			showFatal(classify(startErr), startErr);
+			return;
+		}
+		if (!started || typeof started.then !== 'function') {
+			onSuccess();
+			return;
+		}
+		started.then(onSuccess, function (startErr) {
+			showFatal(classify(startErr), startErr);
+		});
+	}
+
+	function onUnhandledRejection(event) {
+		if (fatal || finished) {
+			return;
+		}
+		var reason = event ? (event.reason !== undefined ? event.reason : event.detail) : undefined;
+		showFatal(classify(reason), reason, ['source: unhandledrejection']);
+		if (event && typeof event.preventDefault === 'function') {
+			try {
+				event.preventDefault();
+			} catch (ignore) {
+				// Some events cannot be cancelled; ignore.
+			}
+		}
+	}
+
+	function loadStartupScript() {
+		var script = document.createElement('script');
+		script.src = GODOT_URL;
+		script.async = true;
+		var handled = false;
+		script.onload = function () {
+			if (handled) {
+				return;
+			}
+			handled = true;
+			beginStart();
+		};
+		script.onerror = function () {
+			if (handled) {
+				return;
+			}
+			handled = true;
+			showFatal('script', new Error('Failed to load startup script: ' + GODOT_URL));
+		};
+		if (document.body && typeof document.body.appendChild === 'function') {
+			document.body.appendChild(script);
+		} else {
+			showFatal('script', new Error('The document body is unavailable; cannot load ' + GODOT_URL));
+		}
+	}
+
+	function init() {
+		try {
+			document.documentElement.lang = t.tag;
+		} catch (err) {
+			// Not critical.
+		}
+		setText(statusEl, t.initial);
+		setText(retryEl, t.retry);
+		setText(detailsSummaryEl, t.details);
+		hide(retryEl);
+		hide(noticeEl);
+		hide(detailsEl);
+		setBusy(0);
+		show(overlay);
+		listen(window, 'unhandledrejection', onUnhandledRejection);
+		if (retryEl) {
+			retryEl.addEventListener('click', function () {
+				try {
+					window.location.reload();
+				} catch (err) {
+					// Reloading is best-effort; there is nowhere else to go.
+				}
+			});
+		}
+	}
+
+	init();
+	startWatchdog();
+	loadStartupScript();
+}());
+		</script>
+	</body>
+</html>

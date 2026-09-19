@@ -84,6 +84,34 @@ class ExportPresetTests(unittest.TestCase):
         self.assertEqual(options['progressive_web_app/enabled'], 'false')
         self.assertEqual(options['progressive_web_app/ensure_cross_origin_isolation_headers'], 'false')
 
+    def test_custom_loader_only_on_web(self):
+        self.assertEqual(self.sections['preset.2.options']['html/custom_html_shell'],
+                         '"res://tools/web_shell.html"')
+        for preset in ('preset.0.options', 'preset.1.options'):
+            self.assertNotIn('html/custom_html_shell', self.sections[preset])
+
+
+class WebStagingTests(unittest.TestCase):
+    def test_staging_preserves_originals_and_excludes_local_builds(self):
+        from prepare_web import stage_project
+        with tempfile.TemporaryDirectory() as tmp:
+            source, staged = Path(tmp) / 'source', Path(tmp) / 'staged'
+            for directory in ('assets/fonts', 'assets/audio', 'scenes', 'scripts',
+                              'tools', '.godot', 'export', 'tests'):
+                (source / directory).mkdir(parents=True)
+            names = ['project.godot', 'export_presets.cfg', 'THIRD_PARTY_NOTICES.md',
+                     'tools/web_shell.html', 'assets/fonts/NotoSansSC.ttf',
+                     'assets/audio/airport-lounge.mp3']
+            for name in names:
+                (source / name).write_text('original')
+            stage_project(source, staged)
+            for name in names:
+                self.assertEqual((staged / name).read_text(), 'original')
+                (staged / name).write_text('optimized')
+                self.assertEqual((source / name).read_text(), 'original')
+            for directory in ('.godot', 'export', 'tests'):
+                self.assertFalse((staged / directory).exists())
+
 
 class ProjectSettingTests(unittest.TestCase):
     @classmethod

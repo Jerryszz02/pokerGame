@@ -7,6 +7,7 @@ Audio: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Airport%20Loun
 ISRC: USUAN1100806
 Retrieved: 2026-09-11
 
-The bundled MP3 is unmodified. PokerGame plays it repeatedly at reduced volume;
+The source and desktop MP3 are unmodified. The Web export transcodes the complete
+track to 96 kbps MP3 to reduce download size. PokerGame plays it at reduced volume;
 no endorsement by the composer is implied.
 Original SHA-256: e20d316b541c72690a3b0311c9f3d40fd00717359ab7567d7df82a9316c1dec4
