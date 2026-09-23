@@ -32,8 +32,8 @@ The main scene is `res://scenes/main.tscn`, backed by `scripts/ui/main.gd`.
 - `poker_round.gd` owns table state, legal-action checks, betting flow, durable blind positions, event history, side pots, showdown, split pots, and hand lifecycle.
 - `match_config.gd` validates the supported integer stack/blind presets and normalizes old preferences.
 - `local_profile.gd` stores versioned preferences and legacy aggregate statistics at `user://poker_profile.cfg`, guarding newer-format files against overwrite.
-- `practice_store.gd` owns atomic completed-hand files, a compact cumulative ledger, match outcomes, tutorial progress, achievements, and the one-time legacy summary import.
-- `tutorial_controller.gd` prepares independent deterministic teaching games. Actions use `PokerRound.apply_action()`; settlement checkpoints use the normal evaluator and pot resolver. No tutorial record enters ordinary statistics.
+- `practice_store.gd` owns atomic completed-hand files, a compact cumulative ledger, match outcomes, separate three-hand guided progress, legacy seven-lesson progress, achievements, and the one-time legacy summary import.
+- `tutorial_controller.gd` prepares three independent deterministic teaching hands. Short dialogue and focused table controls guide the first two hands; the third permits free legal actions. All actions use `PokerRound.apply_action()` and normal showdown evaluation. Guided hands do not enter ordinary records or statistics.
 - `poker_reference.gd` supplies localized rules and nine hand-rank examples verified with `HandEvaluator`.
 - `localization.gd` selects the system/Chinese/English locale and renders translated templates from structured game data without changing poker state or saved records.
 
@@ -69,7 +69,7 @@ The visible wait before an AI action belongs to the UI layer and does not change
 
 ## UI And Art Layer
 
-`scripts/ui/main.gd` coordinates live play and configuration. `scripts/ui/practice_views.gd` renders tutorials, records, filtered statistics and immutable replay frames without assigning replay state to the live game. The UI builds the interface programmatically with Godot `Control` nodes and theme overrides. It composes generated PNG textures from `assets/art/generated/` for the menu, title, table, characters, cards, action tags, neutral nameplates, and modular chips. Dynamic localized text, card ranks, suits, values, and event content remain runtime-rendered so game information stays exact. Buttons, fields, panels, sliders, blind-role badges, the pot amount plaque, and HUD chrome use hard-edged `StyleBoxFlat` or runtime-drawn controls instead of enlarged UI atlases.
+`scripts/ui/main.gd` coordinates live play, configuration, and the guided tutorial on the real table. `scripts/ui/practice_views.gd` renders records, filtered statistics and immutable replay frames without assigning replay state to the live game. The UI builds the interface programmatically with Godot `Control` nodes and theme overrides. It composes generated PNG textures from `assets/art/generated/` for the menu, title, table, characters, cards, action tags, neutral nameplates, and modular chips. Dynamic localized text, card ranks, suits, values, and event content remain runtime-rendered so game information stays exact. Buttons, fields, panels, sliders, blind-role badges, the pot amount plaque, and HUD chrome use hard-edged `StyleBoxFlat` or runtime-drawn controls instead of enlarged UI atlases.
 
 The table is a fixed-aspect `AspectRatioContainer` stage (`TableStage`, ratio 1619:971 matching the table texture). The table texture's built-in dark margins double as standing room: character sprites anchored at each seat overlap the rail from outside, selling players sitting around the table. All seat elements are positioned with fractional anchors from `SEAT_LAYOUTS` so the layout holds at any window size:
 
@@ -130,7 +130,7 @@ Luck uses complete showdowns with at least two contenders, undealt board cards a
 - `tests/practice_save_retry_test.gd` checks match persistence ordering during capacity failure and recovery.
 
 - `tests/practice_data_test.gd` covers all 80 count/stake/blind combinations, record fidelity and isolation, multi-pot classification, atomic retry, migration, corrupt/future files, filtering, milestones and retained statistics after deletion.
-- `tests/tutorial_test.gd` covers seven lessons, wrong-answer recovery, deterministic restart, real payouts and legal self-test branches.
+- `tests/tutorial_test.gd` covers all three guided hands, deterministic restart, legal actions, and real payouts.
 - `tests/practice_ui_probe.gd` drives mode/configuration, references, tutorial completion, real replay traversal, filter controls, isolation and practice auto-advance at three sizes. Its windowed run captures `/tmp/poker_practice_audit/`.
 
 - `tests/test_ai_strategy.gd` checks all 169 preflop classes, position/stack/price scaling, concrete suit-aware posteriors, blocker-weighted and joint sampling frequencies, analytic side-pot/action EVs, response information timing, bounded profiles and personality/category behavior.

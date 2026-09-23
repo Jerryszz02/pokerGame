@@ -96,7 +96,7 @@ python3 tools/soak.py --godot "$GODOT_BIN"
 "$GODOT_BIN" --headless --path . -s tests/ai_benchmark.gd
 ```
 
-`verify.py` 包含规则、起手范围/对手范围/收益数学与信息边界测试、练习数据/迁移及保存失败恢复、七课教程、新模式 UI、10,000 手固定种子检查、后台 AI 生命周期、材质动画清理及布局检查。`--windowed` 额外执行 1280×720、1440×900、1920×1080 的菜单、帮助、设置、日志、暂停、下注、全下、结算、离桌确认、多人出局/胜利总结、设置生效与保存失败提示流程，截图写入 `/tmp/poker_audit/`；练习产品页面另存 `/tmp/poker_practice_audit/`。
+`verify.py` 包含规则、起手范围/对手范围/收益数学与信息边界测试、练习数据/迁移及保存失败恢复、三手牌桌引导教程及独立进度、新模式 UI、10,000 手固定种子检查、后台 AI 生命周期、材质动画清理及布局检查。`--windowed` 额外执行 1280×720、1440×900、1920×1080 的菜单、帮助、设置、日志、暂停、下注、全下、结算、离桌确认、多人出局/胜利总结、设置生效与保存失败提示流程，截图写入 `/tmp/poker_audit/`；练习产品页面另存 `/tmp/poker_practice_audit/`。三手教程的双语、三档尺寸截图位于 `/tmp/poker_guided_tutorial_audit/`，由 `guided_tutorial_ui_probe.gd` 验证引导动作、自由尝试、保存重试、暂停及旧回调隔离。
 
 长测默认运行 30 分钟，包装器记录提交、dirty 状态和运行资源指纹，并把日志和报告保存在 `export/evidence/`（引擎原始报告仍写入 `user://poker_stability_report.json`）；必须同时确认成功标记、退出码、帧延迟和资源曲线。`python3 tools/soak.py --godot "$GODOT_BIN" -- --seconds=15 --min-ai=1` 只用于检查脚本能否运行，不满足首发长测门。所有 UI 探针使用各自独立 profile，不能修改真实玩家战绩。
 

@@ -127,21 +127,20 @@ func _probe(viewport: Vector2i) -> void:
 	filter.select(2)
 	filter.item_selected.emit(2)
 	check(scene.practice_store.statistics(views.filters).hands == 0,"stats filters use source metadata")
-	# Complete a lesson by operating every visible choice, not controller-only calls.
+	# Complete the first guided hand using only the visible table controls.
 	scene._show_tutorial_home()
-	scene.find_child("Lesson_T1",true,false).emit_signal("pressed")
 	await _state(scene,viewport,"08_tutorial")
-	for choice in ["hole_cards","community_cards","chips","pot","AS","KS","QS","JS","TS"]:
-		var button: Button = scene.find_child("TutorialChoice_"+choice,true,false)
-		check(button != null,"tutorial exposes expected actual option")
-		if button != null: button.emit_signal("pressed")
-	check(scene.tutorial_controller.completed and scene.practice_store.state.tutorial_completed.has("T1"),"UI lesson completion persists")
+	check(scene.tutorial_controller.lesson_id == "G1" and scene.game == scene.tutorial_controller.game,"home tutorial opens the real first hand")
+	await _drive_guided_hand(scene,"G1")
+	check(scene.tutorial_controller.completed and scene.practice_store.state.guided_tutorial.completed.has("G1"),"UI guided hand completion persists")
 	check(scene.practice_store.statistics().hands == count,"tutorial doesn't change normal stats")
 	await _state(scene,viewport,"09_tutorial_complete")
-	scene.find_child("TutorialRestartButton",true,false).emit_signal("pressed")
+	var restart: Button = scene.find_child("TutorialRestartButton",true,false)
+	check(restart != null,"guided hand offers restart")
+	if restart != null: restart.emit_signal("pressed")
 	check(not scene.tutorial_controller.completed,"completed lesson can restart")
 	var reopened := PracticeStore.new(scene.practice_store.base_path)
-	check(reopened.state.tutorial_completed.has("T1") and reopened.records().size() == 1,"progress and hand survive reload in same namespace")
+	check(reopened.state.guided_tutorial.completed.has("G1") and reopened.records().size() == 1,"guided progress and ordinary hand survive reload in same namespace")
 	scene._show_menu()
 	scene._show_mode_config("practice")
 	scene.pending_match_config.pause_each_hand = false
@@ -171,6 +170,32 @@ func _passive(game: PokerRound) -> void:
 		var legal := game.get_legal_actions(game.current_player_index)
 		check(game.apply_action("check" if legal.actions.has("check") else "call"),"legal passive action")
 	check(false,"hand reaches settlement")
+
+func _drive_guided_hand(scene: Node, expected_id: String) -> void:
+	for i in range(100):
+		if scene.tutorial_controller.completed:
+			return
+		var step: Dictionary = scene.tutorial_controller.current_step()
+		if step.get("can_continue",false):
+			var advance: Button = scene.find_child("TutorialContinueButton",true,false)
+			check(advance != null and not advance.disabled,"observation step has enabled continue control")
+			if advance == null or advance.disabled: return
+			advance.emit_signal("pressed")
+		elif not scene.game.is_human_turn():
+			scene._advance_tutorial_opponent(1.0)
+		else:
+			var action: Button = null
+			var choices := ["Action_call","Action_check"] if expected_id == "G1" else ["Action_call","Action_fold","Action_check"]
+			for name in choices:
+				var candidate: Button = scene.find_child(name,true,false)
+				if candidate != null and not candidate.disabled:
+					action = candidate
+					break
+			check(action != null,"guided step exposes a permitted real action")
+			if action == null: return
+			action.emit_signal("pressed")
+		await process_frame
+	check(false,"guided hand completes through table controls")
 
 func _state(scene: Control, viewport: Vector2i, tag: String) -> void:
 	await process_frame

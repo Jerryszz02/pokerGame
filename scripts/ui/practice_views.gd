@@ -1,11 +1,10 @@
 class_name PracticeViews
 extends RefCounted
-## Read-only product views; only the tutorial's private controller owns a game.
+## Read-only history, statistics and replay views.
 const RadarChartScript := preload("res://scripts/ui/radar_chart.gd")
 const CoachServiceScript := preload("res://scripts/ai/coach_service.gd")
 const LocalReplayReviewScript := preload("res://scripts/ai/local_replay_review.gd")
 var host: Control
-var tutorial: TutorialController
 var replay: Dictionary = {}
 var replay_index := 0
 var replay_all := false
@@ -18,7 +17,6 @@ var replay_counter: Label
 var replay_notice: Label
 var filters: Dictionary = {}
 var stats_body: VBoxContainer
-var _tutorial_message := ""
 var coach_service := CoachServiceScript.new()
 var _review_queue: Array = []
 var _review_results: Array = []
@@ -104,70 +102,6 @@ func _cards(body: Node, title: String, cards: Array, visible_cards: bool = true)
 		row.add_child(empty)
 	for card in cards:
 		row.add_child(host._card_view(card, visible_cards, true))
-
-func tutorial_home() -> void:
-	var page := _page(GameLocalization.present("新手教程 · 七课入门"), "TutorialHomePanel")
-	page.body.add_child(_label(GameLocalization.present("每课使用预设局面。完成进度单独保存，重练不计入普通战绩。"),18,host._muted_color()))
-	for lesson in TutorialController.lessons():
-		var done: bool = host.practice_store.state.tutorial_completed.has(lesson.id)
-		page.body.add_child(_button("%s  %s%s" % [lesson.id, GameLocalization.present(lesson.title), GameLocalization.present("  ✓ 已完成") if done else ""], "Lesson_"+lesson.id, func(): open_lesson(lesson.id)))
-		page.body.add_child(_label(lesson.summary,16,host._muted_color()))
-	page.footer.add_child(_button(GameLocalization.present("返回首页"),"TutorialHomeBackButton",host._show_menu))
-	_store_notice(page.body)
-
-func open_lesson(id: String) -> void:
-	tutorial = TutorialController.new()
-	tutorial.start(id)
-	host.tutorial_controller = tutorial
-	_tutorial_message = ""
-	_render_lesson()
-
-func _render_lesson() -> void:
-	var step := tutorial.current_step()
-	var page := _page("%s · %s" % [tutorial.lesson_id,GameLocalization.present(step.title)],"TutorialLessonPanel")
-	var text := _label(step.text)
-	text.name = "TutorialStepText"
-	page.body.add_child(text)
-	if not _tutorial_message.is_empty():
-		page.body.add_child(_label(_tutorial_message,18,host.COLOR_BRASS))
-	if not str(step.get("detail", "")).is_empty():
-		page.body.add_child(_label(str(step.detail),16,host._muted_color()))
-	var cards: Array = step.get("cards", [])
-	if tutorial.lesson_id == "T1":
-		_cards(page.body,GameLocalization.present("你的底牌区域"),cards.slice(0,2))
-		_cards(page.body,GameLocalization.present("公共牌区域"),cards.slice(2))
-		page.body.add_child(_label(GameLocalization.present("座位旁：玩家筹码区域　　桌面中央：底池区域"),18,host.COLOR_BRASS))
-	elif not cards.is_empty():
-		_cards(page.body,GameLocalization.present("当前示例牌"),cards)
-	if tutorial.game != null:
-		_cards(page.body,GameLocalization.present("你的底牌"),tutorial.game.players[0].hole_cards)
-		if not tutorial.game.community_cards.is_empty():
-			_cards(page.body,GameLocalization.present("当前公共牌"),tutorial.game.community_cards)
-	var options := HFlowContainer.new()
-	options.name = "TutorialOptions"
-	options.add_theme_constant_override("h_separation",8)
-	options.add_theme_constant_override("v_separation",8)
-	page.body.add_child(options)
-	for option in step.options:
-		var id: String = option.id
-		options.add_child(_button(str(option.label),"TutorialChoice_"+id,func(): submit_lesson(id)))
-	if tutorial.completed:
-		var saved: bool = host.practice_store.complete_tutorial(tutorial.lesson_id)
-		page.body.add_child(_label(GameLocalization.present("课程进度已保存。") if saved else GameLocalization.present("课程已完成，但进度未保存：")+GameLocalization.present(host.practice_store.notice),18,host.COLOR_BRASS))
-		if not saved:
-			page.footer.add_child(_button(GameLocalization.present("重试保存"),"TutorialSaveRetry",_render_lesson))
-		var index: int = PracticeStore.LESSONS.find(tutorial.lesson_id)
-		if index < 6:
-			page.footer.add_child(_button(GameLocalization.present("下一课"),"TutorialNextLesson",func(): open_lesson(PracticeStore.LESSONS[index+1])))
-		else:
-			page.footer.add_child(_button(GameLocalization.present("进入自由对战"),"TutorialStartFree",func(): host._show_mode_config("free")))
-	page.footer.add_child(_button(GameLocalization.present("重练本课"),"TutorialRestartButton",func(): open_lesson(tutorial.lesson_id)))
-	page.footer.add_child(_button(GameLocalization.present("课程列表"),"TutorialBackButton",tutorial_home))
-
-func submit_lesson(choice: String) -> void:
-	var result := tutorial.submit(choice)
-	_tutorial_message = str(result.message)
-	_render_lesson()
 
 func history() -> void:
 	var page := _page(GameLocalization.present("牌局记录 · 按整场分组"),"HistoryPanel")

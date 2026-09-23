@@ -181,7 +181,7 @@ Windows/macOS 构建和自检进入 `.github/workflows/desktop.yml`；CI 是否�
 
 ## 练习产品回归（2026-09-10）
 
-`tests/practice_data_test.gd`、`tests/practice_save_retry_test.gd`、`tests/tutorial_test.gd`、`tests/practice_ui_probe.gd` 已接入 `tools/verify.py`；`--windowed` 同时执行新旧点击流。覆盖 80 组人数/筹码/盲注配置、教程正误与重练、合法动作、真实回放视角、损坏/未知版本保护、保存失败重试、容量限制、幂等统计、筛选和删除牌谱后保留累计。数据口径见[架构](../architecture.md#local-persistence-and-audio)，操作指标见 [UI 验收](ui-acceptance.md#练习产品页面2026-09-10)。
+`tests/practice_data_test.gd`、`tests/practice_save_retry_test.gd`、`tests/tutorial_test.gd`、`tests/guided_tutorial_ui_probe.gd`、`tests/practice_ui_probe.gd` 已接入 `tools/verify.py`；`--windowed` 同时执行新旧点击流。覆盖 80 组人数/筹码/盲注配置、三手引导、自由行动分支、旧七课进度兼容、重练与恢复、合法动作、真实回放视角、损坏/未知版本保护、保存失败重试、容量限制、幂等统计、筛选和删除牌谱后保留累计。数据口径见[架构](../architecture.md#local-persistence-and-audio)，操作指标见 [UI 验收](ui-acceptance.md#练习产品页面2026-09-10)。
 
 ## 中英文与音频回归
 
