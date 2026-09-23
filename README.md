@@ -10,7 +10,7 @@ A free, single-player Texas Hold’em game for browsers, Windows and macOS. Desk
 
 **Single player · 1–5 AI opponents · Four difficulty levels · English / Simplified Chinese**
 
-**v1.3.0 is available on itch.io**, with browser play, Windows/macOS downloads, **English / 简体中文** switching, lounge music and card/chip sounds. Click or press a key to start browser audio. The new release adds opponent-style selection, Hell difficulty, local coaching, replay reviews and player-style radar. GitHub Releases currently retains v1.2.0; download v1.3.0 from itch.io. See the [current status and verification](docs/planning/README.md).
+**v1.4.0 is available on itch.io** for browsers, Windows and macOS. The new three-hand tutorial takes beginners from following a coach to making their own decisions at the table, in English or Simplified Chinese. Opponent personalities, Hell difficulty, coaching, replay reviews and the player-style radar from v1.3.0 remain available. GitHub Releases retains v1.2.0; get v1.4.0 from itch.io. See the [release notes and verification](docs/releases/1.4.0.md).
 
 ![A river decision against five AI opponents, with fold, call, and all-in actions](docs/media/v1.0.0/river-decision.png)
 
