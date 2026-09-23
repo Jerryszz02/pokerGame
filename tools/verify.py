@@ -38,6 +38,7 @@ def main():
         ('practice_data_test.gd', 'Practice data tests passed.'),
         ('practice_save_retry_test.gd', 'Practice save retry tests passed.'),
         ('tutorial_test.gd', 'Tutorial tests passed.'),
+        ('guided_tutorial_ui_probe.gd', 'Guided tutorial UI probes passed.'),
         ('practice_ui_probe.gd', 'Practice UI probes passed.'),
         ('test_ai_strategy.gd', 'AI strategy tests passed.'),
         ('test_ai_observations.gd', 'AI observation tests passed.'),
@@ -56,6 +57,8 @@ def main():
         run([args.godot, '--headless', '--path', ROOT, '-s', 'tests/' + script],
             marker, log_name=script[:-3])
     if args.windowed:
+        run([args.godot, '--path', ROOT, '-s', 'tests/guided_tutorial_ui_probe.gd'],
+            'Guided tutorial UI probes passed.', timeout=600, log_name='guided_tutorial_ui_windowed')
         run([args.godot, '--path', ROOT, '-s', 'tests/ui_playthrough_probe.gd'],
             'UI playthrough probe passed.', timeout=600, log_name='ui_playthrough_probe')
         run([args.godot, '--path', ROOT, '-s', 'tests/practice_ui_probe.gd'],

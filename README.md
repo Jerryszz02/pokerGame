@@ -21,7 +21,7 @@ A free, single-player Texas Hold’em game for browsers, Windows and macOS. Desk
 - **Choose your company.** Play heads-up or fill the table with five AI opponents. Pick Easy, Medium, Hard, or Hell before you start.
 - **Watch how they bet.** On Hard, opponents have different betting tendencies, from cautious players to aggressive raisers and persistent callers.
 - **Win the last chip.** Choose 1,000, 2,000, 5,000, or 10,000 starting chips and fixed blinds of 5/10, 10/20, 25/50, or 50/100. Keep playing hands until you own the table—or your stack runs out.
-- **Learn and review.** Complete seven interactive tutorials, pause between practice hands, replay completed hands, and track local statistics and achievements.
+- **Learn and review.** Play three hands with a table-side coach, then choose your own actions. Pause between practice hands, replay completed hands, and track local statistics and achievements.
 - **Set your own pace.** Switch between normal and fast actions, pause when you need a break, and check the current hand’s action log.
 - **Keep it local.** No game account, real-money wagering, or background data collection. Desktop play works offline; browser play needs a connection to load. Your settings and completed-hand statistics stay on your device.
 

@@ -55,6 +55,7 @@ const CARD_COMPONENTS_TEXTURE := preload("res://assets/art/generated/cards/card-
 const CHIP_MODULES_TEXTURE := preload("res://assets/art/generated/ui/chip-modules.png")
 const ChipStackViewScript := preload("res://scripts/ui/chip_stack.gd")
 const CoachPanelScript := preload("res://scripts/ui/coach_panel.gd")
+const TutorialOverlayScript := preload("res://scripts/ui/tutorial_overlay.gd")
 const CoachServiceScript := preload("res://scripts/ai/coach_service.gd")
 const DeepSeekReviewScript := preload("res://scripts/ai/deepseek_review.gd")
 const PORTRAIT_OUTLINE_SHADER := preload("res://scripts/ui/portrait_outline.gdshader")
@@ -119,6 +120,11 @@ var personality_options: OptionButton
 var personality_group: Control
 var practice_store: PracticeStore
 var tutorial_controller: TutorialController
+var _table_revision := 0
+var _tutorial_opponent_elapsed := 0.0
+var _tutorial_completion_seen := false
+var _tutorial_all_in_explained := false
+var _pending_guided_lessons: Array[String] = []
 var practice_views: PracticeViews
 var _pending_records: Dictionary = {}
 var _pending_matches: Dictionary = {}
@@ -185,6 +191,9 @@ func _process(delta: float) -> void:
 			_ai_result = result
 		else:
 			ai_pending = false
+	if _tutorial_active() and tutorial_controller.lesson_id != "G3":
+		_advance_tutorial_opponent(delta)
+		return
 	if not _ai_can_advance() or not game.is_ai_turn():
 		return
 	if ai_pending:
@@ -235,6 +244,7 @@ func _show_menu(reset_pending: bool = true) -> void:
 		_record_match_outcome()
 		_match_open = false
 	_invalidate_ai_turn()
+	tutorial_controller = null
 	if reset_pending:
 		stats_reset_pending = false
 	paused = false
@@ -584,6 +594,7 @@ func _apply_field_style(field: Control) -> void:
 
 func _on_start_pressed() -> void:
 	_invalidate_ai_turn()
+	tutorial_controller = null
 	var difficulty := "medium"
 	match difficulty_options.get_selected_id():
 		0:
@@ -758,10 +769,61 @@ func _update_config_notice() -> void:
 	mode_config_notice.text = tr("%d 筹码 · %d/%d 盲注 · %.0f BB\nBB 是大盲单位。本场盲注固定，可免费重开。不同筹码尺度的 AI 表现仍待专项验证。") % [pending_match_config.initial_stack,pending_match_config.small_blind,pending_match_config.big_blind,float(pending_match_config.initial_stack)/pending_match_config.big_blind]
 
 func _show_tutorial_home() -> void:
-	practice_views.tutorial_home()
+	_retry_guided_saves()
+	_open_tutorial_lesson(practice_store.guided_resume_lesson())
 
 func _open_tutorial_lesson(lesson_id: String) -> void:
-	practice_views.open_lesson(lesson_id)
+	_invalidate_ai_turn()
+	tutorial_controller = TutorialController.new()
+	tutorial_controller.start(lesson_id)
+	game = tutorial_controller.game
+	current_mode = "tutorial"
+	_match_open = false
+	paused = false
+	log_open = false
+	raise_expanded = false
+	_tutorial_opponent_elapsed = 0.0
+	_tutorial_completion_seen = false
+	_tutorial_all_in_explained = false
+	last_seen_event_fingerprint = ""
+	last_rendered_pot = -1
+	_play_effect("shuffle")
+	_render_table()
+
+func _tutorial_active() -> bool:
+	return current_mode == "tutorial" and tutorial_controller != null and game == tutorial_controller.game
+
+func _continue_tutorial(step_id: String, revision: int) -> void:
+	if revision != _table_revision or not _tutorial_active() or not _table_input_available(): return
+	if tutorial_controller.current_step().id != step_id: return
+	if tutorial_controller.advance():
+		_tutorial_opponent_elapsed = 0.0
+		_render_table()
+
+func _advance_tutorial_opponent(delta: float) -> void:
+	if not _tutorial_active() or tutorial_controller.lesson_id == "G3" or not _ai_can_advance() or not game.is_ai_turn(): return
+	_tutorial_opponent_elapsed += delta
+	if _tutorial_opponent_elapsed < 0.75: return
+	_tutorial_opponent_elapsed = 0.0
+	var decision := tutorial_controller.opponent_decision()
+	if decision.is_empty(): return
+	var action := str(decision.action_type)
+	if game.apply_action(action, int(decision.get("amount", 0)), "教程陪练"):
+		tutorial_controller.after_opponent_action()
+		_play_action_sound(action)
+		_render_table()
+
+func _retry_guided_saves() -> void:
+	for id in _pending_guided_lessons.duplicate():
+		if practice_store.complete_guided_tutorial(id): _pending_guided_lessons.erase(id)
+
+func _save_tutorial_completion() -> void:
+	if not _tutorial_active() or not tutorial_controller.completed or _tutorial_completion_seen: return
+	_tutorial_completion_seen = true
+	if not _pending_guided_lessons.has(tutorial_controller.lesson_id):
+		_pending_guided_lessons.append(tutorial_controller.lesson_id)
+	_retry_guided_saves()
+	_play_effect("settle")
 
 func _open_home_secondary(section: String) -> void:
 	if section == "history": _show_history_view()
@@ -777,6 +839,8 @@ func _show_replay_view(record: Dictionary) -> void:
 	practice_views.open_replay(record,_in_match())
 
 func _render_table() -> void:
+	_table_revision += 1
+	_save_tutorial_completion()
 	_record_completed_hand_if_needed()
 	_clear()
 	add_child(_background(MENU_BACKGROUND_TEXTURE, Color(0.005, 0.014, 0.012, 0.76)))
@@ -795,6 +859,10 @@ func _render_table() -> void:
 	root.add_child(_build_floating_status())
 	root.add_child(_build_utility_buttons())
 	root.add_child(_build_action_dock())
+	if _tutorial_active() and not paused and not log_open:
+		var guide := TutorialOverlayScript.new()
+		guide.configure(self, tutorial_controller, _table_revision)
+		root.add_child(guide)
 	if log_open:
 		root.add_child(_build_log_drawer())
 	if paused:
@@ -810,6 +878,7 @@ func _build_floating_status() -> Control:
 	panel.offset_left = 24
 	panel.offset_top = 20
 	panel.offset_right = 292
+	if _tutorial_active(): panel.offset_right = 420
 	panel.offset_bottom = 80
 	panel.add_theme_stylebox_override("panel", _panel_style(COLOR_PANEL_DARK, COLOR_BRASS.darkened(0.32), 2, 1, Vector2(12, 7)))
 	var box := VBoxContainer.new()
@@ -818,6 +887,8 @@ func _build_floating_status() -> Control:
 	var title := Label.new()
 	title.name = "FloatingStatusTitle"
 	title.text = tr("第 %d 手 · %s") % [game.hand_number, _stage_label(game.stage)]
+	if _tutorial_active():
+		title.text = tr("教学 %d/3 · %s") % [TutorialController.index_for(tutorial_controller.lesson_id) + 1, TutorialController.hand_title(tutorial_controller.lesson_id)]
 	title.add_theme_color_override("font_color", COLOR_BRASS)
 	title.add_theme_font_size_override("font_size", FONT_BUTTON)
 	box.add_child(title)
@@ -831,6 +902,7 @@ func _build_floating_status() -> Control:
 	return panel
 
 func _status_detail() -> String:
+	if _tutorial_active(): return tutorial_controller.current_step().title
 	if game.is_human_turn():
 		return GameLocalization.present("轮到你行动")
 	var events := game.recent_events(1)
@@ -874,6 +946,21 @@ func _build_utility_buttons() -> Control:
 	settings.custom_minimum_size = Vector2(96, 40)
 	settings.pressed.connect(_show_settings_popup)
 	row.add_child(settings)
+	if _tutorial_active():
+		row.offset_left = -490
+		row.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+		var id := tutorial_controller.lesson_id
+		var revision := _table_revision
+		var restart := _command_button(GameLocalization.present("重来本手"), COLOR_ACTION, _white_color())
+		restart.name = "TutorialRestartButton"
+		restart.pressed.connect(func():
+			if revision == _table_revision and _table_input_available(): _open_tutorial_lesson(id))
+		row.add_child(restart)
+		var leave := _command_button(GameLocalization.present("退出教程"), COLOR_ACTION, _white_color())
+		leave.name = "TutorialExitButton"
+		leave.pressed.connect(func():
+			if revision == _table_revision: _confirm_leave(false))
+		row.add_child(leave)
 	if current_mode == "practice" and bool(pending_match_config.show_hints):
 		row.offset_left = -328
 		var hint := _command_button(GameLocalization.present("提示"), COLOR_ACTION, _white_color())
@@ -1444,13 +1531,17 @@ func _build_action_dock() -> Control:
 		var expand_button := _command_button(GameLocalization.present("加注"), COLOR_BRASS, _ink_color())
 		expand_button.name = "RaiseExpandButton"
 		expand_button.custom_minimum_size = Vector2(68, 38)
+		if _tutorial_active(): expand_button.disabled = not tutorial_controller.allows_action(TableState.ACTION_RAISE, int(legal.min_raise_to))
+		var revision := _table_revision
 		expand_button.pressed.connect(func():
+			if revision != _table_revision or not _table_input_available() or expand_button.disabled: return
 			raise_expanded = not raise_expanded
 			_render_table()
 		)
 		actions_row.add_child(expand_button)
 	if raise_expanded and legal.actions.has(TableState.ACTION_RAISE):
 		var raise_row := HBoxContainer.new()
+		raise_row.name = "RaiseControls"
 		raise_row.alignment = BoxContainer.ALIGNMENT_CENTER
 		raise_row.add_theme_constant_override("separation", 6)
 		box.add_child(raise_row)
@@ -1458,6 +1549,7 @@ func _build_action_dock() -> Control:
 		decrease_button.pressed.connect(func(): _change_raise_by_step(-1))
 		raise_row.add_child(decrease_button)
 		raise_slider = HSlider.new()
+		raise_slider.name = "RaiseAmountSlider"
 		raise_slider.min_value = legal.min_raise_to
 		raise_slider.max_value = legal.max_raise_to
 		raise_slider.step = game.big_blind
@@ -1471,13 +1563,17 @@ func _build_action_dock() -> Control:
 		increase_button.pressed.connect(func(): _change_raise_by_step(1))
 		raise_row.add_child(increase_button)
 		raise_button = _command_button(GameLocalization.present("加注到"), COLOR_BRASS, _ink_color())
+		raise_button.name = "RaiseConfirmButton"
 		raise_button.custom_minimum_size = Vector2(96, 36)
-		raise_button.pressed.connect(func(): _on_action(TableState.ACTION_RAISE, int(raise_slider.value)))
+		var revision := _table_revision
+		raise_button.pressed.connect(func():
+			if revision == _table_revision and is_instance_valid(raise_slider): _on_action(TableState.ACTION_RAISE, int(raise_slider.value), revision))
 		raise_row.add_child(raise_button)
 		_on_raise_slider_changed(raise_slider.value)
 	return panel
 
 func _result_dock_height() -> int:
+	if _tutorial_active(): return 206 if not _pending_guided_lessons.is_empty() else 162
 	var payout_players: Dictionary = {}
 	for win in game.winners:
 		payout_players[int(win.player_index)] = true
@@ -1487,6 +1583,7 @@ func _result_dock_height() -> int:
 	return maxi(148, 120 + row_count * 22) + (44 if not _pending_records.is_empty() or not _pending_matches.is_empty() else 0)
 
 func _result_panel() -> Control:
+	if _tutorial_active(): return _tutorial_result_panel()
 	# Vertical stacking keeps every line within the fixed 580px dock width,
 	# even on the match-over screen with the summary and payout lines.
 	var column := VBoxContainer.new()
@@ -1554,8 +1651,65 @@ func _result_panel() -> Control:
 		column.add_child(retry)
 	return column
 
+func _tutorial_result_panel() -> Control:
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 6)
+	var title := Label.new()
+	title.text = tr("三手教程完成") if tutorial_controller.lesson_id == "G3" else tr("这手打完了")
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", COLOR_BRASS)
+	column.add_child(title)
+	var result := Label.new()
+	result.text = tr("本手筹码变化：%+d") % game.last_hand_human_delta
+	result.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	result.add_theme_font_size_override("font_size", 16)
+	column.add_child(result)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 10)
+	column.add_child(row)
+	var revision := _table_revision
+	if tutorial_controller.lesson_id == "G3":
+		var play := _command_button(GameLocalization.present("自己开一局"), COLOR_BRASS, _ink_color())
+		play.name = "TutorialStartFreeButton"
+		play.pressed.connect(func():
+			if revision != _table_revision or not _table_input_available(): return
+			_invalidate_ai_turn()
+			tutorial_controller = null
+			_show_mode_config("free"))
+		row.add_child(play)
+		var again := _command_button(GameLocalization.present("再练第三手"), COLOR_ACTION, _white_color())
+		again.name = "TutorialReplayThirdButton"
+		again.pressed.connect(func():
+			if revision == _table_revision and _table_input_available(): _open_tutorial_lesson("G3"))
+		row.add_child(again)
+	else:
+		var next_id: String = PracticeStore.GUIDED_LESSONS[TutorialController.index_for(tutorial_controller.lesson_id) + 1]
+		var next := _command_button(GameLocalization.present("下一手教学"), COLOR_BRASS, _ink_color())
+		next.name = "TutorialNextHandButton"
+		next.pressed.connect(func():
+			if revision == _table_revision and _table_input_available(): _open_tutorial_lesson(next_id))
+		row.add_child(next)
+	var saved := Label.new()
+	saved.name = "TutorialSaveStatus"
+	saved.text = tr("教学进度已保存") if _pending_guided_lessons.is_empty() else tr("教学进度尚未保存，请重试。")
+	saved.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	saved.add_theme_font_size_override("font_size", 14)
+	column.add_child(saved)
+	if not _pending_guided_lessons.is_empty():
+		var retry := _command_button(GameLocalization.present("重试保存"), COLOR_ACTION, _white_color())
+		retry.name = "TutorialSaveRetry"
+		retry.pressed.connect(func():
+			if revision != _table_revision: return
+			_retry_guided_saves()
+			_render_table())
+		column.add_child(retry)
+	return column
+
 func _card_view(card: Dictionary, face_up: bool, compact: bool = false) -> Control:
 	var panel := PanelContainer.new()
+	if face_up: panel.set_meta("card_key", CardUtil.card_key(card))
 	panel.custom_minimum_size = CARD_SIZE_COMPACT if compact else CARD_SIZE
 	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	var card_region := Rect2(50, 45, 320, 440) if face_up else Rect2(735, 40, 330, 455)
@@ -1585,8 +1739,12 @@ func _add_action_button(parent: Control, label: String, action: String, legal: D
 	if not legal.actions.has(action):
 		return
 	var button := _command_button(label, color, _white_color() if color != COLOR_BRASS else _ink_color())
+	button.name = "Action_" + action
+	if _tutorial_active(): button.disabled = not tutorial_controller.allows_action(action)
 	button.custom_minimum_size = Vector2(94 if action == TableState.ACTION_CALL else 72, 38)
-	button.pressed.connect(func(): _on_action(action, 0))
+	var revision := _table_revision
+	button.pressed.connect(func():
+		if not button.disabled: _on_action(action, 0, revision))
 	parent.add_child(button)
 
 func _command_button(label: String, color: Color, text_color: Color) -> Button:
@@ -1619,6 +1777,9 @@ func _change_raise_by_step(direction: int) -> void:
 func _on_raise_slider_changed(value: float) -> void:
 	if raise_button:
 		raise_button.text = "%s %d" % [tr("加注到"), int(value)]
+	if _tutorial_active() and tutorial_controller.lesson_id == "G3":
+		var guide := find_child("TutorialOverlay", true, false)
+		if guide != null: guide.show_raise_help(int(value))
 
 func _on_sound_toggled(enabled: bool) -> void:
 	profile.settings.sound_enabled = enabled
@@ -1642,18 +1803,44 @@ func _on_reset_stats_pressed() -> void:
 	stats_reset_pending = false
 	_refresh_stats_panel()
 
-func _on_action(action: String, amount: int) -> void:
-	if not _ai_can_advance() or not game.is_human_turn():
+func _on_action(action: String, amount: int, revision: int = -1) -> void:
+	if revision >= 0 and revision != _table_revision: return
+	if not _table_input_available() or not game.is_human_turn():
 		return
-	if not game.apply_action(action, amount):
-		return
+	if _tutorial_active():
+		if not tutorial_controller.allows_action(action, amount): return
+		if tutorial_controller.lesson_id == "G3" and action == TableState.ACTION_ALL_IN and not _tutorial_all_in_explained:
+			_show_tutorial_all_in_confirmation()
+			return
+		if not tutorial_controller.submit_action(action, amount): return
+		_tutorial_opponent_elapsed = 0.0
+	elif not game.apply_action(action, amount): return
 	raise_expanded = false
 	_play_action_sound(action)
 	_render_table()
 
+func _show_tutorial_all_in_confirmation() -> void:
+	if find_child("TutorialAllInPopup", true, false) != null: return
+	var revision := _table_revision
+	var epoch := _ai_epoch
+	var popup := _show_text_popup(GameLocalization.present("这就是全下"), tr("这会投入你剩下的 %d 筹码。有人跟注后，就用剩余公共牌决定结果。") % int(game.players[0].stack), "TutorialAllInPopup")
+	# This is a short teaching note, not the scrollable rules reference.
+	var scroll := popup.get_child(0).get_child(1) as ScrollContainer
+	scroll.custom_minimum_size.y = 100
+	popup.size.y = 280
+	popup.popup_centered(Vector2i(584, 280))
+	var confirm := _command_button(GameLocalization.present("确认全下"), COLOR_DANGER, _white_color())
+	confirm.name = "TutorialConfirmAllInButton"
+	confirm.pressed.connect(func():
+		popup.hide()
+		if epoch != _ai_epoch or revision != _table_revision or not _tutorial_active(): return
+		_tutorial_all_in_explained = true
+		_on_action(TableState.ACTION_ALL_IN, 0, revision))
+	popup.get_child(0).add_child(confirm)
+
 func _run_ai_turn() -> void:
 	_ai_request = {"epoch": _ai_epoch, "hand": game.hand_number, "actor": game.current_player_index, "stage": game.stage}
-	_ai_wait = _ai_action_delay(game.players[game.current_player_index])
+	_ai_wait = 2.0 if _tutorial_active() else _ai_action_delay(game.players[game.current_player_index])
 	_ai_result = {}
 	var error := _ai_worker.start(game, game.current_player_index)
 	if error != OK:
@@ -1671,10 +1858,14 @@ func _execute_ai_turn_if_allowed() -> bool:
 		_ai_result = {}
 		ai_pending = false
 		return false
+	if _tutorial_active(): tutorial_controller.after_opponent_action()
 	_play_action_sound(action)
 	return true
 
 func _ai_can_advance() -> bool:
+	return _table_input_available() and (not _tutorial_active() or tutorial_controller.opponent_can_act())
+
+func _table_input_available() -> bool:
 	return _in_match() and not paused and not log_open and not _has_visible_popup(self)
 
 func _has_visible_popup(node: Node) -> bool:
@@ -1717,6 +1908,8 @@ func _ai_action_delay(player: Dictionary) -> float:
 			return randf_range(2.8, 4.6)
 
 func _record_completed_hand_if_needed() -> void:
+	# Tutorial results never enter ordinary persistence, retry or analysis queues.
+	if game.match_config.mode == "tutorial": return
 	var record := game.completed_hand_record()
 	if record.is_empty() or _submitted_hands.has(record.id): return
 	_submitted_hands[record.id] = true
@@ -1787,6 +1980,7 @@ func _pending_match_has_records(match_id: String) -> bool:
 	return false
 
 func _record_match_outcome() -> void:
+	if game.match_config.mode == "tutorial": return
 	if game.match_id.is_empty(): return
 	var outcome := "left"
 	if game.match_over: outcome = "lost" if game.players[0].stack == 0 else "won"
@@ -1794,6 +1988,7 @@ func _record_match_outcome() -> void:
 	_retry_practice_saves()
 
 func _next_hand() -> void:
+	if _tutorial_active(): return
 	if not _ai_can_advance() or game.stage != TableState.STAGE_HAND_OVER: return
 	_auto_next_elapsed = 0.0
 	game.start_next_hand()
@@ -2016,16 +2211,27 @@ func _notification(what: int) -> void:
 		_confirm_leave(true)
 
 func _confirm_leave(quit_app: bool) -> void:
-	if (not _match_open or game.match_over) and _pending_records.is_empty() and _pending_matches.is_empty():
+	_retry_guided_saves()
+	if (not _match_open or game.match_over) and _pending_records.is_empty() and _pending_matches.is_empty() and _pending_guided_lessons.is_empty():
 		if quit_app: get_tree().quit()
 		else: _show_menu()
 		return
 	if find_child("LeavePopup", true, false) != null: return
 	var message := GameLocalization.present("已成功保存的手牌、教程进度和设置保留。当前整场不支持续玩；离开会放弃未结算手牌，提前离桌单列。重新开桌免费。")
+	if _tutorial_active() or not _pending_guided_lessons.is_empty():
+		message = GameLocalization.present("已保存的教学进度会保留。尚未保存的进度可以重试，退出应用后会丢失这部分更新。")
 	if not _pending_records.is_empty() or not _pending_matches.is_empty():
 		message += GameLocalization.present("\n还有未保存资料，退出应用会丢失这部分更新，请先重试保存。")
 	var popup := _show_text_popup(GameLocalization.present("离开牌桌？"),message,"LeavePopup")
 	var box := popup.get_child(0) as VBoxContainer
+	if not _pending_guided_lessons.is_empty():
+		var retry := _command_button(GameLocalization.present("重试保存"), COLOR_BRASS, _ink_color())
+		retry.name = "TutorialLeaveSaveRetry"
+		retry.pressed.connect(func():
+			_retry_guided_saves()
+			popup.hide()
+			if _tutorial_active(): _render_table())
+		box.add_child(retry)
 	var leave := _command_button(GameLocalization.present("确认退出") if quit_app else GameLocalization.present("确认返回菜单"), COLOR_DANGER, _white_color())
 	leave.name = "ConfirmLeaveButton"
 	leave.pressed.connect(func():

@@ -6,6 +6,7 @@ extends RefCounted
 const VERSION := 1
 const CAPACITY := 1000
 const LESSONS := ["T1", "T2", "T3", "T4", "T5", "T6", "T7"]
+const GUIDED_LESSONS := ["G1", "G2", "G3"]
 var base_path := "user://poker_practice"
 var state: Dictionary = {}
 var notice := ""
@@ -18,7 +19,8 @@ func _init(path: String = "user://poker_practice") -> void:
 	self.load()
 
 func _empty_state() -> Dictionary:
-	return {"version": VERSION, "tutorial_version": 1, "tutorial_completed": [], "achievements": {},
+	return {"version": VERSION, "tutorial_version": 1, "tutorial_completed": [],
+		"guided_tutorial": {"version": 1, "completed": []}, "achievements": {},
 		"legacy_stats": {}, "legacy_migrated": false, "ledger": {}, "matches": {}}
 
 func load() -> Dictionary:
@@ -35,6 +37,8 @@ func load() -> Dictionary:
 			notice = "练习资料损坏或版本较新，已保留原文件；当前只读。"
 		else:
 			state = parsed
+			if not state.has("guided_tutorial"):
+				state.guided_tutorial = {"version": 1, "completed": []}
 	var dir := DirAccess.open(base_path)
 	if dir == null:
 		return state.duplicate(true)
@@ -126,6 +130,25 @@ func complete_tutorial(id: String) -> bool:
 	if next.tutorial_completed.size() == LESSONS.size():
 		next.achievements.all_lessons = {"name": "完成入门课程", "source": "教程"}
 	return _commit_state(next)
+
+func complete_guided_tutorial(id: String) -> bool:
+	if not _can_write() or not GUIDED_LESSONS.has(id):
+		return false
+	if state.guided_tutorial.completed.has(id):
+		return true
+	var next := state.duplicate(true)
+	next.guided_tutorial.completed.append(id)
+	if id == "G1" and not next.achievements.has("first_lesson"):
+		next.achievements.first_lesson = {"name": "完成第一课", "source": "教程"}
+	if next.guided_tutorial.completed.size() == GUIDED_LESSONS.size() and not next.achievements.has("all_lessons"):
+		next.achievements.all_lessons = {"name": "完成入门课程", "source": "教程"}
+	return _commit_state(next)
+
+func guided_resume_lesson() -> String:
+	for id in GUIDED_LESSONS:
+		if not state.guided_tutorial.completed.has(id):
+			return id
+	return "G1"
 
 func mark_replay_complete(id: String) -> bool:
 	if not _can_write() or not _records.has(id):
@@ -342,6 +365,15 @@ func _valid_state(value: Variant) -> bool:
 		if not LESSONS.has(id) or unique_lessons.has(id):
 			return false
 		unique_lessons[id] = true
+	if value.has("guided_tutorial"):
+		var guided: Variant = value.guided_tutorial
+		if not guided is Dictionary or not guided.get("version") is int or guided.version != 1 or not guided.get("completed") is Array:
+			return false
+		var unique_guided := {}
+		for id in guided.completed:
+			if not GUIDED_LESSONS.has(id) or unique_guided.has(id):
+				return false
+			unique_guided[id] = true
 	for id in value.ledger:
 		if not _safe_id(id) or not _valid_ledger(value.ledger[id]) or value.ledger[id].id != id:
 			return false
