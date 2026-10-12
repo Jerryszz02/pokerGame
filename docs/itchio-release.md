@@ -1,16 +1,17 @@
 # itch.io Web build and release
 
 This document describes the Godot Web export added for itch.io play-in-browser.
-As of 2026-09-23, **itch.io publishes v1.4.0** through the `web`, `windows-x64`, and `macos-universal` Butler channels:
-<https://jerryszz02.itch.io/poker-game>. See [release delivery and verification](releases/1.4.0.md). GitHub Releases retains v1.2.0.
+As checked on 2026-10-12, **itch.io publishes v1.4.0** through the `web`, `windows-x64`, and `macos-universal` Butler channels:
+<https://jerryszz02.itch.io/poker-game>. See [release delivery and verification](releases/1.4.0.md). [GitHub Releases](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.4.0) mirrors the same original packages.
 Browser audio and local persistence are implemented. The code waits for an input
 event to start Web audio, and saves use Godot's browser-local storage.
 
 The build tooling itself produces packages, not uploads. Existing records include
-successful local export/ZIP validation and a user local preview without reported
-issues. This documentation pass did not replay the complete audio/persistence or
-browser/OS matrix. The checklist below is a reusable verification procedure, not a
-claim that these features or the public embed are missing.
+successful local export/ZIP validation and the owner's 2026-10-12 report of full
+gameplay acceptance without noticeable issues. The report did not enumerate an
+OS/browser matrix; see the [owner acceptance record](releases/2026-10-12-owner-acceptance.md).
+The checklist below remains a reusable procedure, not an outstanding request for
+the owner to repeat that acceptance.
 
 Web support does not change game rules, AI, audio behavior, or save data formats.
 The only product change is the target-specific renderer override
@@ -64,7 +65,8 @@ bytes. WASM was unchanged. Godot import, audio and bilingual UI probes passed;
 Chrome reached the Chinese main menu. A local server returning HTTP 503 for
 `index.pck` produced the new connection error/Retry view, and after restoring
 the file, clicking Retry reached the menu. This is local candidate evidence;
-the public itch.io frame has not been replaced by this change.
+the optimized loader was subsequently included in the released v1.4.0 packages.
+These September measurements remain historical; current owner feedback is linked above.
 
 Build (or rebuild) the desktop candidates with the same script:
 

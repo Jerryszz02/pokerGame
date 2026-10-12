@@ -1,6 +1,6 @@
 # Player-facing storefront
 
-English copy and original PokerGame media for GitHub and itch.io. The current game supports English and Simplified Chinese, browser play, and offline Windows/macOS play. These files describe v1.3.0; editing them does not update itch.io or any release binary. Current release and runtime verification boundaries are in the [v1.3.0 release record](../releases/1.3.0.md).
+English copy and original PokerGame media for GitHub and itch.io. The current game supports English and Simplified Chinese, browser play, and offline Windows/macOS play. These files describe v1.4.0; editing them does not update itch.io or any release binary. Current release and runtime verification boundaries are in the [v1.4.0 release record](../releases/1.4.0.md).
 
 ## Design direction
 
@@ -67,7 +67,7 @@ Upload the four screenshots, cover and banner to itch.io itself. `description.ht
 
 Theme editor values: background `#07120F`, content background `#10251F`, text `#F2E7CD`, links/buttons `#D3AC59`. Background image: centered, cover, no repeat. Use readable, opaque content backing. Banner: `pokergame-banner.png`. Check desktop and narrow viewport rendering before saving.
 
-The public page was rechecked on 2026-09-18: it describes four difficulties, local coaching and radar, and offers `poker-game-windows-x64.zip` and `poker-game-macos-universal.zip`, both labeled Version 1.3.0, alongside browser play. These are itch.io-hosted Butler channels; GitHub Releases still provides v1.2.0. Download/channel provenance and remaining runtime checks are in the [release record](../releases/1.3.0.md). The local HTML is a reusable copy source, not evidence that a future edit has been saved on the platform.
+The public page was rechecked on 2026-10-12: the desktop downloads are labeled Version 1.4.0 and its development log lists the three-hand tutorial update. Its main description still uses the older v1.3.0 heading and seven-tutorial wording. This sync updates the local HTML source and GitHub documentation only; applying the new storefront copy to itch.io remains a separate publication step. Package provenance and owner acceptance are in the [release record](../releases/1.4.0.md).
 
 ## Local preview
 

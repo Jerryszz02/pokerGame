@@ -47,7 +47,7 @@ python3 tools/configure_coach_worker.py
 
 最后一个命令通过标准输入把密钥上传到 Worker Secret；不把值放进命令行参数或打印出来。在独立 worktree 部署时，可通过 `--env-file /absolute/path/to/.env.local` 指定原有私有文件。修改本机文件后，必须重新运行配置命令，云端才会更新；云端不会访问开发电脑的文件。不要把真实密钥写进 Wrangler 配置、GitHub Actions、Godot 配置或游戏资源。
 
-当前 `project.godot` 的 `coach/service_url` 已配置为 `https://pokergame-coach.jerryszz02.workers.dev/review`。迁移账号时将其设为 Wrangler 实际返回的 HTTPS 地址加 `/review`，重新运行或导出游戏。`/health` 的 `ready` 仅表明服务端密钥配置有效，不代表余额、上游或游戏完整流程已验证。游戏包的渠道与运行验收边界见 [1.3.0 发布记录](releases/1.3.0.md#verification-and-limits)。
+当前 `project.godot` 的 `coach/service_url` 已配置为 `https://pokergame-coach.jerryszz02.workers.dev/review`。迁移账号时将其设为 Wrangler 实际返回的 HTTPS 地址加 `/review`，重新运行或导出游戏。`/health` 的 `ready` 仅表明服务端密钥配置有效，不代表余额、上游或游戏完整流程已验证。游戏包的渠道与运行验收边界见 [1.4.0 发布记录](releases/1.4.0.md#owner-acceptance-2026-10-12)。
 
 全局额度由固定名称的 Durable Object 保存：整个服务每分钟最多 6 次、滚动 24 小时默认最多 100 次新上游请求，失败也计数。缓存命中不计入新请求；成功结果缓存一小时，失败冷却一分钟，缓存最多 128 项。额度在请求发送前持久预留，服务实例重启不会重置。`MAX_DAILY_REQUESTS` 是运营者配置，允许 1–1000 的整数，非法配置会拒绝调用；玩家不能更改它。调整限额需要同时评估 DeepSeek 费用和免费资源额度。
 
@@ -121,13 +121,13 @@ python3 tools/build_release.py --godot "$GODOT_BIN" --target windows
 
 初始窗口使用最大化模式，避免 Retina 屏幕上 1280×720 物理像素只占 640×360 逻辑点。固定分辨率探针会显式还原窗口；长测沿用玩家的启动模式。
 
-`export_presets.cfg` 明确列出运行资源，避免仅选场景时漏掉全局 GDScript 类或动态资源。macOS 使用官方 Universal 模板；测试范围仍按实际设备声明。当前 macOS 候选包只有 ad-hoc 签名，公证/下载隔离体验未完成验证。签名配置与凭据只能在用户授权的具体发布步骤使用，不写入仓库。
+`export_presets.cfg` 明确列出运行资源，避免仅选场景时漏掉全局 GDScript 类或动态资源。macOS 使用官方 Universal 模板；测试范围仍按实际设备声明。当前 macOS 发布包采用 ad-hoc 签名，未经 Apple 公证。用户已于 2026-10-12 反馈完整体验验收无明显问题；具体系统及下载隔离场景未单列，见[用户验收记录](releases/2026-10-12-owner-acceptance.md)。签名配置与凭据只能在用户授权的具体发布步骤使用，不写入仓库。
 
 `docs/.gdignore` 将验收截图和文档排除在 Godot 资源导入之外，避免干净构建为文档图片生成未跟踪的 `.import` 文件；随包 README 仍由构建脚本显式复制。
 
 ## Web 构建与 itch.io 发布
 
-2026-09-11 重新核对，公开页面 <https://jerryszz02.itch.io/poker-game> 已提供 v1.2.0 内嵌启动入口、桌面 ZIP 和校验文件；GitHub latest 仍为 v1.1.0。浏览器音频与本地存档已实现。既有记录包含本地导出/ZIP 校验及用户预览；本次未重新执行完整浏览器音频/持久化矩阵。构建脚本本身不执行上传或发布。完整步骤、存储语义与人工验收表见 [itchio-release.md](itchio-release.md)。
+当前发布为 v1.4.0：itch.io 提供浏览器入口和桌面下载，GitHub Releases 同步相同原始发布包。包来源及同步校验见 [1.4.0 发布记录](releases/1.4.0.md)。浏览器音频与本地存档已实现；2026-10-12 用户报告完整验收无明显问题，具体平台覆盖见[用户验收记录](releases/2026-10-12-owner-acceptance.md)。构建脚本本身不执行上传或发布。完整步骤、存储语义与人工验收表见 [itchio-release.md](itchio-release.md)。
 
 ```sh
 python3 tools/build_release.py --godot "$GODOT_BIN" --target web

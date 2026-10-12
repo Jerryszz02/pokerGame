@@ -4,7 +4,7 @@
 
 ## 文档目的
 
-本文定义 PokerGame 当前原型的最小验证方式，帮助后续规则、AI 或 UI 改动在合并前证明没有破坏核心玩法。
+本文定义 PokerGame 原型回归基线及当前扩展功能的验证方式，帮助后续规则、AI 或 UI 改动在合并前证明没有破坏核心玩法。
 
 本文件保留原型回归入口。2026-09-06 起进入稳定公开桌面首发，新增 CI、性能、长局、发行包和目标设备验收以 [release-plan.md](release-plan.md) R1–R9 为准；目标要求不是已通过记录。
 
@@ -32,7 +32,7 @@
 | `tests/test_runner.gd` | 当前测试覆盖规则、中文牌型/结果、事件、local profile、AI 个性/抽样/合法行动和 Monte Carlo 权益范围。 |
 | `tests/ui_layout_probe.gd` | 覆盖 1280x720 菜单/设置，以及 1280x720、1440x900、1920x1080 桌面布局和关键纹理接入。 |
 | `tests/ui_playthrough_probe.gd` | 窗口模式覆盖设置重置、日志、暂停/继续、加注展开、全下、结算、下一手、重开和 AI 回合中返回菜单。 |
-| `scripts/ui/main.gd` | 人工烟测需要覆盖菜单、设置/统计、三档难度、AI 数量、事件日志、行动控件、盲注、生成美术和结果面板。 |
+| `scripts/ui/main.gd` | 人工烟测需要覆盖菜单、设置/统计、四档难度、AI 数量、事件日志、行动控件、盲注、生成美术和结果面板。 |
 
 ## 自动化检查
 
@@ -106,7 +106,7 @@
 
 1. 从 Godot Project Manager 导入 `/Users/jerryszz/Desktop/Projects/pokerGame/project.godot`，运行 `res://scenes/main.tscn`。
 2. 确认生成式菜单背景、标题、桌面预览、选择控件和按钮清晰显示；打开设置检查开关、统计和两步重置。
-3. 分别用 1、3、5 个 AI 开局，并尝试简单、中等、困难三档难度。
+3. 分别用 1、3、5 个 AI 开局，并尝试简单、中等、困难、地狱四档难度；教程与教练另按文末功能探针覆盖。
 4. 打开日志抽屉，确认它覆盖牌桌且 AI 暂停；关闭后确认牌局恢复。
 5. 从牌局设置暂停并继续；再次暂停后返回菜单，确认排队中的 AI 行动不会恢复旧牌桌。
 6. 在玩家回合尝试 fold、check、call、raise、all-in 中当前合法的行动。
@@ -129,19 +129,19 @@
 
 ## 性能和稳定性
 
-原型阶段未设性能预算；首发新增预算见 release plan R3，尚待实现和验证。已知需要关注：
+原型阶段未设性能预算；首发已建立 [release plan R3](release-plan.md) 的响应与稳定性标准，并实现 `ai_runtime_probe.gd`、`ui_lifecycle_probe.gd`、`ui_stability_probe.gd` 和算法基准。各次通过情况以对应发行报告为准，不能把检查入口存在写成当前设备预算已通过。维护时关注：
 
 - Hard AI 的 Monte Carlo 次数会影响回合响应时间。
-- 程序化 UI 每次重渲染会删除并重建节点，当前原型可接受；复杂 UI 或动画后需重新评估。
-- 随机 AI 行为会让人工结果不可完全复现；如需要定位复杂 bug，可能要新增固定随机种子策略。
-- 当前 UI 布局探针通过后仍可能报告 `1 ObjectDB instance was leaked at exit`；退出码 0 且成功文本存在时不视为布局失败，但数量增长或非零退出码需要重新排查节点清理。
+- 程序化 UI 重渲染涉及节点重建；新增复杂 UI 或动画时重新检查生命周期与响应预算。
+- 随机 AI 行为会让人工结果不可完全复现；规则、Monte Carlo 与有限搜索已有独立/可注入 RNG，回归使用固定种子。复现 bug 时记录种子与初始状态。
+- 原型历史检查曾报告 `1 ObjectDB instance was leaked at exit`，该记录不代表当前仍存在泄漏；检查时须独立审查日志，数量增长或非零退出码需排查节点清理。
 
 ## 非目标
 
 - CI 与发布流水线由 release plan 和后续构建配置定义。
 - 移动端与 Steam 不属于默认首发范围；桌面导出矩阵按 release plan 执行。
 - 不要求移动端或平台级输入自动化；当前完整点击流只覆盖本地桌面窗口模式。
-- 不测试外部 API、账号、支付或联网，因为当前项目没有这些边界。
+- 账号、支付和联网对战未纳入范围；已实现的云端文字复盘 HTTP 契约、Worker 和回退由文末[算法与教练回归](#算法与教练回归)覆盖。
 
 ## 实现指引
 
@@ -155,16 +155,15 @@
 - 规则或 AI 改动：Godot headless 测试通过。
 - UI 改动：UI 布局探针、完整点击流与主场景启动检查通过，并审查 `/tmp/poker_audit/` 截图。
 - 运行入口或资源引用改动：UI 布局探针与主场景启动检查通过，README/runbook/美术规范同步。
-- 导出目标确认后：补充 release plan 和平台相关人工检查。
+- Windows x64、macOS Universal 和 Web 已有构建目标；新增目标时补充 release plan 与平台人工检查。
 
-## 待确认
+## 当前验证状态与证据（2026-10-12）
 
-| 问题 | 影响 |
-| --- | --- |
-| 是否需要 CI 自动运行 Godot headless 测试 | 会影响测试命令的环境假设和仓库配置。 |
-| 是否需要性能预算 | 会影响 Monte Carlo 次数和目标设备验收。 |
-| 是否需要平台测试矩阵 | 会影响桌面、Steam、iOS 或触控输入的验收范围。 |
-| 是否需要固定随机种子 | 会影响 AI 和牌局 bug 的可复现性。 |
+- Godot headless、原生包自检和 Web 导出已进入 `.github/workflows/desktop.yml`；Worker 有独立 CI。是否通过须核对对应提交的实际运行。
+- 固定随机种子、30 分钟窗口稳定性探针、帧延迟预算和平台包检查均已有实现；要求及复用方式见下文与 [release plan](release-plan.md)。
+- v1.4.0 的已运行检查保存在[发行记录](../releases/1.4.0.md#verification)。本次仅同步文档，没有在本地重跑这些测试；文档 PR 的 CI 结果以该 PR 的实际运行为准。
+- 用户于 2026-10-12 反馈完整实测无明显问题。具体 OS/架构/浏览器和逐项日志未提供，详见[用户验收记录](../releases/2026-10-12-owner-acceptance.md)。不继续笼统列为“用户验收未完成”，也不据此填满平台矩阵。
+- Steam、iOS 或新增设备的测试矩阵需在相关范围获确认后定义；当前桌面/Web 验收要求仍可复用。
 
 ## 首发可执行检查（2026-09-07）
 
@@ -200,4 +199,4 @@ Godot 回归与本机服务测试已接入 `tools/verify.py`；Worker 使用独�
 | `tests/deepseek_review_test.gd`、`tests/local_replay_review_test.gd`、`tools/test_coach_service.py` | 有界数值摘要、决定引用/输出校验、本地规则文字、失败冷却与云端回退、Godot 到本机服务的 HTTP 契约；不以固定响应证明真实模型质量。 |
 | `services/coach-worker/test/` | Worker/SQLite Durable Object 的并发准入、重启持久额度、请求合并、缓存、失败计数、输入/输出限制、超时和来源校验；执行命令见 [Runbook](../runbook.md#cloudflare-文字复盘服务)。 |
 
-地狱、实时提示和回放的耗时用 `tests/coach_benchmark.gd` 记录具体机器、版本和样本；固定牌序、座位轮换的对战样本不自动证明强度提升。六维口径与信息边界见[架构](../architecture.md#coach-and-player-style)，浏览器和目标设备尚未完成的验收见[发布记录](../releases/1.3.0.md#verification-and-limits)。
+地狱、实时提示和回放的耗时用 `tests/coach_benchmark.gd` 记录具体机器、版本和样本；固定牌序、座位轮换的对战样本不自动证明强度提升。六维口径与信息边界见[架构](../architecture.md#coach-and-player-style)，v1.4.0 检查与历史验证边界见[发布记录](../releases/1.4.0.md#verification)，本次用户人工反馈见[验收记录](../releases/2026-10-12-owner-acceptance.md)。
