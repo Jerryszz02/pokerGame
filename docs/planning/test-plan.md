@@ -161,7 +161,7 @@
 
 - Godot headless、原生包自检和 Web 导出已进入 `.github/workflows/desktop.yml`；Worker 有独立 CI。是否通过须核对对应提交的实际运行。
 - 固定随机种子、30 分钟窗口稳定性探针、帧延迟预算和平台包检查均已有实现；要求及复用方式见下文与 [release plan](release-plan.md)。
-- v1.4.0 的已运行检查保存在[发行记录](../releases/1.4.0.md#verification)。本次仅同步文档，没有重跑这些测试。
+- v1.4.0 的已运行检查保存在[发行记录](../releases/1.4.0.md#verification)。本次仅同步文档，没有在本地重跑这些测试；文档 PR 的 CI 结果以该 PR 的实际运行为准。
 - 用户于 2026-10-12 反馈完整实测无明显问题。具体 OS/架构/浏览器和逐项日志未提供，详见[用户验收记录](../releases/2026-10-12-owner-acceptance.md)。不继续笼统列为“用户验收未完成”，也不据此填满平台矩阵。
 - Steam、iOS 或新增设备的测试矩阵需在相关范围获确认后定义；当前桌面/Web 验收要求仍可复用。
 

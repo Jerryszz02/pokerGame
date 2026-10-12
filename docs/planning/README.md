@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | 源码基线 | 本次同步起点 `origin/main` 为 `cb98f0b`，项目版本 **1.4.0**。三手教程、练习、牌谱回放、统计与成就、对手风格、地狱难度、本地教练、离线文字复盘和六维画像均已实现。 | [项目配置](../../project.godot)、[架构](../architecture.md)、[教练与雷达定义](../architecture.md#coach-and-player-style)。此提交是文档同步起点，发行包来源另见发行记录。 |
 | 公开版本 | **itch.io 提供 v1.4.0** 网页版及 Windows/macOS 下载；**GitHub 最新正式 Release 已同步为 v1.4.0**（2026-10-12）。 | [itch.io](https://jerryszz02.itch.io/poker-game)、[GitHub v1.4.0](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.4.0)、[1.4.0 发布记录](../releases/1.4.0.md)。GitHub API 读回确认为 latest、非 draft、非 prerelease；tag 指向 `cb98f0b`，7 个附件的名称、大小和 SHA-256 与原包及 manifests 一致。 |
-| 自动检查 | v1.4.0 发行记录保存了规则、AI、教程、保存、语言音频、布局、soak、工具及原生/Web 包检查结果。 | [Release PR CI](https://github.com/Jerryszz02/pokerGame/actions/runs/35846894269)、[1.4.0 验证记录](../releases/1.4.0.md#verification)。这是对应发行提交的历史检查，本次文档同步未重跑。 |
+| 自动检查 | v1.4.0 发行记录保存了规则、AI、教程、保存、语言音频、布局、soak、工具及原生/Web 包检查结果。 | [Release PR CI](https://github.com/Jerryszz02/pokerGame/actions/runs/35846894269)、[1.4.0 验证记录](../releases/1.4.0.md#verification)。这是对应发行提交的历史检查；本次未在本地重跑游戏测试，文档 PR 的 CI 结果另见该 PR。 |
 | 人工验收 | 用户于 2026-10-12 反馈已做完整实测，未发现明显问题。 | [用户验收记录](../releases/2026-10-12-owner-acceptance.md)。用户没有提供 OS、架构、浏览器或逐项日志；该反馈不扩写为所有平台矩阵逐项通过。 |
 | Devlog | v1.4.0 帖子已列于 itch.io 公开页面，图文及媒体保存在仓库。 | [公开 Devlog](https://jerryszz02.itch.io/poker-game/devlog/1675112/pokergame-140-learn-by-playing-your-first-three-hands)、[Devlog 文本](../releases/1.4.0-devlog.md)、[发行记录](../releases/1.4.0.md)。本次同步未发布或编辑该帖子。 |
 
