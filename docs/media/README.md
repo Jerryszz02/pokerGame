@@ -15,7 +15,8 @@ Keep reusable artwork at this directory's root and release-specific screenshots 
 | `v1.2.0/cover.png` | User-supplied v1.2.0 devlog cover. |
 | `v1.2.0/achievements.png` | Actual statistics and achievements screen with the first complete replay achievement unlocked; [capture details and existing devlog insertion](../releases/1.2.0-devlog-addendum.md). |
 | `v1.3.0/` | v1.3.0 devlog cover and eight actual game captures; [provenance and publication history](v1.3.0/README.md). The v1.3.0 packages have been uploaded; see [release verification](../releases/1.3.0.md). |
+| `v1.4.0/` | v1.4.0 cover and five actual three-hand tutorial captures; [capture provenance](v1.4.0/README.md) and [release verification](../releases/1.4.0.md). |
 
-The four storefront gameplay screenshots listed under `v1.0.0/` belong to that version, as identified by the capture source's `project.godot`. See [storefront asset provenance](../storefront/README.md#assets) for capture details. Moving these images does not refresh them to a newer release; the v1.2.0 and v1.3.0 captures have their own provenance linked above.
+The four storefront gameplay screenshots listed under `v1.0.0/` belong to that version, as identified by the capture source's `project.godot`. See [storefront asset provenance](../storefront/README.md#assets) for capture details. Moving these images does not refresh them to a newer release; the v1.2.0, v1.3.0 and v1.4.0 captures have their own provenance linked above.
 
 For future devlogs, save actual game captures as `v<version>/<feature>.png` and the banner-based cover as `v<version>/cover.png`. Upload them into the corresponding unpublished draft; the user handles publication. Follow the full [devlog requirements](../../AGENTS.md#devlog-requirements).

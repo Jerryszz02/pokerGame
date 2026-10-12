@@ -12,7 +12,7 @@ Windows：完整解压压缩包后启动 `PokerGame.exe`。macOS：解压后打�
 
 ## 从首页开始
 
-v1.4.0 新增三手引导教程。基础练习和牌谱回放始于 v1.1.0；对手风格选择、地狱难度、本地教练及六维画像包含在 v1.3.0 中。旧版玩家请从 [itch.io](https://jerryszz02.itch.io/poker-game) 下载已发布的新版压缩包并重新解压，发布及验证边界见 [1.4.0 发布说明](https://github.com/Jerryszz02/pokerGame/blob/main/docs/releases/1.4.0.md)。
+v1.4.0 新增三手引导教程。基础练习和牌谱回放始于 v1.1.0；对手风格选择、地狱难度、本地教练及六维画像包含在 v1.3.0 中。旧版玩家可从 [itch.io](https://jerryszz02.itch.io/poker-game) 或 [GitHub Releases](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.4.0) 下载 v1.4.0 压缩包并重新解压，发布及验证边界见 [1.4.0 发布说明](https://github.com/Jerryszz02/pokerGame/blob/main/docs/releases/1.4.0.md)。
 
 首页提供“新手教程”“自由对战”“练习对局 · 基础流程”。自由和练习模式先配置 1～5 个对手、四档难度、每人 1000/2000/5000/10000 筹码及四组固定盲注。普通、困难和地狱档还可选择整桌对手风格：默认、逐座位随机，或让所有对手采用同一个指定预设；简单档隐藏该选择，但保留记忆。取消保留草稿，点击开始才开桌。BB 表示大盲单位。赢得所有筹码获胜，筹码归零则整场结束；可免费重新开桌。
 

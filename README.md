@@ -6,11 +6,11 @@
 
 A free, single-player Texas Hold’em game for browsers, Windows and macOS. Desktop downloads work offline. Sit down with up to five AI opponents, read the table, and decide when to fold, call, or put your whole stack on the line.
 
-**[Play or download on itch.io](https://jerryszz02.itch.io/poker-game)** · **[Earlier GitHub releases](https://github.com/Jerryszz02/pokerGame/releases/latest)**
+**[Play or download on itch.io](https://jerryszz02.itch.io/poker-game)** · **[Download on GitHub](https://github.com/Jerryszz02/pokerGame/releases/latest)**
 
 **Single player · 1–5 AI opponents · Four difficulty levels · English / Simplified Chinese**
 
-**v1.4.0 is available on itch.io** for browsers, Windows and macOS. The new three-hand tutorial takes beginners from following a coach to making their own decisions at the table, in English or Simplified Chinese. Opponent personalities, Hell difficulty, coaching, replay reviews and the player-style radar from v1.3.0 remain available. GitHub Releases retains v1.2.0; get v1.4.0 from itch.io. See the [release notes and verification](docs/releases/1.4.0.md).
+**v1.4.0 is available on itch.io and GitHub** for browsers, Windows and macOS. The new three-hand tutorial takes beginners from following a coach to making their own decisions at the table, in English or Simplified Chinese. Opponent personalities, Hell difficulty, coaching, replay reviews and the player-style radar from v1.3.0 remain available. See the [release notes and verification](docs/releases/1.4.0.md).
 
 ![A river decision against five AI opponents, with fold, call, and all-in actions](docs/media/v1.0.0/river-decision.png)
 
@@ -41,14 +41,14 @@ A free, single-player Texas Hold’em game for browsers, Windows and macOS. Desk
 
 ## Download and take a seat
 
-Get the v1.3.0 desktop ZIP for your system from [itch.io](https://jerryszz02.itch.io/poker-game), or play in your browser there. [GitHub Releases](https://github.com/Jerryszz02/pokerGame/releases/latest) currently provides the older v1.2.0 packages. You do not need the Godot editor, .NET, or this source repository to play.
+Get the v1.4.0 desktop ZIP for your system from [itch.io](https://jerryszz02.itch.io/poker-game) or [GitHub Releases](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.4.0), or play in your browser on itch.io. GitHub uses versioned filenames (`PokerGame-1.4.0-<target>.zip`); the itch.io channel filenames below stay the same. You do not need the Godot editor, .NET, or this source repository to play.
 
 | System | Download | Start playing |
 | --- | --- | --- |
-| Windows x64 | `poker-game-windows-x64.zip` (version 1.3.0) | Extract the whole ZIP, then open `PokerGame.exe`. |
-| macOS | `poker-game-macos-universal.zip` (version 1.3.0) | Extract the ZIP, then open `PokerGame.app`. |
+| Windows x64 | `poker-game-windows-x64.zip` (version 1.4.0) | Extract the whole ZIP, then open `PokerGame.exe`. |
+| macOS | `poker-game-macos-universal.zip` (version 1.4.0) | Extract the ZIP, then open `PokerGame.app`. |
 
-Use a display area of at least **1280 × 720** and a mouse. The macOS package contains Apple Silicon and Intel binaries; Intel Macs have not been separately validated. Windows builds are unsigned, and macOS builds are not Apple-notarized, so your system may show a first-launch security prompt. See the [release notes and validation](docs/releases/1.3.0.md) before opening the download.
+Use a display area of at least **1280 × 720** and a mouse. The macOS package contains Apple Silicon and Intel binaries; Intel Macs have not been separately validated. Windows builds are unsigned, and macOS builds are not Apple-notarized, so your system may show a first-launch security prompt. See the [release notes and validation](docs/releases/1.4.0.md) before opening the download.
 
 **A quick guide to the Chinese buttons:**
 
@@ -70,7 +70,7 @@ The game and this page include AI-generated artwork. Gameplay screenshots show t
 <details>
 <summary><strong>For developers: run from source</strong></summary>
 
-Tutorials, configurable stacks/blinds, saved replays and local statistics/achievements are included in v1.1.0. Version 1.3.0 adds local practice coaching, replay decision analysis, Hell difficulty and a descriptive six-axis player radar. Opening a replay automatically shows a local rule-based written review from the numerical analysis. An available owner-operated Cloudflare service can replace it with cloud prose; otherwise the local review remains usable offline. Players do not configure credentials; service setup is documented in the [runbook](docs/runbook.md#cloudflare-文字复盘服务). See the [coach/radar definitions and verification](docs/architecture.md#coach-and-player-style); the v1.3.0 itch.io channels contain these changes. For current source and release boundaries, see the [status and documentation index](docs/planning/README.md).
+Tutorials, configurable stacks/blinds, saved replays and local statistics/achievements are included in v1.1.0. Version 1.3.0 adds local practice coaching, replay decision analysis, Hell difficulty and a descriptive six-axis player radar. Opening a replay automatically shows a local rule-based written review from the numerical analysis. An available owner-operated Cloudflare service can replace it with cloud prose; otherwise the local review remains usable offline. Players do not configure credentials; service setup is documented in the [runbook](docs/runbook.md#cloudflare-文字复盘服务). See the [coach/radar definitions and verification](docs/architecture.md#coach-and-player-style); the current v1.4.0 packages include these features and the three-hand tutorial. For current source and release boundaries, see the [status and documentation index](docs/planning/README.md).
 
 Built with Godot 4 and GDScript. Release builds use **Godot 4.7.2 standard**, with no .NET requirement. On macOS/Linux:
 
