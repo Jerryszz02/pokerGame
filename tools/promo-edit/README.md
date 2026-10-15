@@ -2,6 +2,10 @@
 
 基于 PokerGame **v1.4.0 / `42e62f83f9b2c439eb636ac86195312e49604af0`** 的当前游戏实录。Remotion / React / npm 依赖仅用于此剪辑目录，不进入 Godot 游戏运行时。剪辑、标题、裁切与声音包络在 `src/Films.tsx`、`src/Shot.tsx` 和 `src/Design.tsx` 中。
 
+R2 根据用户反馈强化三个横版标题：中心弹出的斜横幅、侧入大字与更大、更高对比的章节标题。`OpeningChoice` 使用同步原片窗口显示手牌和按钮；Shorts 继续采用原 R0 成片。范围与版本证据见 [R2 制作记录](../../docs/promo-review/revision-R2-notes.md)，新增验收门槛见 [R2 补充标准](../../docs/promo-review/rubric-R2-addendum.md)。
+
+Store / Xiaohongshu 的 [R3 修复](../../docs/promo-review/revision-R3-notes.md)将设置标题拆为两行，并把中文字幕底板完整移入独立字幕区，避免遮挡人数箭头与盲注数值。采用轮次、最终 SHA 和独立审核结果以[交付清单](../../docs/promo-review/README.md)为准。
+
 | Composition / 成片文件 | 规格 | 内容 |
 | --- | --- | --- |
 | `Store` / `Store.mp4` | 60 秒，1920×1080，30 fps | itch.io / YouTube 共用，英文界面与标题 |

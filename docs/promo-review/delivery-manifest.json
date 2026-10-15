@@ -8,11 +8,11 @@
   "files": [
     {
       "file": "Store.mp4",
-      "revision": "R1",
+      "revision": "R3",
       "score": 95,
       "verdict": "Pass",
-      "sha256": "456a335088f1479f01dcca81543837c7f5310f9a1b03812728d58f8324bc0b86",
-      "bytes": 6213031,
+      "sha256": "4a6ac152e043b30d467cda8435db1643273294acb4af216f5389c903e75e1716",
+      "bytes": 6503269,
       "duration_seconds": 60.1,
       "video_duration_seconds": 60.0,
       "width": 1920,
@@ -22,16 +22,16 @@
       "true_peak_dbtp": -2.05,
       "full_decode": "ok",
       "subjective_listening": "Unverified; tool does not support audio input",
-      "review_report": "review-R1.md",
-      "source_path": "revisions/R1/Store.mp4"
+      "review_report": "review-R3.md",
+      "source_path": "revisions/R3/Store.mp4"
     },
     {
       "file": "Xiaohongshu.mp4",
-      "revision": "R1",
+      "revision": "R3",
       "score": 95,
       "verdict": "Pass",
-      "sha256": "7df3566c4c35ae2c18b5d359c3d1572e9916984e3efbd260681951bfd8d62e34",
-      "bytes": 6447925,
+      "sha256": "04ec0b09bd3f6b38fc84307d9b31b20b6abde42acc7f6b0e0e507f16e17f86ee",
+      "bytes": 6811074,
       "duration_seconds": 60.1,
       "video_duration_seconds": 60.0,
       "width": 1920,
@@ -41,16 +41,16 @@
       "true_peak_dbtp": -2.05,
       "full_decode": "ok",
       "subjective_listening": "Unverified; tool does not support audio input",
-      "review_report": "review-R1.md",
-      "source_path": "revisions/R1/Xiaohongshu.mp4"
+      "review_report": "review-R3.md",
+      "source_path": "revisions/R3/Xiaohongshu.mp4"
     },
     {
       "file": "Bilibili.mp4",
-      "revision": "R1",
+      "revision": "R2",
       "score": 94,
       "verdict": "Pass",
-      "sha256": "4ac44ce066f8964d6ed7971620d7f03228f13ccb75d006912ff861e719fee899",
-      "bytes": 6661978,
+      "sha256": "544c53424cb0c7b32c3f24ed1baa9289111ae9e1fe18545184673b8234745624",
+      "bytes": 7065078,
       "duration_seconds": 80.0,
       "video_duration_seconds": 80.0,
       "width": 1920,
@@ -60,8 +60,8 @@
       "true_peak_dbtp": -2.07,
       "full_decode": "ok",
       "subjective_listening": "Unverified; tool does not support audio input",
-      "review_report": "review-R1.md",
-      "source_path": "revisions/R1/Bilibili.mp4"
+      "review_report": "review-R2.md",
+      "source_path": "revisions/R2/Bilibili.mp4"
     },
     {
       "file": "Shorts.mp4",

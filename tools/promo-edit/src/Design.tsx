@@ -34,17 +34,29 @@ export const Title: React.FC<{text: string; sub?: string; zh?: boolean; position
   const central = position === 'center';
   return <div style={{position: 'absolute', zIndex: 3, left: central ? 90 : (position === 'tr' ? undefined : 105), right: central ? 90 : (position === 'tr' ? 105 : undefined), top: vertical ? 215 : (position === 'bl' ? undefined : 80), bottom: position === 'bl' ? 170 : undefined, opacity: alpha, translate: `0px ${move}px`, textAlign: central ? 'center' : 'left'}}>
     <div style={{position: 'absolute', inset: '-13px -17px -11px -16px', background: '#020806', clipPath: 'polygon(0 0, 94% 0, 100% 27%, 100% 100%, 4% 100%, 0 68%)', rotate: '-1deg'}} />
-    <div style={{position: 'relative', padding: vertical ? '20px 30px 26px' : '18px 34px 25px', borderLeft: `6px solid ${brass}`, background: '#0c2b24', clipPath: 'polygon(0 0, 95% 0, 100% 29%, 100% 100%, 0 100%)'}}>
-      <div style={{fontFamily: zh ? 'Noto' : 'Pixelify', fontSize: vertical ? 72 : (zh ? 62 : 82), fontWeight: 700, color: cream, lineHeight: 1.08, letterSpacing: zh ? 2 : 1, whiteSpace: 'nowrap'}}>{text}</div>
-      {sub && <div style={{fontFamily: 'Noto', color: brass, fontSize: vertical ? 34 : 32, marginTop: 10}}>{sub}</div>}
+    <div style={{position: 'relative', padding: vertical ? '20px 30px 26px' : '14px 38px 22px', borderLeft: `${vertical ? 6 : 10}px solid ${vertical ? brass : cream}`, background: vertical ? '#0c2b24' : '#efd28d', clipPath: 'polygon(0 0, 95% 0, 100% 29%, 100% 100%, 0 100%)'}}>
+      <div data-promo-title="chapter" style={{fontFamily: zh ? 'Noto' : 'Pixelify', fontSize: vertical ? 72 : (zh ? 94 : 128), fontWeight: 700, color: vertical ? cream : ink, lineHeight: 1.08, letterSpacing: zh ? 2 : 1, whiteSpace: vertical ? 'nowrap' : 'pre'}}>{text}</div>
+      {sub && <div style={{fontFamily: 'Noto', color: vertical ? brass : '#17392f', fontSize: vertical ? 34 : 40, fontWeight: vertical ? 400 : 700, marginTop: 10}}>{sub}</div>}
+    </div>
+  </div>;
+};
+
+// The band expands from its centre; the independent text layer sweeps in from the right.
+export const OpeningBanner: React.FC<{text: string; zh?: boolean; seconds: number}> = ({text, zh, seconds}) => {
+  const f = useCurrentFrame(); const {fps} = useVideoConfig();
+  return <div data-promo-banner="opening" style={{position: 'absolute', zIndex: 4, left: 180, top: 320, width: 1560, height: 240, rotate: '-5deg', transformOrigin: '50% 50%', scale: interpolate(f, [0, .16 * fps, .3 * fps], [.08, 1.065, 1], clamp), opacity: interpolate(f, [0, .07 * fps, (seconds - .1) * fps, seconds * fps], [0, 1, 1, 0], clamp)}}>
+    <div style={{position: 'absolute', inset: '-18px -20px -20px', background: ink, translate: '14px 16px', clipPath: 'polygon(3% 0,100% 0,97% 100%,0 100%)'}} />
+    <div style={{position: 'absolute', inset: 0, background: '#efd28d', borderTop: `8px solid ${cream}`, borderBottom: `8px solid ${cream}`, clipPath: 'polygon(3% 0,100% 0,97% 100%,0 100%)'}} />
+    <div style={{position: 'absolute', inset: '0 55px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden'}}>
+      <div data-promo-title="opening" style={{fontFamily: zh ? 'Noto' : 'Pixelify', fontWeight: 700, fontSize: zh ? 146 : 190, lineHeight: 1.08, letterSpacing: zh ? 3 : 1, color: ink, whiteSpace: 'nowrap', translate: `${interpolate(f, [.04 * fps, .25 * fps, .4 * fps], [900, -22, 0], clamp)}px 0px`, opacity: interpolate(f, [.04 * fps, .13 * fps], [0, 1], clamp)}}>{text}</div>
     </div>
   </div>;
 };
 
 export const Subtitle: React.FC<{text: string; seconds?: number}> = ({text, seconds = 4}) => {
   const {fps} = useVideoConfig(); const f = useCurrentFrame();
-  return <div style={{position: 'absolute', zIndex: 5, left: 80, right: 80, bottom: 58, display: 'flex', justifyContent: 'center', opacity: interpolate(f, [0, 5, seconds * fps - 5, seconds * fps], [0, 1, 1, 0], clamp)}}>
-    <div style={{fontFamily: 'Noto', fontSize: 46, lineHeight: 1.4, color: 'white', background: '#020b09e8', borderBottom: `2px solid ${brass}`, padding: '8px 22px', textShadow: '0 2px 3px black'}}>{text}</div>
+  return <div style={{position: 'absolute', zIndex: 5, left: 80, right: 80, top: 968, display: 'flex', justifyContent: 'center', opacity: interpolate(f, [0, 5, seconds * fps - 5, seconds * fps], [0, 1, 1, 0], clamp)}}>
+    <div style={{fontFamily: 'Noto', fontSize: 50, fontWeight: 700, lineHeight: 1.12, color: 'white', background: '#020b09f5', borderBottom: `3px solid ${brass}`, padding: '5px 24px', textShadow: '0 2px 3px black'}}>{text}</div>
   </div>;
 };
 
