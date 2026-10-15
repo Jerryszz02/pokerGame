@@ -1,16 +1,16 @@
 import {Sequence, useVideoConfig} from 'remotion';
 import {Base, EndCard, Music} from './Design';
-import {Shot, SplitShot, TutorialFeedback} from './Shot';
+import {OpeningChoice, Shot, SplitShot, TutorialFeedback} from './Shot';
 
 export const StoreFilm = ({captions=false}:{captions?:boolean}) => {
  const {fps}=useVideoConfig();
  return <Base>
-  <Sequence name="A01 · Your move / same hand" durationInFrames={2*fps} premountFor={fps}><Shot src="media/en-practice-take02.mp4" start={45.7} crop={[760,540,800,400]} inset title="YOUR MOVE" position="tr" titleSeconds={2} caption={captions?'这一手，你来决定。':undefined} captionSeconds={2}/></Sequence>
+  <Sequence name="A01 · Your move / same hand" durationInFrames={2*fps} premountFor={fps}><OpeningChoice src="media/en-practice-take02.mp4" start={45.7} crop={[760,540,800,400]} handCrop={[830,650,350,149]} actionCrop={[1300,800,600,234]} title="CALL OR FOLD?" seconds={2} caption={captions?'这一手，你来决定。':undefined} captionSeconds={2}/></Sequence>
   <Sequence name="A01 · Call amount" from={2*fps} durationInFrames={2*fps} premountFor={fps}><Shot src="media/en-practice-take02.mp4" start={46.8} crop={[1120,650,800,400]} inset/></Sequence>
   <Sequence name="A02 · The poker room" from={4*fps} durationInFrames={4*fps} premountFor={fps}><Shot src="media/en-practice-take02.mp4" start={11.6} crop={[0,0,1920,1080]} inset full title="SINGLE PLAYER" sub="Texas Hold'em" position="tl" caption={captions?'一个人，也能开一桌德州。':undefined}/></Sequence>
-  <Sequence name="A03 · Configure your table" from={8*fps} durationInFrames={3*fps} premountFor={fps}><Shot src="media/config-pickup-en.mp4" start={3.3} crop={[400,140,1120,560]} inset title="YOUR TABLE" position="tr" titleSeconds={2} caption={captions?'对手人数和难度，由你来选。':undefined}/></Sequence>
+  <Sequence name="A03 · Configure your table" from={8*fps} durationInFrames={3*fps} premountFor={fps}><Shot src="media/config-pickup-en.mp4" start={3.3} crop={[400,140,1120,560]} inset title={'YOUR\nTABLE'} position="tr" titleSeconds={2} caption={captions?'对手人数和难度，由你来选。':undefined}/></Sequence>
   <Sequence name="A03 · Start" from={11*fps} durationInFrames={3*fps} premountFor={fps}><Shot src="media/config-pickup-en.mp4" start={8.9} crop={[440,380,1200,600]} inset clickAt={1.867} clickPoint={[679.5,856.5]}/></Sequence>
-  <Sequence name="A04 · Observe hard AI" from={14*fps} durationInFrames={4*fps} premountFor={fps}><Shot src="media/hard-ai-en.mp4" start={6.5} crop={[220,40,1480,740]} inset title="READ THE TABLE" position="bl" titleSeconds={2} caption={captions?'观察对手，再做决定。':undefined}/></Sequence>
+  <Sequence name="A04 · Observe hard AI" from={14*fps} durationInFrames={4*fps} premountFor={fps}><Shot src="media/hard-ai-en.mp4" start={6.5} crop={[220,40,1480,740]} inset title="READ THE TABLE" position="tl" titleSeconds={2} caption={captions?'观察对手，再做决定。':undefined}/></Sequence>
   <Sequence name="A04 · Opponent actions" from={18*fps} durationInFrames={4*fps} premountFor={fps}><Shot src="media/hard-ai-en.mp4" start={10.5} crop={[310,180,1260,630]} inset/></Sequence>
   <Sequence name="A04 · Action comes to you" from={22*fps} durationInFrames={3*fps} premountFor={fps}><Shot src="media/hard-ai-en.mp4" start={21} crop={[760,440,1160,580]} inset/></Sequence>
   <Sequence name="A05 · Current three-hand tutorial" from={25*fps} durationInFrames={2*fps} premountFor={fps}><Shot src="media/en-tutorial-take02.mp4" start={16.667} crop={[0,0,1920,1080]} inset full title="LEARN" position="tr" titleSeconds={2} caption={captions?'跟着教程，练习基本操作。':undefined} captionSeconds={2}/></Sequence>
@@ -33,7 +33,7 @@ export const StoreFilm = ({captions=false}:{captions?:boolean}) => {
 export const BilibiliFilm = () => {
  const {fps}=useVideoConfig();
  return <Base>
-  <Sequence name="B01 · Same-hand choice" durationInFrames={3*fps} premountFor={fps}><Shot src="media/zh-practice-take02.mp4" start={24.833} crop={[760,540,800,400]} inset title="这手，怎么打？" zh position="tr" titleSeconds={2}/></Sequence>
+  <Sequence name="B01 · Same-hand choice" durationInFrames={3*fps} premountFor={fps}><OpeningChoice src="media/zh-practice-take02.mp4" start={24.833} crop={[760,540,800,400]} handCrop={[830,650,350,149]} actionCrop={[1300,800,600,234]} title="这手，怎么打？" zh seconds={2.7}/></Sequence>
   <Sequence name="B01 · Facing the bet" from={3*fps} durationInFrames={2*fps} premountFor={fps}><Shot src="media/zh-practice-take02.mp4" start={25.833} crop={[1120,650,800,400]} inset/></Sequence>
   <Sequence name="B02 · The training room" from={5*fps} durationInFrames={5*fps} premountFor={fps}><Shot src="media/hard-ai-zh.mp4" start={6.5} crop={[0,0,1920,1080]} inset full title="德州扑克训练室" zh position="tl" sub="PokerGame"/></Sequence>
   <Sequence name="B03 · Three guided hands" from={10*fps} durationInFrames={3*fps} premountFor={fps}><Shot src="media/zh-tutorial-take02.mp4" start={3.267} crop={[0,0,1920,1080]} inset full title="先练基本功" zh position="tr" titleSeconds={2}/></Sequence>
@@ -49,7 +49,7 @@ export const BilibiliFilm = () => {
   <Sequence name="B06 · Enter same-hand replay" from={46*fps} durationInFrames={3*fps} premountFor={fps}><Shot src="media/zh-practice-take02.mp4" start={32.1} crop={[150,60,1620,810]} inset title="回看每一步" zh position="tr" titleSeconds={2}/></Sequence>
   <Sequence name="B06 · Player perspective" from={49*fps} durationInFrames={11*fps} premountFor={fps}><Shot src="media/zh-replay-pickup.mp4" start={7.3} crop={[150,150,1440,720]} inset/></Sequence>
   <Sequence name="B07 · Completed-hand omniscient toggle" from={60*fps} durationInFrames={8*fps} premountFor={fps}><Shot src="media/zh-replay-pickup.mp4" start={18.3} crop={[150,150,1440,720]} inset title="再看完整牌局" zh position="tr" titleSeconds={2.3}/></Sequence>
-  <Sequence name="B08 · Genuine next hand" from={68*fps} durationInFrames={5*fps} premountFor={fps}><Shot src="media/zh-practice-take02.mp4" start={67.1} crop={[760,440,1160,580]} inset title="下一手，再练一次" zh position="tl" titleSeconds={2}/></Sequence>
+  <Sequence name="B08 · Genuine next hand" from={68*fps} durationInFrames={5*fps} premountFor={fps}><Shot src="media/zh-practice-take02.mp4" start={67.1} crop={[760,440,1160,580]} inset title="下一手，再练一次" zh position="tr" titleSeconds={2}/></Sequence>
   <Sequence name="B09 · Desktop CTA" from={73*fps} durationInFrames={7*fps} premountFor={fps}><EndCard zh/></Sequence>
   <Music duration={80} decisions={[[0,4],[36,44]]}/>
  </Base>;

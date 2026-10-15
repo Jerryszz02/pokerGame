@@ -20,9 +20,10 @@ for i,(fn,n) in enumerate([('StoreFilm','Store'),('BilibiliFilm','Bilibili'),('S
    if file.startswith('en-practice'):entry['hand_id']='hand-6aaf93d1165167e45ccf5daf04a02d7c' if a<(24 if n=='Shorts' else 51)*30 else 'fresh-table'
    if file.startswith('zh-practice') or file=='zh-replay-pickup.mp4':entry['hand_id']='hand-ad81fba7f63ae4c8713825d9e0129b52' if a<68*30 else 'next-hand'
   else:entry['type']='editorial-title-card'
-  for key in ['crop','top','bottom','coachCrop','boardCrop']:
+  for key in ['crop','top','bottom','coachCrop','boardCrop','handCrop','actionCrop']:
    z=re.search(key+r'=\{(\[[^]]+\])\}',jsx)
    if z:entry[key]=json.loads(z[1])
+  if '<OpeningChoice ' in jsx:entry['layout']='centre-banner-with-synchronized-hand-and-action-windows'
   cap=re.search(r"caption=\{captions\?'([^']+)':undefined\}",jsx)
   if cap:
    dur=re.search(r'captionSeconds=\{([^}]+)\}',jsx);secs=float(dur[1]) if dur else 3

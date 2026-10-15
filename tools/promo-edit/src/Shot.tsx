@@ -1,6 +1,6 @@
 import React from 'react';
 import {Sequence, useCurrentFrame, useVideoConfig} from 'remotion';
-import {Base, Crop, Subtitle, Title, Viewport} from './Design';
+import {Base, Crop, OpeningBanner, Subtitle, Title, Viewport} from './Design';
 
 type ShotProps={src:string; start:number; crop:Crop; endCrop?:Crop; title?:string; zh?:boolean; sub?:string; position?:'tl'|'tr'|'bl'|'center'; caption?:string; captionSeconds?:number; titleSeconds?:number; inset?:boolean;full?:boolean; vertical?:boolean; label?:string; clickAt?:number; clickPoint?:[number,number]};
 export const Shot:React.FC<ShotProps>=({src,start,crop,endCrop,title,zh,sub,position,caption,captionSeconds=3,titleSeconds=2.3,inset=false,full=false,vertical=false,label,clickAt,clickPoint})=>{
@@ -29,10 +29,22 @@ export const SplitShot:React.FC<{src:string;start:number;top:Crop;bottom:Crop;ti
  <div style={{position:'absolute',top:1500,left:90,fontFamily:'Noto',fontSize:32,color:'#9db2a7'}}>Same hand · Real gameplay</div>
 </Base>;
 
+// Three windows use the same unaltered source moment. The lower windows keep
+// the actual hand and available actions clear while the headline owns the centre.
+export const OpeningChoice:React.FC<{src:string;start:number;crop:Crop;handCrop:Crop;actionCrop:Crop;title:string;zh?:boolean;seconds:number;caption?:string;captionSeconds?:number}>=({src,start,crop,handCrop,actionCrop,title,zh,seconds,caption,captionSeconds=seconds})=> <Base>
+ <Viewport src={src} start={start} crop={crop} box={[0,0,1920,960]}/>
+ <div style={{position:'absolute',inset:0,background:'#06110fd9'}}/>
+ <div style={{position:'absolute',left:125,top:100,color:'#d9b66c',fontFamily:'Pixelify',fontWeight:700,fontSize:52,letterSpacing:5}}>POKERGAME</div>
+ <Viewport src={src} start={start} crop={handCrop} box={[120,650,720,300]} sound={false}/>
+ <Viewport src={src} start={start} crop={actionCrop} box={[1030,650,770,300]} sound={false}/>
+ <OpeningBanner text={title} zh={zh} seconds={seconds}/>
+ {caption&&<Subtitle text={caption} seconds={captionSeconds}/>}
+</Base>;
+
 // Both windows show the same recorded moment: feedback beside the cards it describes.
 export const TutorialFeedback:React.FC<{src:string;start:number;coachCrop:Crop;boardCrop:Crop;zh?:boolean}> = ({src,start,coachCrop,boardCrop,zh})=> <Base>
  <Viewport src={src} start={start} crop={coachCrop} box={[70,230,1120,610]}/>
  <Viewport src={src} start={start} crop={boardCrop} box={[1280,160,570,630]} sound={false}/>
- <div style={{position:'absolute',left:90,top:120,fontFamily:zh?'Noto':'Pixelify',fontSize:50,color:'#d9b66c'}}>{zh?'跟注之后':'AFTER THE CALL'}</div>
- <div style={{position:'absolute',left:1290,top:830,fontFamily:zh?'Noto':'Pixelify',fontSize:40,color:'#d9b66c'}}>{zh?'公共牌与手牌':'BOARD + YOUR HAND'}</div>
+ <div style={{position:'absolute',left:105,top:110,fontFamily:zh?'Noto':'Pixelify',fontSize:zh?66:76,fontWeight:700,color:'#fff2ce'}}>{zh?'跟注之后':'AFTER THE CALL'}</div>
+ <div style={{position:'absolute',left:1280,top:830,fontFamily:zh?'Noto':'Pixelify',fontSize:zh?50:48,fontWeight:700,color:'#fff2ce'}}>{zh?'公共牌与手牌':'BOARD + YOUR HAND'}</div>
 </Base>;
