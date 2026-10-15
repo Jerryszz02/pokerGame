@@ -1,0 +1,13 @@
+import {bundle} from '@remotion/bundler';
+import {getCompositions, renderStill} from '@remotion/renderer';
+import {mkdir} from 'node:fs/promises';
+import {resolve} from 'node:path';
+const output=resolve(process.argv[2]);
+await mkdir(output,{recursive:true});
+const serveUrl=await bundle({entryPoint:resolve('src/index.ts'),publicDir:resolve('public'),enableCaching:true});
+const browserExecutable='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const comps=await getCompositions(serveUrl,{browserExecutable});
+const wanted={Store:[.7,9,26,28,29.4,31,34,40.5,44.8,48,53],Xiaohongshu:[.7,5.5,9,15,26,34,43,53],Bilibili:[1,14,24,40,44,51,61,64,70],Shorts:[1,4,7,12.3,17.5,21,24.8,28]};
+const jobs=Object.entries(wanted).flatMap(([id,times])=>times.map(t=>({id,t})));
+let next=0;
+await Promise.all(Array.from({length:3},async()=>{while(next<jobs.length){const {id,t}=jobs[next++];await renderStill({serveUrl,composition:comps.find(c=>c.id===id),output:resolve(output,`${id}-${t}.jpg`),frame:Math.round(t*30),imageFormat:'jpeg',browserExecutable,logLevel:'error'});console.log(`${id} ${t}`);}}));

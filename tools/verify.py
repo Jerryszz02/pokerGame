@@ -36,6 +36,7 @@ def main():
         ('profile_save_debounce_test.gd', 'Profile save debounce tests passed.'),
         ('test_runner.gd', 'All poker tests passed.'),
         ('practice_data_test.gd', 'Practice data tests passed.'),
+        ('promo_capture_isolation_test.gd', 'Promo capture isolation tests passed.'),
         ('practice_save_retry_test.gd', 'Practice save retry tests passed.'),
         ('tutorial_test.gd', 'Tutorial tests passed.'),
         ('guided_tutorial_ui_probe.gd', 'Guided tutorial UI probes passed.'),
