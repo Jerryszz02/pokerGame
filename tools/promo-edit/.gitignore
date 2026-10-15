@@ -1,0 +1,14 @@
+node_modules
+dist
+.DS_Store
+.env
+
+# Ignore the output video from Git but not videos you import into src/.
+out
+public/media/*.mp4
+public/media/*.wav
+public/media/*.json
+
+public/fonts/NotoSansSC.ttf
+public/media/*.mp3
+public/media/*.ogg

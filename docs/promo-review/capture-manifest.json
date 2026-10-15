@@ -1,0 +1,547 @@
+{
+  "schema_version": 1,
+  "game_version": "1.4.0",
+  "game_commit": "42e62f83f9b2c439eb636ac86195312e49604af0",
+  "production_date": "2026-10-15",
+  "capture_method": {
+    "renderer": "Godot 4.7 graphical Metal MovieMaker",
+    "output_size": [
+      1920,
+      1080
+    ],
+    "design_size": [
+      1280,
+      720
+    ],
+    "fps": 30,
+    "interaction": "Automated visible UI Control signals, not desktop pointer capture. Human actions enter the existing game action chain; AI runs normally.",
+    "cursor_recorded": false,
+    "game_code_modified": false,
+    "card_deck_or_results_modified": false,
+    "sound_effects": true,
+    "music_volume": 0,
+    "remote_review_service_url": "",
+    "network_evidence_scope": "Cloud review URL disabled before scene startup; no network packet trace was collected."
+  },
+  "profile_isolation": {
+    "profile": "Unique per-process file under OS cache directory, outside normal user profile",
+    "practice": "Derived isolated profile path plus .practice",
+    "normal_user_save_used": false
+  },
+  "excluded_sources": [
+    "take01/*",
+    "en-test*"
+  ],
+  "sources": [
+    {
+      "name": "en-practice-take02",
+      "files": {
+        "avi": {
+          "file": "en-practice-take02.avi",
+          "sha256": "2500a3628639fd34b78930368eb11ce122701ba560a747c825e7dfa7c850a58f",
+          "bytes": 528841716,
+          "duration_seconds": 120.433333
+        },
+        "mp4": {
+          "file": "en-practice-take02.mp4",
+          "sha256": "6b0dd5ee1ee8acb894ab96b451baec610843c1ac2c53072a6e1a3c7e4e4b763b",
+          "bytes": 5633972,
+          "duration_seconds": 120.433333
+        }
+      },
+      "timeline": "en-practice-take02-timeline.jsonl",
+      "hand_evidence": {
+        "hand_id": "hand-6aaf93d1165167e45ccf5daf04a02d7c",
+        "hand_number": 1,
+        "match_id": "match-426a1c8d1733664853bb8dfdef782223",
+        "net_change": -1000,
+        "mode": "practice_live_completed_hand",
+        "record_file": "en-practice-take02-hand-record.json"
+      },
+      "isolation": {
+        "profile_outside_user_save": true,
+        "practice_isolated": true,
+        "remote_review_service_url": ""
+      },
+      "capture_complete": true
+    },
+    {
+      "name": "zh-practice-take02",
+      "files": {
+        "avi": {
+          "file": "zh-practice-take02.avi",
+          "sha256": "ce00be8b0ecb6be9660eff201a679e932cdc8d525a2669cd8ca308b2854b0f2a",
+          "bytes": 304569588,
+          "duration_seconds": 72.4
+        },
+        "mp4": {
+          "file": "zh-practice-take02.mp4",
+          "sha256": "8c0491fe3974c9990e7afa8aa8f53d7ade0d02143602c1886ddf31d1161345c3",
+          "bytes": 3180376,
+          "duration_seconds": 72.4
+        }
+      },
+      "timeline": "zh-practice-take02-timeline.jsonl",
+      "hand_evidence": {
+        "hand_id": "hand-ad81fba7f63ae4c8713825d9e0129b52",
+        "hand_number": 1,
+        "match_id": "match-8ee9349a768ef151fe4a6b431775eea5",
+        "net_change": 1010,
+        "mode": "practice_live_completed_hand",
+        "record_file": "zh-practice-take02-hand-record.json"
+      },
+      "isolation": {
+        "profile_outside_user_save": true,
+        "practice_isolated": true,
+        "remote_review_service_url": ""
+      },
+      "capture_complete": true
+    },
+    {
+      "name": "en-tutorial-take02",
+      "files": {
+        "avi": {
+          "file": "en-tutorial-take02.avi",
+          "sha256": "aef82fe983abdc6200b5e2ed26b80d63e30ec7c657c01b1031d59c9bb47ff5c3",
+          "bytes": 293060566,
+          "duration_seconds": 52.966667
+        },
+        "mp4": {
+          "file": "en-tutorial-take02.mp4",
+          "sha256": "c9aaec6326e632b0b5736492c5bc8efe8c303cbd4271130e363247595354711f",
+          "bytes": 4332005,
+          "duration_seconds": 52.966667
+        }
+      },
+      "timeline": "en-tutorial-take02-timeline.jsonl",
+      "hand_evidence": {
+        "hand_id": "hand-50a1bea764dc4de4719c92430fbccc6f",
+        "hand_number": 1,
+        "match_id": "match-236f2dac9b3d0cfbce766707abcc0956",
+        "net_change": 20,
+        "mode": "tutorial_preset_G1",
+        "record_file": "en-tutorial-take02-hand-record.json"
+      },
+      "isolation": {
+        "profile_outside_user_save": true,
+        "practice_isolated": true,
+        "remote_review_service_url": ""
+      },
+      "capture_complete": true
+    },
+    {
+      "name": "zh-tutorial-take02",
+      "files": {
+        "avi": {
+          "file": "zh-tutorial-take02.avi",
+          "sha256": "6678c2f9a53fd8d98374ddade7186bbd9e173c4d8bec4b831ae84766a05248f1",
+          "bytes": 289940180,
+          "duration_seconds": 52.966667
+        },
+        "mp4": {
+          "file": "zh-tutorial-take02.mp4",
+          "sha256": "f975a2cb9f3c1deb1cdf691f4b650c9be4aaa593f6817d0f5206cbf63704ca9a",
+          "bytes": 4347418,
+          "duration_seconds": 52.966667
+        }
+      },
+      "timeline": "zh-tutorial-take02-timeline.jsonl",
+      "hand_evidence": {
+        "hand_id": "hand-5441039bfd68f65d7748601f0dae618b",
+        "hand_number": 1,
+        "match_id": "match-01f391e194c566581186d3a12f7494be",
+        "net_change": 20,
+        "mode": "tutorial_preset_G1",
+        "record_file": "zh-tutorial-take02-hand-record.json"
+      },
+      "isolation": {
+        "profile_outside_user_save": true,
+        "practice_isolated": true,
+        "remote_review_service_url": ""
+      },
+      "capture_complete": true
+    },
+    {
+      "name": "zh-replay-pickup",
+      "files": {
+        "avi": {
+          "file": "zh-replay-pickup.avi",
+          "sha256": "caea23720f4e2599d32ac9f63ee600b3b6779591a73ec0eed361731cbd545331",
+          "bytes": 97889454,
+          "duration_seconds": 26.566667
+        },
+        "mp4": {
+          "file": "zh-replay-pickup.mp4",
+          "sha256": "ea6a8e857f887c400c6c92a3d391cddd767f08f2ce63fd11745b386a233e26f7",
+          "bytes": 690122,
+          "duration_seconds": 26.566667
+        }
+      },
+      "timeline": "zh-replay-pickup-timeline.jsonl",
+      "hand_evidence": {
+        "hand_id": "hand-ad81fba7f63ae4c8713825d9e0129b52",
+        "hand_number": 1,
+        "match_id": "match-8ee9349a768ef151fe4a6b431775eea5",
+        "net_change": 1010,
+        "mode": "read_only_replay_same_record",
+        "record_file": "zh-practice-take02-hand-record.json"
+      },
+      "isolation": {
+        "profile_outside_user_save": true,
+        "practice_isolated": true,
+        "remote_review_service_url": ""
+      },
+      "capture_complete": true
+    },
+    {
+      "name": "hard-ai-en",
+      "files": {
+        "avi": {
+          "file": "hard-ai-en.avi",
+          "sha256": "fbd4a9c696492fefd4a0a3006a40572268c350cd9a761f6627f43f6bfdc7b575",
+          "bytes": 151961490,
+          "duration_seconds": 29.566667
+        },
+        "mp4": {
+          "file": "hard-ai-en.mp4",
+          "sha256": "90c0d0909717f0fa9b3af0842719a77b2d5695629bdad25c130fcfddc7497171",
+          "bytes": 1918371,
+          "duration_seconds": 29.566667
+        }
+      },
+      "timeline": "hard-ai-en-timeline.jsonl",
+      "hand_evidence": {
+        "hand_id": null,
+        "hand_number": 1,
+        "match_id": null,
+        "net_change": null,
+        "mode": "hard_live_incomplete_hand"
+      },
+      "isolation": {
+        "profile_outside_user_save": true,
+        "practice_isolated": true,
+        "remote_review_service_url": ""
+      },
+      "capture_complete": true
+    },
+    {
+      "name": "hard-ai-zh",
+      "files": {
+        "avi": {
+          "file": "hard-ai-zh.avi",
+          "sha256": "e84cf1d0f2828163f3a0a14b7ffbf31ee28bb037ca764e5dc890994d68be2ab4",
+          "bytes": 152383264,
+          "duration_seconds": 29.566667
+        },
+        "mp4": {
+          "file": "hard-ai-zh.mp4",
+          "sha256": "acae8eaf1311ee270aff52436259170c4721bf4bff215b314c751a583094db3a",
+          "bytes": 2225098,
+          "duration_seconds": 29.566667
+        }
+      },
+      "timeline": "hard-ai-zh-timeline.jsonl",
+      "hand_evidence": {
+        "hand_id": null,
+        "hand_number": 1,
+        "match_id": null,
+        "net_change": null,
+        "mode": "hard_live_incomplete_hand"
+      },
+      "isolation": {
+        "profile_outside_user_save": true,
+        "practice_isolated": true,
+        "remote_review_service_url": ""
+      },
+      "capture_complete": true
+    },
+    {
+      "name": "config-pickup-en",
+      "files": {
+        "avi": {
+          "file": "config-pickup-en.avi",
+          "sha256": "9b06939406ff6d31bc34ddf58596793bff5a509e1fde791dcfed11e5bd0d157e",
+          "bytes": 62855146,
+          "duration_seconds": 14.066667
+        },
+        "mp4": {
+          "file": "config-pickup-en.mp4",
+          "sha256": "1a520b9885d3d3a374db4e433778206bbed403c88b51c0f87cb6d8fdb4df987c",
+          "bytes": 1312703,
+          "duration_seconds": 14.066667
+        }
+      },
+      "timeline": "config-pickup-en-timeline.jsonl",
+      "hand_evidence": {
+        "hand_id": null,
+        "hand_number": 1,
+        "match_id": null,
+        "net_change": null,
+        "mode": "configuration_ui_pickup_then_new_incomplete_hand",
+        "purpose": "R1 supplement exposing real Start/Pause controls after actual scroll; not a continuation of an earlier recorded hand"
+      },
+      "isolation": {
+        "profile_outside_user_save": true,
+        "practice_isolated": true,
+        "remote_review_service_url": ""
+      },
+      "milestones": [
+        {
+          "button_rect": [
+            398.0,
+            499.0,
+            484.0,
+            42.0
+          ],
+          "design_size": [
+            1280,
+            720
+          ],
+          "event_type": "ui_press",
+          "frame": 90,
+          "language": "en",
+          "mode": "config",
+          "name": "HomePracticeButton",
+          "seconds": 3.0,
+          "text": "Practice \u00b7 Basics"
+        },
+        {
+          "ai_count": 2,
+          "difficulty": "medium",
+          "event_type": "config_upper_visible",
+          "frame": 98,
+          "language": "en",
+          "mode": "config",
+          "seconds": 3.26666666666667
+        },
+        {
+          "event_type": "ui_scroll_start",
+          "frame": 188,
+          "from": 0.0,
+          "language": "en",
+          "method": "real ScrollContainer vertical scrollbar value; automated UI scroll",
+          "mode": "config",
+          "seconds": 6.26666666666667,
+          "to": 133.0
+        },
+        {
+          "event_type": "config_lower_visible",
+          "frame": 233,
+          "fully_visible": true,
+          "language": "en",
+          "mode": "config",
+          "pause_enabled": true,
+          "pause_rect": [
+            354.0,
+            395.0,
+            342.0,
+            32.0
+          ],
+          "scroll_rect": [
+            354.0,
+            128.0,
+            572.0,
+            464.0
+          ],
+          "seconds": 7.76666666666667,
+          "start_rect": [
+            363.0,
+            550.0,
+            180.0,
+            42.0
+          ]
+        },
+        {
+          "button_rect": [
+            363.0,
+            550.0,
+            180.0,
+            42.0
+          ],
+          "design_size": [
+            1280,
+            720
+          ],
+          "event_type": "ui_press",
+          "frame": 323,
+          "language": "en",
+          "mode": "config",
+          "name": "ConfigStartButton",
+          "seconds": 10.7666666666667,
+          "text": "Start"
+        },
+        {
+          "config": {
+            "ai_count": 2,
+            "big_blind": 20,
+            "difficulty": "medium",
+            "initial_stack": 1000,
+            "mode": "practice",
+            "opponent_personality": "default",
+            "pause_each_hand": true,
+            "show_hints": false,
+            "small_blind": 10
+          },
+          "event_type": "config_table_entered",
+          "frame": 331,
+          "hand_number": 1,
+          "language": "en",
+          "mode": "config",
+          "seconds": 11.0333333333333
+        },
+        {
+          "event_type": "capture_complete",
+          "frame": 421,
+          "language": "en",
+          "mode": "config",
+          "seconds": 14.0333333333333
+        }
+      ],
+      "capture_complete": true
+    },
+    {
+      "name": "config-pickup-zh",
+      "files": {
+        "avi": {
+          "file": "config-pickup-zh.avi",
+          "sha256": "03711f7b991143138a194dc1bd389f43f92752f6f813466377c591081702f918",
+          "bytes": 64129718,
+          "duration_seconds": 14.066667
+        },
+        "mp4": {
+          "file": "config-pickup-zh.mp4",
+          "sha256": "cd237c0eb89e1ba32d0b2aa196b24618184b3964394a7ef65ba49a63d25175df",
+          "bytes": 1199365,
+          "duration_seconds": 14.066667
+        }
+      },
+      "timeline": "config-pickup-zh-timeline.jsonl",
+      "hand_evidence": {
+        "hand_id": null,
+        "hand_number": 1,
+        "match_id": null,
+        "net_change": null,
+        "mode": "configuration_ui_pickup_then_new_incomplete_hand",
+        "purpose": "R1 supplement exposing real Start/Pause controls after actual scroll; not a continuation of an earlier recorded hand"
+      },
+      "isolation": {
+        "profile_outside_user_save": true,
+        "practice_isolated": true,
+        "remote_review_service_url": ""
+      },
+      "milestones": [
+        {
+          "button_rect": [
+            398.0,
+            499.0,
+            484.0,
+            42.0
+          ],
+          "design_size": [
+            1280,
+            720
+          ],
+          "event_type": "ui_press",
+          "frame": 90,
+          "language": "zh",
+          "mode": "config",
+          "name": "HomePracticeButton",
+          "seconds": 3.0,
+          "text": "\u7ec3\u4e60\u5bf9\u5c40 \u00b7 \u57fa\u7840\u6d41\u7a0b"
+        },
+        {
+          "ai_count": 2,
+          "difficulty": "medium",
+          "event_type": "config_upper_visible",
+          "frame": 98,
+          "language": "zh",
+          "mode": "config",
+          "seconds": 3.26666666666667
+        },
+        {
+          "event_type": "ui_scroll_start",
+          "frame": 188,
+          "from": 0.0,
+          "language": "zh",
+          "method": "real ScrollContainer vertical scrollbar value; automated UI scroll",
+          "mode": "config",
+          "seconds": 6.26666666666667,
+          "to": 81.0
+        },
+        {
+          "event_type": "config_lower_visible",
+          "frame": 233,
+          "fully_visible": true,
+          "language": "zh",
+          "mode": "config",
+          "pause_enabled": true,
+          "pause_rect": [
+            354.0,
+            422.0,
+            342.0,
+            32.0
+          ],
+          "scroll_rect": [
+            354.0,
+            128.0,
+            572.0,
+            464.0
+          ],
+          "seconds": 7.76666666666667,
+          "start_rect": [
+            363.0,
+            550.0,
+            180.0,
+            42.0
+          ]
+        },
+        {
+          "button_rect": [
+            363.0,
+            550.0,
+            180.0,
+            42.0
+          ],
+          "design_size": [
+            1280,
+            720
+          ],
+          "event_type": "ui_press",
+          "frame": 323,
+          "language": "zh",
+          "mode": "config",
+          "name": "ConfigStartButton",
+          "seconds": 10.7666666666667,
+          "text": "\u5f00\u59cb"
+        },
+        {
+          "config": {
+            "ai_count": 2,
+            "big_blind": 20,
+            "difficulty": "medium",
+            "initial_stack": 1000,
+            "mode": "practice",
+            "opponent_personality": "default",
+            "pause_each_hand": true,
+            "show_hints": false,
+            "small_blind": 10
+          },
+          "event_type": "config_table_entered",
+          "frame": 331,
+          "hand_number": 1,
+          "language": "zh",
+          "mode": "config",
+          "seconds": 11.0333333333333
+        },
+        {
+          "event_type": "capture_complete",
+          "frame": 421,
+          "language": "zh",
+          "mode": "config",
+          "seconds": 14.0333333333333
+        }
+      ],
+      "capture_complete": true
+    }
+  ]
+}
