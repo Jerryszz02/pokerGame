@@ -33,7 +33,7 @@ func _run() -> void:
 	root.size = Vector2i(1920,1080)
 	DisplayServer.window_set_size(Vector2i(1920,1080))
 	scene = load("res://scenes/main.tscn").instantiate()
-	scene.profile_path = OS.get_cache_dir().path_join("poker-promo-v140-" + tag + "-" + str(OS.get_process_id()) + ".cfg")
+	scene.profile_path = _new_capture_profile_path()
 	scene.deepseek_review.service_url = ""
 	var profile: Dictionary = LocalProfile.load_profile(scene.profile_path)
 	profile.settings.language = "zh_CN" if lang == "zh" else "en"
@@ -62,6 +62,9 @@ func _run() -> void:
 	_log("capture_complete")
 	log_file.close()
 	quit()
+func _new_capture_profile_path() -> String:
+	# PIDs are reused; a fresh random token also isolates persisted tutorial progress.
+	return OS.get_cache_dir().path_join("poker-promo-v140-" + tag + "-" + Crypto.new().generate_random_bytes(16).hex_encode() + ".cfg")
 func hold(seconds: float) -> void:
 	for i in range(roundi(seconds * 30)):
 		await process_frame

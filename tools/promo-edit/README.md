@@ -20,6 +20,8 @@
 
 这些是 Godot 图形 MovieMaker 录制、由 UI 控件驱动的游戏画面；操作指示是后期叠层。重新录制会产生不同随机牌局，不能直接套用本工程原有时间码。`prepare-assets.mjs` 只读取来源清单中的九条 MP4，逐一核对 SHA-256 后才复制；新录屏必须先审核并更新来源清单，不能套用旧文件的版本与时间码。
 
+每次录屏使用随机生成的独立 profile 路径，避免进程 ID 重用时继承旧手牌或教程进度。隔离回归检查已接入 CI 的 `tools/verify.py`，也可从仓库根目录执行：`/Applications/Godot_mono.app/Contents/MacOS/Godot --headless --path . -s tests/promo_capture_isolation_test.gd`。
+
 使用 Node.js 20.11+（本次 Node.js 22.23.1）、本机 Chrome、Shotcut 自带 FFmpeg/FFprobe；Python 检测工具的接触表需要 Pillow。从仓库根目录执行：
 
 ```sh
