@@ -2,34 +2,35 @@
 
 项目为 Godot 4 + GDScript 单人德州扑克练习游戏。桌面可离线运行，规则、对手 AI、本地教练和规则文字复盘均在本地完成；联网时，回放会自动请求 Cloudflare 服务补充文字解读。
 
-## 当前状态（2026-10-12 同步）
+## 当前状态（2026-10-18 同步）
 
-本次请求：同步本地文档与 GitHub 版本记录。工作模式：状态同步；项目根目录为 `/Users/jerryszz/Desktop/Projects/pokerGame`。本次核对项目配置、教程控制器、架构、验证脚本、CI 配置及发行记录；没有重新运行游戏。用户于 2026-10-12 反馈“完整验收我试过了没有什么问题”，记录为用户人工验收反馈。
+本次请求：每周同步活跃项目文档。工作模式：状态同步；规范项目目录为 `/Users/jerryszz/Desktop/Projects/pokerGame`。本次从独立副本核对远端默认分支、PR #34/#35 合并记录、项目配置及宣传片交付清单；没有重新运行游戏、渲染视频或验证公开渠道。10 月 12 日的版本与用户验收记录继续作为带日期的历史证据。
 
 | 层次 | 已确认事实 | 证据与边界 |
 | --- | --- | --- |
-| 源码基线 | 本次同步起点 `origin/main` 为 `cb98f0b`，项目版本 **1.4.0**。三手教程、练习、牌谱回放、统计与成就、对手风格、地狱难度、本地教练、离线文字复盘和六维画像均已实现。 | [项目配置](../../project.godot)、[架构](../architecture.md)、[教练与雷达定义](../architecture.md#coach-and-player-style)。此提交是文档同步起点，发行包来源另见发行记录。 |
-| 公开版本 | **itch.io 提供 v1.4.0** 网页版及 Windows/macOS 下载；**GitHub 最新正式 Release 已同步为 v1.4.0**（2026-10-12）。 | [itch.io](https://jerryszz02.itch.io/poker-game)、[GitHub v1.4.0](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.4.0)、[1.4.0 发布记录](../releases/1.4.0.md)。GitHub API 读回确认为 latest、非 draft、非 prerelease；tag 指向 `cb98f0b`，7 个附件的名称、大小和 SHA-256 与原包及 manifests 一致。 |
+| 源码基线 | 本次同步起点 `origin/main` 为 `27a0b77`（已合入 PR #34/#35 宣传片工程与标题修订），项目版本 **1.4.0**。三手教程、练习、牌谱回放、统计与成就、对手风格、地狱难度、本地教练、离线文字复盘和六维画像均已实现。 | [项目配置](../../project.godot)、[架构](../architecture.md)、[教练与雷达定义](../architecture.md#coach-and-player-style)。此提交是文档同步起点，发行包来源另见发行记录。 |
+| 公开版本（2026-10-12 核验） | **itch.io 提供 v1.4.0** 网页版及 Windows/macOS 下载；**GitHub 最新正式 Release 已同步为 v1.4.0**（2026-10-12）。 | [itch.io](https://jerryszz02.itch.io/poker-game)、[GitHub v1.4.0](https://github.com/Jerryszz02/pokerGame/releases/tag/v1.4.0)、[1.4.0 发布记录](../releases/1.4.0.md)。GitHub API 读回确认为 latest、非 draft、非 prerelease；tag 指向 `cb98f0b`，7 个附件的名称、大小和 SHA-256 与原包及 manifests 一致。 |
 | 自动检查 | v1.4.0 发行记录保存了规则、AI、教程、保存、语言音频、布局、soak、工具及原生/Web 包检查结果。 | [Release PR CI](https://github.com/Jerryszz02/pokerGame/actions/runs/35846894269)、[1.4.0 验证记录](../releases/1.4.0.md#verification)。这是对应发行提交的历史检查；本次未在本地重跑游戏测试，文档 PR 的 CI 结果另见该 PR。 |
 | 人工验收 | 用户于 2026-10-12 反馈已做完整实测，未发现明显问题。 | [用户验收记录](../releases/2026-10-12-owner-acceptance.md)。用户没有提供 OS、架构、浏览器或逐项日志；该反馈不扩写为所有平台矩阵逐项通过。 |
-| Devlog | v1.4.0 帖子已列于 itch.io 公开页面，图文及媒体保存在仓库。 | [公开 Devlog](https://jerryszz02.itch.io/poker-game/devlog/1675112/pokergame-140-learn-by-playing-your-first-three-hands)、[Devlog 文本](../releases/1.4.0-devlog.md)、[发行记录](../releases/1.4.0.md)。本次同步未发布或编辑该帖子。 |
+| Devlog（历史发布记录） | v1.4.0 帖子已列于 itch.io 公开页面，图文及媒体保存在仓库。 | [公开 Devlog](https://jerryszz02.itch.io/poker-game/devlog/1675112/pokergame-140-learn-by-playing-your-first-three-hands)、[Devlog 文本](../releases/1.4.0-devlog.md)、[发行记录](../releases/1.4.0.md)。本次同步未发布或编辑该帖子。 |
 
 当前玩法包括：1～5 名 AI、四档难度、四档起始筹码和四组固定盲注、**三手真实牌桌教程（G1–G3）**、自由对战、基础练习（可逐手暂停）、最多 1000 手完整牌谱及回放、本地筛选统计与成就、中英文切换、Lounge 背景音乐、牌桌音效及独立音量。旧七课进度仅保留兼容处理，已不再是教程入口。
 
 AI 已有 169 类翻前范围、当手公开行动推断、加权 Monte Carlo 胜率和有限行动收益评估。它是本地启发式模型，不是 CFR/GTO 求解器，也没有跨场次学习；测试通过不证明职业级强度。见 [AI 设计](../architecture.md#ai-layer)与[回归边界](test-plan.md#算法与教练回归)。
 
-未完成对局续玩、联网对战和跨设备存档未纳入已确认范围。已规划的宣传视频最终剪辑仍未交付，现有素材与脚本见[宣传计划](../promo-video-scripts.md)；这与游戏功能的实现及用户验收分开记录。
+未完成对局续玩、联网对战和跨设备存档未纳入已确认范围。四条宣传片已于 2026-10-15 完成本地交付；[PR #34](https://github.com/Jerryszz02/pokerGame/pull/34) 的工程与 [PR #35](https://github.com/Jerryszz02/pokerGame/pull/35) 的横版大字/开场修订均已合入主干。当前采用 Store / Xiaohongshu 的 R3、Bilibili 的 R2、Shorts 的 R0，文件身份与独立审核见[宣传片交付入口](../promo-review/README.md)。成片交付和代码合并不代表视频已上传发布；主观试听仍未验证。原分镜继续见[宣传计划](../promo-video-scripts.md)。
 
 已完成的一次性更新计划与实施过程已移出当前文档树，历史可通过 Git 查看。现行机制集中在[架构](../architecture.md)，操作与维护在[玩家指南](../player-guide.md)和 [Runbook](../runbook.md)，验证入口保留在下列长期项目文档中。
 
-本次更新以下六篇 planning 文档，无新增或退役 planning 文件。最小检查为 `python3 /Users/jerryszz/.agents/skills/plan-project-docs/scripts/audit_planning_docs.py --root <项目根目录>`，仅核对索引和本地链接。未重复游戏全量验收；自动验证和人工反馈各自沿用带日期的证据。
+本次仅同步本索引中的源码基线和宣传片完成状态，无新增或退役 planning 文件。最小检查为 `python3 /Users/jerryszz/.agents/skills/plan-project-docs/scripts/audit_planning_docs.py --root <项目根目录>`，仅核对索引和本地链接。未重复游戏全量验收；自动验证和人工反馈各自沿用带日期的证据。
 
-待确认：用户实测的具体 OS、架构、浏览器与逐项结果没有记录。GitHub Release 同步已读回核对；本次文档 PR 的检查须按该 PR 实际运行记录确认。
+待确认：用户实测的具体 OS、架构、浏览器与逐项结果没有记录。GitHub Release 同步的读回核对属于 2026-10-12 历史记录，本轮未重复渠道验收；本次文档 PR 的检查须按该 PR 实际运行记录确认。
 
 ## 文档索引
 
 | 文档 | 职责 |
 | --- | --- |
+| [../promo-review/README.md](../promo-review/README.md) | 四条宣传片交付、最终轮次、审核与未发布/试听边界。 |
 | [../architecture.md](../architecture.md) | 当前规则、AI、持久化、教练和六维画像机制。 |
 | [../runbook.md](../runbook.md) | 本地检查、语言音频、Cloudflare 运维、构建与网络边界。 |
 | [../releases/1.4.0.md](../releases/1.4.0.md) | 当前版本的构建来源、公开渠道、Devlog 和验证限制。 |
